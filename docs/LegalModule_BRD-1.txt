@@ -1,0 +1,1389 @@
+
+
+Analytics Fox Softwares
+Business Requirement Document
+CMS - Legal Module
+
+
+Created / Maintained By: Analytics Fox Software's
+
+
+Business AnalystCharmi DedhiyaEmailcfuria@analyticsfoxsoftware.comProject LeadAvinash JhaEmailajha@analyticsfoxsoftwares.com
+
+Client Information
+
+
+NameLocationMumbaiContact NameContact NumberE-Mail
+
+Document History
+
+VersionRemarksDateAuthorApproved Byv1.0BRD first draft11-07-2025Charmi Dedhiya
+Contents
+1. Purpose of this Document	3
+2. Entities	4
+3. Workflow	5
+4. Use Cases	6
+4.1.1 Pre-Legal Notice Generation	6
+4.1.2 Automated Notice Scheduling	10
+4.1.3 Legal Case Management	14
+4.1.4 Automatic Generation of Case ID	18
+4.1.5 Legal Notice Acknowledgement	21
+4.1.6 Court Date Calendar and Alerts:	25
+4.1.7 Legal Document Repository:	30
+4.1.8 Lawyer Allocation Workflow:	34
+4.1.9 Recovery Triggers:	38
+4.1.10 Legal Metrics & Dashboards	43
+
+
+
+
+
+
+
+
+1.  Purpose of this Document
+
+Objective
+
+* Define the functional scope of the Legal Workflow Engine.* Provide a blueprint for development, integration, and testing.* Ensure alignment between business, legal, and technical teams.* Serve as a reference for UI/UX design, API development, and automation.* Facilitate compliance with legal and regulatory standards.* Support training and onboarding of legal operations and IT staff.
+2.  Entities:
+
+EntityDescriptionBorrowerThe individual or organization subject to legal notices and recovery actions.Legal CaseA structured record of a legal proceeding, including status, documents, and history.Legal NoticeA formal document generated and sent to the borrower regarding legal action.LawyerLegal professional assigned to handle a case or represent the organization.Legal TeamInternal users managing legal workflows, documents, and court interactions.AdminSystem administrator managing configurations, user roles, and escalations.Recovery AgentExternal or internal personnel responsible for executing recovery actions.Court HearingScheduled legal event tracked in the calendar with alerts and outcomes.DocumentLegal files such as notices, affidavits, judgments, stored in the repository.SystemThe CMS platform automating workflows, scheduling, and tracking.Metrics DashboardAggregated KPIs and analytics for legal performance and compliance.
+3.  Workflow:
+
+
+4.  Use Cases:
+
+4.1.1  Pre-Legal Notice Generation:
+Use Case IDUC001Use CasePre-Legal Notice GenerationActorsCollection Officer, Legal Admin, SystemDescriptionSystem generates a legal notice based on a trigger event such as missed payment or broken promise. The notice is created using predefined templates and sent via selected delivery channels.Related Use Case IDUC002 (Automated Notice Scheduling), UC003 (Legal Case Management)Pre - ConditionLoan account exists and is active.
+DPD >= pre-configured threshold (e.g., 30/60 days).
+Valid contact details (email, phone, address) are available.
+Legal templates and entity profile must be configured in the system.Flow of Events1. Trigger event detected
+2. System fetches borrower details
+3. User selects notice type and language
+4. System generates notice
+5. User previews and sends notice
+6. Notice is logged and tracked
+Validation Rules
+* Template must be selected before notice can be generated.
+* Notice cannot be sent if any critical borrower contact field is missing.
+* Duplicate notice generation for same DPD and account within 7 days is restricted.
+Fields and ValidationField NameData TypeMandatoryDescriptionValidation Rules
+
+Notice ID
+Auto- generated
+
+YesUnique identifier for each
+pre-legal notice
+Format: PLN- [YYYYMMDD]-
+[Sequence]
+Loan Account Number
+Auto- Populated
+
+YesLoan account number of the delinquent
+borrower
+Must exist in LMS
+Borrower NameAuto- Populated
+YesName of the
+borrowerPulled from LMS masterDPD (Days Past Due)
+Integer
+YesCurrent DPD of the borrowerAuto- calculated
+
+Trigger Type
+
+Dropdown
+
+Yes
+Condition triggering the notice generationOptions: DPD Threshold, Payment Failure, Manual Trigger
+
+Notice Template
+
+Dropdown
+
+YesTemplate to be used for generating
+the notice
+Pre- configured in admin panel
+Communication Mode
+Multi- select
+YesModes used to send the
+notice
+Email, SMS, Courier/Post
+Notice Generation Date
+Auto Date
+YesDate on which notice is generated
+System- generated
+
+Notice Expiry Date
+
+Auto Date
+
+YesDeadline for the borrower to respond or repay
+before escalation
+Usually 7-15 days post generation
+
+Name of
+                                       the legal	Pulled from Legal Entity Name	Text	Yes	entity	organization
+issuing the	master notice
+Legal
+Issued By	officer or	Audit trail
+(Role/User)	Dropdown	Yes	system	maintained
+initiating
+the notice Final
+Document	PDF	preview of
+Preview	Preview	Yes	notice	Read-only
+before
+sending Whether the
+Acknowledgement	borrower
+Required	Boolean	Yes	must	Yes/No
+confirm
+receipt of notice
+                                       Current	Draft, Notice Status	Dropdown	Yes	state of the	Generated,
+notice	Sent, Failed,
+Acknowledged
+Any
+Remarks	Text Area	No	internal	Max 250
+remarks or	charact
+notes
+
+Sample Use case
+Scenario: A borrower has crossed 60 DPD, triggering a pre-legal notice.FieldValueNotice IDPLN-20250721- 001Loan Account NumberLN4567890Borrower NameMr. Rohit SharmaDPD62Trigger TypeDPD Threshold
+
+
+Notice TemplateTemplate- 60DPD-
+StandardCommunication ModeEmail, SMSNotice Generation Date
+21-07-2025Notice Expiry Date28-07-2025
+Legal Entity NameCollectPro Recovery ServicesIssued BySystemAcknowledgement Required
+YesNotice StatusSentPost - Condition* Notice generated and saved as PDF.
+* Delivery initiated via configured channels.
+* Status updated (Sent, Failed).
+* Acknowledgement awaited if required.
+* Notice history stored under borrower's legal profile.Alternative FlowNAExceptional Flow* The system runs a scheduler daily to identify eligible accounts.
+* Notices are generated using templates with dynamic merge fields (e.g., borrower name, loan amount).
+* Multiple communication modes are attempted (fallback logic applied).
+* Delivery tracking and status updated in real-time.
+* If Acknowledgement Required = Yes, a parallel workflow to confirm receipt is triggered.PriorityHigh
+
+Non- Functional RequirementNAAssumption and DependencyAssumes trigger logic is correctly implemented; depends on template repository and delivery service integrationAPI to be IntegratedDelivery Service API, Template Engine API
+4.1.2  Automated Notice Scheduling:
+Use Case IDUC002Use CaseAutomated Notice SchedulingActorsSystemDescriptionThis feature enables automatic scheduling and dispatch of legal notices based on triggers like DPD (Days Past Due), failed recovery actions, or non- acknowledgement of previous notices. Legal teams can define and manage rule- based schedules with recurrence, notice type, and delivery mode..Related Use Case IDUC001Pre - Condition* Legal notice templates must be configured.
+* Borrower contact information must be complete.
+* Trigger rules must match at least one eligible account.
+* Scheduler service must be active in the system.Flow of Events1. Detect trigger
+2. Apply scheduling rules
+3. Set next scheduled date
+4. Send notice
+5. Update status
+Fields and ValidationSchedule Type (Required), Delay Duration (Required if Delayed), Recurrence Frequency (Required if Recurring), Next Scheduled Date (Auto-calculated)Field NameData TypeMandat oryDescriptionValidation Rules
+
+Schedul e ID
+
+Auto- generated
+
+Yes
+Unique identifier for each notice schedule
+Format: NSC- [YYYYMMDD]-
+[Sequence]
+Schedul e Name
+
+Text
+
+Yes
+User-defined name of the schedule
+Unique name, max 100 characters
+
+
+Trigger Type
+
+
+Dropdow n
+
+
+
+Yes
+
+
+Condition to trigger the schedule
+
+DPD Threshold, No Payment, Acknowledgeme nt Pending, Manual
+
+Trigger Value
+
+Integer/T ext
+
+
+Yes
+
+Value for the trigger condition
+e.g., 30 for DPD, Yes/No for Acknowledgeme nt
+
+
+Frequen cy
+
+
+Dropdow n
+
+
+Yes
+
+How often the notice should be checked/generat ed
+
+
+Daily, Weekly, Monthly
+
+
+Applica ble Notice Type
+
+Dropdow n
+
+
+Yes
+
+Type of notice to be generated
+Pre-Legal Notice, Legal Notice, Final Warning
+Delivery Mode
+Multi- select
+Yes
+Channels used to send the notice
+Email, SMS, Courier/Post
+Templat e ID
+Dropdow n
+
+Yes
+Template used for generating the notice
+Pulled from Legal Template Master
+Start Date
+
+Date
+
+Yes
+Date when the schedule should start
+Must be current or future date
+End Date
+Date
+NoOptional end date for the schedule
+Must be = Start DateLast Executi on Date
+Auto Date
+NoLast date on which schedule executed
+Read-only
+
+Next Executi on Date
+
+
+Auto Date
+
+
+Yes
+Calculated based on frequency and last execution
+
+
+Read-only
+Status
+Dropdow n
+Yes
+Current status of the schedule
+Active, Paused, Expired
+
+
+Created	Auto/Use		User/system	Audit trail By	r	Yes	who created the	maintained
+schedule
+
+Remark	Text Area	No	Additional notes	Max 250
+s	characters
+
+
+Scenario: Automatically generate a pre-legal notice for all accounts with DPD = 45 every Monday.
+Field	Value
+Schedule Name	PreLegal-45DPD-Weekly Trigger Type	DPD Threshold
+Trigger Value	45
+Frequency	Weekly Applicable Notice Type	Pre-Legal Notice Delivery Mode	Email, SMS
+Template ID	PLN-TEMPLATE-45DAYS
+Start Date	01-Aug-2025 Next Execution Date 04-Aug-2025 Status	ActivePost - Condition* Notice(s) are generated and dispatched as per defined configuration.
+* Schedule logs are updated with execution outcomes.
+* Errors (e.g., missing contact details) are logged and alerted.
+* Next execution date is recalculated.Alternative FlowNAExceptional FlowSystem Behavior:
+
+* The system runs a background scheduler based on defined frequencies.
+* Matching accounts are fetched using the trigger conditions.
+* Notices are generated using the specified template with dynamic data.
+* Delivery is attempted through the selected mode(s).
+* Each scheduled run is logged with status and count of notices generated, delivered, and failed.PriorityHighNon- Functional Requireme ntNAAssumptio n and Dependenc yDepends on scheduling engine and calendar integration.API to be IntegratedScheduler API, Calendar API
+4.1.3  Legal Case Management:
+Use Case IDUC003Use CaseLegal Case ManagementActorsLegal Team, AdminDescriptionThe Legal Case Management feature serves as a centralized system to track and manage all legal cases filed by the organization. It links each case to a borrower account, maintains legal status, tracks hearing dates, manages documentation, and assigns cases to appropriate legal representatives. The system will support both manually created and auto-generated cases based on legal workflows.Related Use Case IDUC001, UC004
+Pre - Condition* The loan must be legally eligible for filing (e.g., default confirmed, pre- legal stage completes).
+* All required documentation must be uploaded (e.g., notice proof, affidavit).
+* Lawyer must be available and listed in the active lawyer master.Flow of EventsTo centrally manage the full lifecycle of legal cases associated with borrower accounts-including case initiation, assignment, hearings, status tracking, and closure-ensuring compliance, transparency, and operational efficiency.
+1. Create case
+2. Assign lawyer
+3. Upload documents
+4. Update status
+5. Track timelineFields and ValidationField NameData TypeMandator yDescriptionValidation Rules
+
+Case ID
+
+Auto- generated
+
+Yes
+
+Unique identifier for each legal case
+Format: LC- [YYYYMMDD]
+-[Sequence]
+Loan Account Number
+Auto/Looku p
+
+Yes
+Linked borrower loan account number
+Must exist in LMS
+
+Borrower Name
+
+Auto
+
+Yes
+Fetched from LMS based on Loan Account
+
+Read-only
+
+Case Type
+
+Dropdown
+
+Yes
+
+Type of legal case initiatedCivil, Criminal, Arbitration, 138 Bounce, SARFAESI
+
+
+Court Name
+Text
+Yes
+Court where the case is filed
+Max 100 characters
+Case Filed Date
+Date Picker
+Yes
+Date of formal case filing
+Cannot be future-dated
+Lawyer Assigned
+
+Dropdown
+
+Yes
+Legal counsel responsible for the caseFrom registered lawyer masterFiling Jurisdictio n
+Text
+YesCourt location/state/distri ctFree text or linked to geo master
+
+
+Current Status
+
+
+Dropdown
+
+
+Yes
+
+
+Present legal state of the case
+Filed, Under Trial, Stayed, Dismissed, Resolved, ClosedNext Hearing Date
+Date Picker
+No
+Scheduled date for next hearingMust be today or later if provided
+Last Hearing Outcome
+
+Text Area
+
+No
+Remarks or decisions from last hearing
+Max 500 characters
+Case Document s
+
+File Upload
+
+No
+Attachments for affidavits, summons, etc.
+PDF, JPG, DOCX
+formats allowed
+
+
+
+Recovery Action Linked
+
+
+Dropdown
+
+
+No
+
+
+If case resulted in any recovery action
+
+Repossession
+, Settlement, Warrant Issued, None
+Created By
+Auto/User
+Yes
+User/system who created the case
+Audit log maintained
+Case Remarks
+Text Area
+No
+Internal notes for trackingOptional; Max 500 charactersCase Closure Date
+Date
+No
+Date on which case was officially closedMust be = Case Filed Date
+Outcome Summary
+Text Area
+No
+Final decision or resolution notes
+OptionalPost - Condition* Case appears in Legal Dashboard and is linked to borrower account.
+* Hearing dates are scheduled and alerted automatically.
+* Compliance and Legal Ops are notified of new filings.
+* Recovery strategy may be updated based on court progression.Alternative FlowNAExceptional FlowSystem Behavior:
+* Legal case is linked to workflow engine and status is monitored for triggers.
+
+* Alerts are auto-sent to the assigned lawyer and legal ops team ahead of hearings.
+* If next hearing date is missed, system flags overdue hearing for escalation.
+* Cases marked as "Closed" trigger final update in borrower profile & legal ledger.PriorityHighNon- Functional Requiremen tNAAssumption and Dependenc yDepends on case registry and document repository.API to be IntegratedCase Management API, Document Storage API
+4.1.4  Automatic Generation of Case ID:
+Use Case IDUC004Use CaseAutomatic Generation of Case IDActorsSystemDescriptionThe system automatically generates a unique Case ID at the time of creation of a legal case record. The ID generation follows a consistent pattern that incorporates metadata such as date, loan type, or region (as applicable) to ensure uniqueness and traceability across time and geographies.Related Use Case IDUC003Pre - Condition* Case form must be valid and pass all mandatory checks.
+* Loan account must be eligible and present in system.
+* Configuration for ID format must be enabled in system settings.Flow of EventsTo ensure that every legal case created in the system is uniquely identified using a standardized, auto-generated Case ID. This enables accurate case referencing, audit trail maintenance, traceability, and avoids manual duplication errors.
+1. Detect new case
+2. Generate prefix and region code
+3. Increment sequence
+4. Combine to form case ID
+Case ID Format Options:
+The recommended Case ID format can be configured, but the standard format is:
+Case ID Format:
+LC-[YYYYMMDD]-[BranchCode or LoanTypeCode]-[SequenceNo] Example: LC-20250721-MIC-0023
+Where:
+* LC = Legal Case (prefix)
+* YYYYMMDD = Date of case creation
+* MIC = Loan Type Code or Branch Code (e.g., MIC for Microfinance, CON for Consumer Loan)
+* 0023 = Incremental numeric sequence, auto-reset daily (or globally unique if preferred)
+
+
+Case ID Generation Triggers:
+* Auto-generated when the "Create Legal Case" form is successfully submitted.
+* If form creation is canceled before saving, the ID is not reserved.
+* Sequence count is maintained in a backend reference table.
+
+Fields and ValidationField NameData TypeMandatoryDescriptionValidation Rules
+
+
+Case ID
+
+Auto- generated
+
+
+Yes
+System- generated legal case identifier
+Must be unique across the entire legal module
+
+Case Prefix
+
+Configurable
+
+Yes
+Standard prefix used to denote legal cases
+
+Typically LC or LEG
+Date Stamp
+
+Auto (Date)
+
+YesDate when case is being created
+Format: YYYYMMDD
+
+Sequence Number
+
+Integer
+
+YesIncremental counter for same-day case creationStarts from 0001 daily or continues globally
+
+Category Code
+
+
+Optional
+
+
+No
+Optional component to include Loan Type or Region
+Must match predefined codes (e.g., MIC, BLR)
+
+Final Case ID
+
+
+Computed
+
+
+Yes
+Combined string (prefix + date + code
++ sequence)System- generated and non- editable post- creationPost - Condition* Case ID is permanently locked once generated and stored.
+
+* Linked to all case actions, notices, recovery triggers, and court dates.
+* Visible in all dashboards, audit logs, and external reports.Alternative FlowNAExceptional Flow* Case ID is generated in real-time based on current server date and configured logic.
+* In case of conflict (e.g., duplicate ID due to time sync issues), system retries using next sequence.
+* Admin may optionally override the Case ID only before saving the record (controlled via role).PriorityHighNon-Functional RequirementNAAssumption and DependencyDepends on ID generation logic and registry.API to be IntegratedID Generator API
+4.1.5  Legal Notice Acknowledgement:
+Use Case IDUC003Use CaseLegal Notice AcknowledgementActorsBorrower, SystemDescriptionThe Legal Notice Acknowledgement feature allows the legal team or field agents to capture proof that a borrower (or authorized recipient) has received a legal/pre-legal notice. It includes information about the recipient, method of acknowledgement, date/time, and supporting documentation (e.g., signature, receipt, photo, etc.). The system updates the notice status and triggers next actions accordingly.
+Related Use Case IDUC001Pre - Condition* Notice must exist and be in Sent status.
+* At least one mode of proof (or manual confirmation) must be provided.
+* Field agent must have access to borrower contact/ID for confirmation.Flow of EventsTo record, track, and verify the acknowledgement of legal or pre-legal notices sent to borrowers. This helps in determining whether the borrower has received and responded to critical legal communications, and governs subsequent legal escalation based on acknowledgement status.
+1. Send notice
+2. Await acknowledgment
+3. Log timestamp
+4. Update statusFields and ValidationField NameData TypeMandator yDescriptionValidation Rules
+
+Acknowledgeme nt ID
+Auto- generate d
+
+Yes
+Unique identifier for each acknowledgemen t entry
+Format: ACKN- [YYYYMMDD
+]-[Sequence]
+
+
+Notice ID
+
+
+Lookup
+
+
+Yes
+Linked legal or pre-legal notice sent to the borrower
+
+Must exist and be in Sent status
+Loan Account Number
+Auto
+Yes
+Pulled from the linked notice
+Read-only
+
+Borrower Name
+
+Auto
+
+Yes
+Pulled from LMS or linked notice
+
+Read-only
+
+
+Notice Type
+Auto
+Yes
+Pre-Legal / LegalDerived from Notice record
+
+Acknowledged By
+
+Dropdow n
+
+
+Yes
+
+Recipient of the noticeBorrower, Family Member, Lawyer, Security Guard, Refused
+
+Relationship to Borrower
+
+Text
+
+No
+If not the borrower, specify the relationship
+
+E.g., Spouse, Son, Clerk
+
+Acknowledgeme nt Date
+
+Date & Time
+
+
+Yes
+When the notice was received/confirm ed
+Must be = Notice Sent Date and = Current Date
+
+
+Acknowledgeme nt Mode
+
+
+Dropdow n
+
+
+Yes
+
+
+Mode of confirmation
+In Person, Courier Receipt, Email, SMS, Phone Call
+Proof of Acknowledgeme nt
+
+File Upload
+
+No
+Photo, signature, delivery slip, screenshot, etc.
+PDF, JPG, PNG, DOCX
+formats allowed
+Remarks
+Text Area
+NoAny additional detailsMax 500 characters
+
+
+
+Captured By	Auto/Use r
+
+
+
+
+
+Geo-Location (if
+field)	Auto
+
+
+
+
+
+Acknowledgeme	Auto nt Status
+
+
+
+3.  Example Use Case:
+
+
+Yes
+
+
+
+
+
+
+No
+
+
+
+
+
+
+Yes
+User or role who entered the acknowledgemen t
+
+
+Location coordinates if acknowledgment was field- collected
+
+
+Acknowledged / Refused / Pending Verification
+Legal Officer
+/ Field Executive / System
+
+
+
+Optional, pulled from device
+
+
+
+
+Determined based on data enteredFieldValueAcknowledgement IDACKN-20250721-0008Notice IDPLN-20250710-0022Borrower NameRajiv MenonAcknowledged ByFamily MemberRelationship to BorrowerSpouseAcknowledgement Date20-07-2025, 4:30 PMAcknowledgement ModeIn PersonProof of AcknowledgementSignature Slip.pdfCaptured ByField Executive - Mumbai TeamAcknowledgement StatusAcknowledgedPost - Condition* Notice status updated to Acknowledged or Refused.
+* System records acknowledgement and updates audit trail.
+* Triggers dependent on acknowledgement (e.g., escalation delay, legal
+hold) are adjusted.
+
+* Data appears in Legal Dashboard and Notice Reports.Alternative FlowNAExceptional FlowSystem Behavior:
+* For email/SMS modes, system auto-parses delivery reports or borrower replies to mark acknowledgement.
+* For field-based acknowledgements, user must manually upload proof and confirm.
+* If notice is refused or unacknowledged within defined SLA, system triggers legal escalation (configurable).
+* Acknowledgement is locked after submission; edits require admin override with remarks.PriorityHighNon- Functional Requireme ntNAAssumption and Dependenc yDepends on delivery and tracking system.API to be IntegratedOTP Service API, Signature API
+4.1.6  Court Date Calendar and Alerts:
+Use Case IDUC006Use CaseCourt Date Calendar & AlertsActorsLegal Team, System
+DescriptionThis feature provides a centralized calendar interface and alert mechanism for all upcoming court hearings across legal cases. It allows users to schedule hearing dates, assign lawyers, capture outcomes, and configure automated reminders for involved stakeholders. The calendar integrates with each legal case and supports hearing status tracking and reporting.Related Use Case IDUC003Pre - Condition* Legal case must be filed and active.
+* Assigned lawyer must be mapped in the system.
+* Court details must be pre-configured or entered manually.Flow of EventsTo centrally manage, track, and send alerts related to scheduled court hearings associated with legal cases. This feature enables proactive legal attendance, avoids missed court appearances, and helps legal and operations teams plan their work efficiently.
+1. Input hearing date
+2. Sync with calendar
+3. Send reminders
+4. Track attendanceFields and ValidationField NameData TypeMandatoryDescriptionValidation Rules
+
+Calendar Entry ID
+
+Auto- generated
+
+
+Yes
+Unique identifier for the court hearing schedule entry
+
+Format: CRT- YYYYMMDD-
+Sequence
+
+Case ID
+
+Lookup
+
+Yes
+Legal case linked to the hearing
+Must be an active legal case
+
+
+
+Loan Account Number
+
+
+Auto
+
+
+Yes
+Borrower account number from linked case
+
+
+Read-only
+Borrower Name
+
+Auto
+
+Yes
+Pulled from LMS or Case Master
+
+Read-only
+
+Court Name
+
+
+Text
+
+
+Yes
+
+Court where the hearing is scheduled
+
+Max 100 characters
+Hearing Date
+Date Picker
+Yes
+Scheduled date for hearingMust be today or a future date
+Hearing Time (optional)
+Time Picker
+
+No
+Scheduled time of the hearingOptional field for specific court slots
+
+
+Hearing Type
+
+
+
+Dropdown
+
+
+
+Yes
+
+
+Nature of hearing
+Appearance, Filing, Evidence, Cross- Examination, Judgment etc.
+
+Assigned Lawyer
+
+Dropdown
+
+Yes
+Lawyer responsible for attending the hearing
+
+From Lawyer Master
+
+
+
+
+
+Status	Dropdown
+
+
+
+
+
+Outcome	Text Area Notes
+
+
+
+Reminder
+Enabled	Boolean
+
+
+
+
+Reminder
+Frequency	Dropdown
+
+
+
+Reminder	Multi- Recipients	select
+
+Notification	Multi- Channel	select
+
+
+Created By	Auto/User
+
+
+Last
+Updated	Auto Date On
+
+
+Example Use Case:
+Scheduled,Attended,YesHearing
+outcome/statusMissed,
+Rescheduled,Adjourned,ClosedHearingNosummary or
+court orderMax 1000
+charactersdetailsWhetherYesreminder isDefault: Yesenabled1 day before,NoWhen to remind2 days
+before, 1 hour beforeetc.
+Yes
+Recipients of the reminderLegal Officer, Lawyer, Admin
+Yes
+Mode of alertEmail, SMS, In-App
+YesCreator of the calendar entryAuto- captured
+Yes
+Timestamp of last update
+System- generatedFieldValue
+
+Post - Condition* Reminders are sent to all configured recipients as per schedule.
+* Hearing status can be updated post-event with outcome notes.
+* Missed hearings are flagged in dashboards for escalation.
+* Calendar entry linked to case record and audit logs.Alternative FlowNAExceptional FlowSystem Behavior:
+* System scans calendar daily for upcoming hearings and triggers reminders based on frequency.
+* After hearing date passes, status defaults to Missed if not updated.
+* Admin or Lawyer can update status and outcome post-hearing.
+* All reminders and updates are logged.PriorityHighNon-Functional RequirementNAAssumption and DependencyDepends on calendar and notification system.API to be IntegratedCalendar API, Notification API
+
+4.1.7  Legal Document Repository:
+Use Case IDUC007Use CaseLegal Document RepositoryActorsLegal Team, AdminDescriptionThe Legal Document Repository acts as a digital filing cabinet for all documents used during pre-legal and legal processes. It supports file categorization, version control, user-based access, and linkage to borrower or case IDs. It ensures legal teams can access, audit, and maintain regulatory documentation efficiently and securely.Related Use Case IDUC003Pre - Condition* Entity (Case ID, Loan Account, or Borrower) must exist and be active.
+* Document Type must be configured in master data.
+* User must have upload permission.Flow of EventsTo provide a centralized, secure, and organized storage system for all legal documents related to borrower accounts and legal cases. This feature enables easy upload, search, classification, and retrieval of documents across the legal lifecycle.
+1. Upload document
+2. Assign access rights
+3. Track versions
+4. Log accessFields and Validation
+
+Linked Entity Type
+
+Dropdown
+
+YesType of entity the document is linked toBorrower, Loan Account, Case ID
+Linked Entity ID
+
+Text/Lookup
+
+Yes
+ID of borrower, loan, or case
+Must exist in respective master tables
+Document Name
+
+Text
+
+YesTitle or description of the document
+Max 100 characters
+
+
+Document Type
+
+
+
+Dropdown
+
+
+
+Yes
+
+
+Classification of document
+Legal Notice, Court Order, Affidavit, Case Summary, Proof, etc.
+Upload Date
+Auto
+YesDate the document was uploaded
+System- generated
+
+
+Uploaded By
+
+
+Auto/User
+
+
+Yes
+Username or role who uploaded the document
+
+Captured for audit
+
+File Format
+
+Auto
+
+Yes
+Document file type
+Allowed: PDF, DOCX, JPG, PNG, XLSX
+
+
+
+File Size (MB)	Auto
+
+
+
+
+Access	Dropdown Permissions
+
+
+
+
+Confidential
+Flag	Boolean
+
+
+
+
+Version	Auto Number
+
+
+
+
+Remarks/Tags	Text Area
+
+
+
+
+Last Updated	Auto Date
+
+
+
+
+3.  Example Use Case:
+Size of
+Max limit: 10 MB
+(configurable)
+
+
+Legal Officer, Admin, Compliance, Lawyer
+
+
+If Yes, access is restricted
+
+
+
+Increments automatically
+
+
+
+Max 250 characters
+
+
+
+System- generatedYesuploadedfile
+Who canYesview thedocument
+MarksNodocument asconfidential
+SupportsNoversioning of
+uploadeddocumentsFree-textNonotes or
+searchabletagsTimestampYesof latest
+upload ormodificationFieldValueDocument IDLDR-20250721-0056Linked Entity TypeCase IDLinked Entity IDLC-20250710-003Document NameFinal Court Order
+
+Post - Condition* Document is saved securely in the repository.
+* Linked case or account record is updated with document reference.
+* Document becomes searchable and auditable.
+* Version history is maintained for updates (if enabled).Alternative FlowNAExceptional FlowSystem Behavior:
+* On upload, the system scans file type and size.
+* Metadata (name, type, date) is auto-captured and linked to the entity.
+* Users can search documents using filters: Date, Case ID, Type, Uploaded By, etc.
+* Confidential documents are only visible to users with elevated roles.
+* Duplicate document names within the same case/account are warned (not blocked).PriorityHighNon-Functional RequirementNAAssumption and DependencyDepends on secure storage and access control.
+
+API to be IntegratedDocument Storage API
+4.1.8  Lawyer Allocation Workflow:
+Use Case IDUC008Use CaseLawyer Allocation WorkflowActorsAdmin, Legal CoordinatorDescriptionThe Lawyer Allocation Workflow allows users to allocate lawyers to cases either manually or through system-based rules. It maintains a record of the assignment, allows reassignment with remarks, tracks lawyer workload and effectiveness, and integrates with hearing schedules and billing (if applicable).Related Use Case IDUC003Pre - Condition* Case must be created and in an "Open" or "Filed" state.
+* Lawyer must be active and available in Lawyer Master.
+* Jurisdiction must be defined.Flow of EventsTo streamline and automate the process of assigning internal or external lawyers to legal cases, based on predefined criteria such as jurisdiction, case type, availability, performance rating, or manual selection. Ensures that every legal case has an accountable legal representative from initiation to closure.
+1. Search lawyers
+2. Filter by criteria
+3. Assign lawyer
+4. Notify lawyer
+Fields and ValidationField NameData TypeMandator yDescriptionValidation Rules
+
+Allocation ID
+
+Auto- generated
+
+Yes
+Unique identifier for each allocation
+Format: LAW- YYYYMMDD-
+Sequence
+
+Case ID
+
+Lookup
+
+YesLegal case to which a lawyer is being assigned
+
+Must exist in Case MasterLoan Account Number
+Auto
+YesFrom the linked case
+Read-only
+Borrower Name
+Auto
+YesFrom the linked case or LMS
+Read-only
+
+Case Type
+
+Auto
+
+Yes
+Civil, Criminal, Recovery, Arbitration, etc.
+
+From Case Master
+
+Jurisdiction
+
+Dropdow n
+
+Yes
+Location/Cour t where the case will be heard
+
+Preconfigure d options
+Lawyer Type
+Dropdow n
+Yes
+Internal / ExternalMust be mapped in Lawyer Master
+
+Assigned Lawyer
+Dropdow n
+
+Yes
+Name of the lawyer being assigned
+Filtered by jurisdiction and case type
+
+
+Allocation Date
+
+
+
+
+Allocated By
+
+
+
+Reassignment Flag
+
+
+Reassignment Reason
+
+
+
+Status
+
+
+
+Lawyer Acknowledgemen t
+
+
+
+Remarks
+
+
+
+Example Use Case:
+Date
+Yes
+Date of assignment
+Cannot be a future date
+
+Auto/Use r
+
+Yes
+Username or role who assigned the lawyer
+
+Logged automatically
+Boolean
+NoIf true, indicates reassignment
+Defaults to false
+
+Text Area
+
+NoMandatory only if reassignment is true
+Max 500 characters
+Dropdow n
+YesActive / Reassigned / Inactive
+Updates dynamically
+
+Boolean
+
+NoCheckbox/flag indicating lawyer has accepted the assignment
+Optional; linked to portal confirmation
+Text Area
+NoAdditional notes or context
+Max 500 charactersFieldValueCase IDLC-20250711-004JurisdictionMumbai Sessions CourtLawyer TypeExternal
+
+Assigned Lawyer	Mr. Arvind Patil Allocation Date	22-Jul-2025 Allocated By	Legal Officer - G. Jain Reassignment Flag	No
+Status	ActivePost - Condition* Case record is updated with lawyer assignment.
+* Lawyer receives notification (email/SMS/portal).
+* Hearing schedules and follow-ups are routed accordingly.
+* Lawyer becomes visible in related dashboards and reports.
+
+Alternative FlowNAExceptional FlowNAPriorityHighNon- Functional Requiremen tNAAssumption and DependencyDepends on lawyer registry and notification system.API to be IntegratedLawyer Directory API, Notification API4.1.9  Recovery Triggers:
+Use Case IDUC009Use CaseRecovery TriggersActorsLegal Team, Recovery AgentDescriptionRecovery Triggers are system-defined conditions that monitor borrower account metrics and initiate follow-up actions. These include delinquency levels, bounced payments, missed legal commitments, broken PTPs, or thresholds like DPD, EMI defaults, etc. Once a trigger is activated, it either sends alerts, creates a task, or auto-initiates workflows.Related Use Case IDUC003Pre - Condition* Recovery trigger rules must be defined in the system configuration.
+* Data feeds (DPD, payment history, PTP logs) must be updated in real-time or batch mode.
+Flow of Events1. Detect trigger
+2. Select recovery action
+3. Notify agent
+4. Track progress
+Trigger Type
+Description
+Sample Threshold
+
+DPD-Based Trigger
+
+Initiated when Days Past Due exceed threshold
+
+
+= 60 DPD
+
+Broken PTP Trigger
+When borrower breaks a Promise to Pay
+PTP broken for 2 consecutive months
+
+
+Bounce Trigger
+
+When repayment instrument (e.g., NACH, cheque) bounces
+
+
+= 2 bounces in 30 days
+
+Amount Overdue Trigger
+Triggered when overdue exceeds a defined monetary value
+
+
+> ?50,000
+
+
+
+
+Legal Commitment Breach
+
+
+Borrower defaults after agreeing to a legal settlement or court direction
+
+
+
+Any deviation post settlement
+Account Inactive Trigger
+No recovery interaction in defined period
+
+No contact > 45 days
+
+
+
+Repossession Recommended
+
+
+Account flagged for asset recovery due to risk profile or field escalation
+
+
+Recovery executive marks high risk
+
+
+
+RCU Red Flag Trigger
+
+Triggered by Risk/RCU team red-flagging account for fraud or misrepresentation
+
+
+Fraud or misrepresentation flagged
+
+Fields and ValidationField NameData TypeMandatoryDescriptionValidation Rules
+
+Trigger ID
+
+Auto- generated
+
+Yes
+Unique identifier for each trigger instance
+Format: RTG-
+YYYYMMDD-
+Sequence
+Account Number
+
+Lookup
+
+YesLoan account triggering the condition
+Must exist in LMS
+
+Borrower Name
+
+
+Auto
+
+
+Yes
+
+Fetched from LMS
+
+
+Read-only
+
+Trigger Type
+
+Dropdown
+
+Yes
+Type of condition triggered
+
+From master list
+
+
+Trigger Criteria
+
+
+Text/JSON
+
+
+Yes
+
+Specific rule or threshold breached
+
+
+Auto- populated
+
+Triggered On
+
+
+Date
+
+
+Yes
+
+Date when condition was met
+
+Auto- captured
+
+
+
+
+
+Trigger Severity
+
+
+
+Dropdown
+
+
+
+Yes
+
+
+
+Risk classification
+
+
+Low / Medium / High
+
+Action Required
+
+Dropdown
+
+Yes
+What action should follow the trigger
+Issue Notice
+/ Escalate / Assign Legal etc.
+
+
+
+Assigned To
+
+
+
+Dropdown
+
+
+
+No
+
+
+Team/user responsible for follow- up
+
+
+Recovery Officer, Legal Officer etc.
+
+
+
+Trigger Status
+
+
+
+Dropdown
+
+
+
+Yes
+
+
+Open / In Progress / Closed
+
+
+System- or user- updated
+Remarks
+Text Area
+NoAdditional notesMax 500 characters
+Created By
+Auto/System
+YesWhether system or user initiated
+Captured for audit
+
+Post - Condition* Trigger is recorded in system and visible in Recovery Trigger Dashboard.
+* Automated workflow may be initiated (e.g., notice generation, legal referral).
+* Responsible user/team receives task notification.Alternative FlowNAExceptional FlowSystem Behavior:
+* System evaluates triggers daily based on input datasets.
+* Triggers can generate one-time or repeat alerts based on type.
+* Closed triggers are archived with resolution status.
+* Duplicate trigger prevention logic: system prevents repeated same trigger within configured timeframe (e.g., 15 days).
+Recovery Trigger Dashboard:
+Features:
+* Filters: DPD level, Trigger Type, Severity, Date, Region
+* Sort by: Triggered On, Severity, Account #
+* Quick links to borrower profile or legal case
+* Export to Excel / PDFPriorityHighNon-Functional RequirementNAAssumption and DependencyDepends on enforcement system and agent registry.API to be IntegratedRecovery API, Agent Directory API
+4.1.10  Legal Metrics & Dashboards:
+Use Case IDUC009
+Use CaseLegal Metrics & DashboardsActorsManagement, Legal TeamDescriptionThe Legal Metrics & Dashboards feature aggregates data from various parts of the Legal and Recovery Modules and displays KPIs through visual charts, tables, and widgets. It helps teams monitor case aging, success rates, TATs, notice effectiveness, trigger volumes, and more, with drill-downs and export capabilities.Related Use Case IDUC003, UC009Pre - ConditionLegal data is available in system.Flow of EventsTo provide real-time visibility and analytical insights into legal operations and recovery effectiveness through interactive dashboards and reports. These metrics assist in measuring legal case health, workload, resolution speed, trigger trends, and lawyer performance.
+1. Fetch metrics
+2. Render dashboard
+3. Apply filters
+4. Export reportsFields and Validation1.  Core Dashboard Categories & KPIs:
+A. Legal Case DashboardMetricDescriptionTotal Legal CasesCount of all cases initiatedCases by StatusOpen / Closed / In Progress / Dismissed / SettledCase AgingBuckets: 0-30 / 31-60 / 61-90 / >90 days since filingCase Type DistributionCivil / Criminal / Arbitration / RecoveryAverage Time to ClosureMean duration from filing to closure (in days)
+
+Region-wise Legal	Legal cases split by state/region Load
+B. Notice Tracking Dashboard
+Metric	Description
+Total Notices Issued	Count over defined period
+By Type	Pre-legal, Legal, Final, Arbitration, Court Summon
+By Outcome	Responded / Ignored / Disputed / Acknowledged
+Average Notice Response	Mean duration to first borrower Time	response
+Auto-scheduled vs.	Source of issuance Manual Notices
+C. Lawyer Performance Dashboard
+Metric	Description
+No. of Active Cases per	Lawyer-wise load Lawyer
+Closure Rate	% of closed cases handled by lawyer
+Average Case Resolution TAT	TAT by lawyer
+Jurisdiction Success Ratio	Win/loss rate in courts per location
+Lawyer Acknowledgement	% of cases where lawyer Timeliness	acknowledged within SLA
+D. Trigger Monitoring DashboardMetricDescriptionTotal Triggers RaisedBy type and severityTrigger Conversion Rate% of triggers that led to legal actionTrigger AgingOpen triggers bucketed by agingTop 5 Branches with Highest TriggersHeat map or bar chart
+
+E. Hearing Calendar & SLA Dashboard
+Metric	Description
+Upcoming Hearings	Chronological list with location & lawyer Hearing SLA Compliance	% hearings attended without delay Missed Hearing Count	Missed or rescheduled hearings
+F. Document Repository Dashboard
+Metric	Description
+Documents Uploaded	Total legal documents over time By Type	Court Orders, Affidavits, Proofs,
+etc.
+By Case	View documents linked to each legal case
+Confidential Document	Who accessed what, when Access Logs
+
+
+3. Filters & Drill-down Options:
+* Date Range (Daily, Monthly, Quarterly)
+* Case Status / Case Type / Jurisdiction
+* Lawyer Name / Region / Recovery Officer
+* Trigger Type / Severity
+* Document Type / Uploaded ByPost - ConditionRecovery process initiated and tracked.
+Metrics displayed and reports generated.Alternative FlowNAExceptional FlowNAPriorityHighNon-Functional RequirementNA
+
+Assumption and DependencyDepends on analytics engine and data availability.API to be IntegratedAnalytics API, Reporting API
+
+

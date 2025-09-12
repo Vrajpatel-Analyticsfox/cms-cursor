@@ -1,0 +1,635 @@
+{
+  "info": {
+    "name": "UC006 - Legal Notice Templates Management",
+    "description": "CRUD APIs for managing legal notice templates with comprehensive testing scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Template Management",
+      "item": [
+        {
+          "name": "Create Legal Notice Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('template_id', response.id);",
+                  "    pm.test('Template created successfully', function () {",
+                  "        pm.expect(response.id).to.be.a('string');",
+                  "        pm.expect(response.templateCode).to.eql('LNT1006');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateCode\": \"LNT1006\",\n  \"templateName\": \"Custom Pre-Legal Notice\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Outstanding amount: {{amount}}. Please contact us at {{phone}} to resolve this matter.\",\n  \"languageId\": \"{{language_id}}\",\n  \"maxCharacters\": 600,\n  \"description\": \"Custom pre-legal notice template with additional contact information\",\n  \"status\": \"active\",\n  \"createdBy\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"templateCode\": \"LNT1006\",\n  \"templateName\": \"Custom Pre-Legal Notice\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Outstanding amount: {{amount}}. Please contact us at {{phone}} to resolve this matter.\",\n  \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n  \"maxCharacters\": 600,\n  \"description\": \"Custom pre-legal notice template with additional contact information\",\n  \"status\": \"active\",\n  \"createdBy\": \"admin\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates",
+                  "host": ["{{base_url}}"],
+                  "path": ["{{api_prefix}}", "legal-notice-templates"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"templateCode\": \"LNT1006\",\n  \"templateName\": \"Custom Pre-Legal Notice\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Outstanding amount: {{amount}}. Please contact us at {{phone}} to resolve this matter.\",\n  \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n  \"maxCharacters\": 600,\n  \"description\": \"Custom pre-legal notice template with additional contact information\",\n  \"status\": \"active\",\n  \"createdBy\": \"admin\",\n  \"updatedBy\": null,\n  \"createdAt\": \"2025-01-11T10:00:00.000Z\",\n  \"updatedAt\": \"2025-01-11T10:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Error Response - Duplicate Code",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"templateCode\": \"LNT1001\",\n  \"templateName\": \"Duplicate Template\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Test content\",\n  \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n  \"channelId\": \"25dd10e7-f6ec-4c7d-a1b6-3f454e0c867c\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates",
+                  "host": ["{{base_url}}"],
+                  "path": ["{{api_prefix}}", "legal-notice-templates"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Template with code 'LNT1001' already exists\",\n  \"error\": \"Bad Request\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Legal Notice Templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has templates array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('templates');",
+                  "    pm.expect(response.templates).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination info', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('total');",
+                  "    pm.expect(response).to.have.property('page');",
+                  "    pm.expect(response).to.have.property('limit');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates?page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["{{api_prefix}}", "legal-notice-templates"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"templates\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"templateCode\": \"LNT1001\",\n      \"templateName\": \"Pre-Legal Notice\",\n      \"templateType\": \"Pre-Legal\",\n      \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Please remit payment to avoid further action.\",\n      \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n      \"channelId\": \"25dd10e7-f6ec-4c7d-a1b6-3f454e0c867c\",\n      \"maxCharacters\": 500,\n      \"description\": \"Initial overdue notification in English via Email\",\n      \"status\": \"active\",\n      \"isActive\": true,\n      \"createdBy\": \"system\",\n      \"updatedBy\": null,\n      \"createdAt\": \"2025-01-11T10:00:00.000Z\",\n      \"updatedAt\": \"2025-01-11T10:00:00.000Z\"\n    }\n  ],\n  \"total\": 1,\n  \"page\": 1,\n  \"limit\": 10\n}"
+            }
+          ]
+        },
+        {
+          "name": "Search Legal Notice Templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results contain Pre-Legal templates', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.templates.length > 0) {",
+                  "        const hasPreLegal = response.templates.some(template => template.templateType === 'Pre-Legal');",
+                  "        pm.expect(hasPreLegal).to.be.true;",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates?search=Pre-Legal&templateType=Pre-Legal&status=active",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Pre-Legal"
+                },
+                {
+                  "key": "templateType",
+                  "value": "Pre-Legal"
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Legal Notice Template by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('templateCode');",
+                  "    pm.expect(response).to.have.property('templateName');",
+                  "    pm.expect(response).to.have.property('templateType');",
+                  "    pm.expect(response).to.have.property('templateContent');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/{{template_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "{{template_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/550e8400-e29b-41d4-a716-446655440000",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "{{api_prefix}}",
+                    "legal-notice-templates",
+                    "550e8400-e29b-41d4-a716-446655440000"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"templateCode\": \"LNT1001\",\n  \"templateName\": \"Pre-Legal Notice\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Please remit payment to avoid further action.\",\n  \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n  \"maxCharacters\": 500,\n  \"description\": \"Initial overdue notification in English via Email\",\n  \"status\": \"active\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": null,\n  \"createdAt\": \"2025-01-11T10:00:00.000Z\",\n  \"updatedAt\": \"2025-01-11T10:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Error Response - Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/00000000-0000-0000-0000-000000000000",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "{{api_prefix}}",
+                    "legal-notice-templates",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Template with ID '00000000-0000-0000-0000-000000000000' not found\",\n  \"error\": \"Not Found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Legal Notice Template by Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Template code matches', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.templateCode).to.eql('{{template_code}}');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/{{template_code}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "code", "{{template_code}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/LNT1001",
+                  "host": ["{{base_url}}"],
+                  "path": ["{{api_prefix}}", "legal-notice-templates", "code", "LNT1001"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"templateCode\": \"LNT1001\",\n  \"templateName\": \"Pre-Legal Notice\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Please remit payment to avoid further action.\",\n  \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n  \"maxCharacters\": 500,\n  \"description\": \"Initial overdue notification in English via Email\",\n  \"status\": \"active\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": null,\n  \"createdAt\": \"2025-01-11T10:00:00.000Z\",\n  \"updatedAt\": \"2025-01-11T10:00:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Legal Notice Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Template updated successfully', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.templateName).to.eql('Updated Pre-Legal Notice');",
+                  "    pm.expect(response.updatedBy).to.eql('admin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateName\": \"Updated Pre-Legal Notice\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Outstanding amount: {{amount}}. Please contact us immediately to avoid further action.\",\n  \"maxCharacters\": 700,\n  \"description\": \"Updated pre-legal notice template with enhanced messaging\",\n  \"updatedBy\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/{{template_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "{{template_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"templateName\": \"Updated Pre-Legal Notice\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Outstanding amount: {{amount}}. Please contact us immediately to avoid further action.\",\n  \"maxCharacters\": 700,\n  \"description\": \"Updated pre-legal notice template with enhanced messaging\",\n  \"updatedBy\": \"admin\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/550e8400-e29b-41d4-a716-446655440000",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "{{api_prefix}}",
+                    "legal-notice-templates",
+                    "550e8400-e29b-41d4-a716-446655440000"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"templateCode\": \"LNT1001\",\n  \"templateName\": \"Updated Pre-Legal Notice\",\n  \"templateType\": \"Pre-Legal\",\n  \"templateContent\": \"Dear {{customer_name}}, your account {{account_no}} is overdue by {{days}} days. Outstanding amount: {{amount}}. Please contact us immediately to avoid further action.\",\n  \"languageId\": \"44611484-29a9-4a53-b823-4f8297a0d61d\",\n  \"maxCharacters\": 700,\n  \"description\": \"Updated pre-legal notice template with enhanced messaging\",\n  \"status\": \"active\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": \"admin\",\n  \"createdAt\": \"2025-01-11T10:00:00.000Z\",\n  \"updatedAt\": \"2025-01-11T10:00:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Soft Delete Legal Notice Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/{{template_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "{{template_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/550e8400-e29b-41d4-a716-446655440000",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "{{api_prefix}}",
+                    "legal-notice-templates",
+                    "550e8400-e29b-41d4-a716-446655440000"
+                  ]
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sample Data Tests",
+      "item": [
+        {
+          "name": "Get Sample Pre-Legal Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/LNT1001",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "code", "LNT1001"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sample SMS Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/LNT1002",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "code", "LNT1002"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sample Legal Notice Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/LNT1003",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "code", "LNT1003"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sample Final Notice Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/LNT1004",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "code", "LNT1004"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sample Hindi Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}{{api_prefix}}/legal-notice-templates/code/LNT1005",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-notice-templates", "code", "LNT1005"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "api_prefix",
+      "value": "/api/v1/legal",
+      "type": "string"
+    }
+  ]
+}

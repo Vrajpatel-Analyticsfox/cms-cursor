@@ -11,6 +11,7 @@ import {
   IsUUID,
   MaxLength,
   ArrayNotEmpty,
+  ArrayMinSize,
 } from 'class-validator';
 
 // Enums matching the database schema
@@ -28,14 +29,11 @@ export enum NoticeStatus {
   SENT = 'Sent',
   FAILED = 'Failed',
   ACKNOWLEDGED = 'Acknowledged',
-  EXPIRED = 'Expired',
+  INACTIVE = 'Inactive',
 }
 
-export enum CommunicationMode {
-  EMAIL = 'Email',
-  SMS = 'SMS',
-  COURIER_POST = 'Courier/Post',
-}
+// CommunicationMode is now a simple text field to allow flexibility
+// Common values: 'Email', 'SMS', 'WhatsApp', 'Courier', 'Post', 'Physical Delivery', etc.
 
 // Request DTO for creating a pre-legal notice
 export class CreatePreLegalNoticeDto {
@@ -71,15 +69,31 @@ export class CreatePreLegalNoticeDto {
   templateId: string;
 
   @ApiProperty({
-    description: 'Modes used to send the notice',
+    description: 'Modes used to send the notice (e.g., Email, SMS, WhatsApp, Courier, Post)',
     type: [String],
-    enum: CommunicationMode,
-    example: [CommunicationMode.EMAIL, CommunicationMode.SMS],
+    example: ['Email', 'SMS', 'WhatsApp'],
   })
   @IsArray()
   @ArrayNotEmpty()
-  @IsEnum(CommunicationMode, { each: true })
-  communicationMode: CommunicationMode[];
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  communicationMode: string[];
+
+  @ApiProperty({
+    description: 'State ID where the notice is being sent',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  stateId: string;
+
+  @ApiProperty({
+    description: 'Language ID for the notice content',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  languageId: string;
 
   @ApiProperty({
     description: 'Notice expiry date (deadline for borrower response)',
@@ -222,6 +236,30 @@ export class PreLegalNoticeResponseDto {
     example: ['Email', 'SMS'],
   })
   communicationMode: string[];
+
+  @ApiProperty({
+    description: 'State ID where the notice is being sent',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  stateId: string;
+
+  @ApiProperty({
+    description: 'State name where the notice is being sent',
+    example: 'Maharashtra',
+  })
+  stateName: string;
+
+  @ApiProperty({
+    description: 'Language ID for the notice content',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  languageId: string;
+
+  @ApiProperty({
+    description: 'Language name for the notice content',
+    example: 'English',
+  })
+  languageName: string;
 
   @ApiProperty({
     description: 'Notice generation date',

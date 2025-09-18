@@ -190,7 +190,9 @@ export class StatusManagementService {
       const currentCase = await this.db
         .select()
         .from(schema.legalCases)
-        .where(eq(schema.legalCases.id, updateData.caseId))
+        .where(
+          and(eq(schema.legalCases.id, updateData.caseId), eq(schema.legalCases.status, 'Active')),
+        )
         .limit(1);
 
       if (currentCase.length === 0) {
@@ -315,6 +317,7 @@ export class StatusManagementService {
         count: sql<number>`count(*)`,
       })
       .from(schema.legalCases)
+      .where(eq(schema.legalCases.status, 'Active'))
       .groupBy(schema.legalCases.currentStatus);
 
     const result: {
@@ -333,7 +336,12 @@ export class StatusManagementService {
           updatedAt: schema.legalCases.updatedAt,
         })
         .from(schema.legalCases)
-        .where(eq(schema.legalCases.currentStatus, statusCount.status))
+        .where(
+          and(
+            eq(schema.legalCases.currentStatus, statusCount.status),
+            eq(schema.legalCases.status, 'Active'),
+          ),
+        )
         .orderBy(desc(schema.legalCases.updatedAt))
         .limit(10);
 
@@ -364,6 +372,7 @@ export class StatusManagementService {
       .where(
         and(
           eq(schema.legalCases.currentStatus, 'Under Trial'),
+          eq(schema.legalCases.status, 'Active'),
           sql`${schema.legalCases.nextHearingDate} < ${today}`,
         ),
       )
@@ -375,6 +384,7 @@ export class StatusManagementService {
       .from(schema.legalCases)
       .where(
         and(
+          eq(schema.legalCases.status, 'Active'),
           sql`${schema.legalCases.currentStatus} IN ('Filed', 'Under Trial')`,
           sql`${schema.legalCases.createdAt} < NOW() - INTERVAL '90 days'`,
         ),
@@ -387,6 +397,7 @@ export class StatusManagementService {
       .from(schema.legalCases)
       .where(
         and(
+          eq(schema.legalCases.status, 'Active'),
           sql`${schema.legalCases.lawyerAssignedId} IS NULL`,
           sql`${schema.legalCases.currentStatus} IN ('Filed', 'Under Trial')`,
         ),

@@ -537,7 +537,7 @@ export class CreateDynamicTemplateDto {
       '<h1>{{notice.noticeType}}</h1><p>Dear {{borrower.name}},</p><p>Your account {{loanAccount.accountNumber}} is overdue...</p>',
   })
   @IsString()
-  templateContent: string;
+  messageBody: string;
 
   @ApiProperty({
     description: 'Template type',

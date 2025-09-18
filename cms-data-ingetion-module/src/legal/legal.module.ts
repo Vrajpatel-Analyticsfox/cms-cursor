@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { DrizzleModule } from '../database/database.module';
 
 // Services
@@ -12,6 +13,13 @@ import { LegalCaseService } from './services/legal-case.service';
 import { DocumentManagementService } from './services/document-management.service';
 import { DataIngestionHelperService } from './services/data-ingestion-helper.service';
 import { BorrowerService } from './services/borrower.service';
+import { CommunicationService } from './services/communication.service';
+import { DeliveryTrackingService } from './services/delivery-tracking.service';
+import { LegalCaseDocumentService } from './services/legal-case-document.service';
+import { LegalCaseEnhancedService } from './services/legal-case-enhanced.service';
+import { HybridStorageService } from './services/hybrid-storage.service';
+import { AwsS3StorageService } from './services/aws-s3-storage.service';
+import { EnhancedFileNamingService } from './services/enhanced-file-naming.service';
 
 // Controllers
 import { CaseIdController } from './case-id.controller';
@@ -25,13 +33,18 @@ import { LawyerManagementController } from './controllers/lawyer-management.cont
 import { DebugController } from './controllers/debug.controller';
 import { LegalNoticeTemplateController } from './controllers/legal-notice-template.controller';
 import { LawyerAssignmentService } from './services/lawyer-assignment.service';
+import { LawyerService } from './services/lawyer.service';
 import { NotificationService } from './services/notification.service';
 import { StatusManagementService } from './services/status-management.service';
 import { TimelineTrackingService } from './services/timeline-tracking.service';
 import { LegalNoticeTemplateService } from './services/legal-notice-template.service';
+import { CommunicationController } from './controllers/communication.controller';
+import { LegalCaseDocumentController } from './controllers/legal-case-document.controller';
+import { LegalCaseEnhancedController } from './controllers/legal-case-enhanced.controller';
+import { StaticFilesController } from './controllers/static-files.controller';
 
 @Module({
-  imports: [DrizzleModule],
+  imports: [ConfigModule, DrizzleModule],
   controllers: [
     CaseIdController,
     PreLegalNoticeController,
@@ -43,6 +56,10 @@ import { LegalNoticeTemplateService } from './services/legal-notice-template.ser
     LawyerManagementController,
     DebugController,
     LegalNoticeTemplateController,
+    CommunicationController,
+    LegalCaseDocumentController,
+    LegalCaseEnhancedController,
+    StaticFilesController,
   ],
   providers: [
     // Core Services
@@ -67,10 +84,22 @@ import { LegalNoticeTemplateService } from './services/legal-notice-template.ser
 
     // Lawyer Management Services
     LawyerAssignmentService,
+    LawyerService,
     NotificationService,
     StatusManagementService,
     TimelineTrackingService,
     LegalNoticeTemplateService,
+
+    // Communication Services
+    CommunicationService,
+    DeliveryTrackingService,
+
+    // Document Management Services
+    LegalCaseDocumentService,
+    LegalCaseEnhancedService,
+    HybridStorageService,
+    AwsS3StorageService,
+    EnhancedFileNamingService,
   ],
   exports: [
     // Export services for use in other modules
@@ -85,10 +114,18 @@ import { LegalNoticeTemplateService } from './services/legal-notice-template.ser
     BorrowerService,
     DocumentManagementService,
     LawyerAssignmentService,
+    LawyerService,
     NotificationService,
     StatusManagementService,
     TimelineTrackingService,
     LegalNoticeTemplateService,
+    CommunicationService,
+    DeliveryTrackingService,
+    LegalCaseDocumentService,
+    LegalCaseEnhancedService,
+    HybridStorageService,
+    AwsS3StorageService,
+    EnhancedFileNamingService,
   ],
 })
 export class LegalModule {}

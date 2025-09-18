@@ -65,7 +65,7 @@ export class LanguageService {
     return db
       .select()
       .from(languageMaster)
-      .where(eq(languageMaster.status, 'active'))
+      .where(eq(languageMaster.status, 'Active'))
       .orderBy(languageMaster.languageName);
   }
 
@@ -172,7 +172,7 @@ export class LanguageService {
       .select()
       .from(languageMaster)
       .where(
-        and(eq(languageMaster.scriptSupport, scriptSupport), eq(languageMaster.status, 'active')),
+        and(eq(languageMaster.scriptSupport, scriptSupport), eq(languageMaster.status, 'Active')),
       )
       .orderBy(languageMaster.languageName);
   }

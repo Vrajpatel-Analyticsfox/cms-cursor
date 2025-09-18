@@ -43,13 +43,13 @@ export class CreateStateDto {
 
   @ApiProperty({
     description: 'State status',
-    enum: ['active', 'inactive'],
-    example: 'active',
-    default: 'active',
+    enum: ['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'],
+    example: 'Active',
+    default: 'Active',
   })
-  @IsEnum(['active', 'inactive'])
+  @IsEnum(['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'])
   @IsOptional()
-  status?: 'active' | 'inactive';
+  status?: 'Active' | 'Inactive' | 'Draft' | 'Pending' | 'Completed' | 'Cancelled';
 
   @ApiProperty({
     description: 'User who created the state',

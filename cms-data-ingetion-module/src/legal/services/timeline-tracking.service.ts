@@ -53,11 +53,13 @@ export class TimelineTrackingService {
     tags?: string[];
   }): Promise<{ success: boolean; message: string; eventId?: string }> {
     try {
-      // Verify case exists
+      // Verify case exists and is active
       const caseExists = await this.db
         .select({ id: schema.legalCases.id })
         .from(schema.legalCases)
-        .where(eq(schema.legalCases.id, eventData.caseId))
+        .where(
+          and(eq(schema.legalCases.id, eventData.caseId), eq(schema.legalCases.status, 'Active')),
+        )
         .limit(1);
 
       if (caseExists.length === 0) {
@@ -105,7 +107,7 @@ export class TimelineTrackingService {
           createdAt: schema.legalCases.createdAt,
         })
         .from(schema.legalCases)
-        .where(eq(schema.legalCases.id, caseId))
+        .where(and(eq(schema.legalCases.id, caseId), eq(schema.legalCases.status, 'Active')))
         .limit(1);
 
       if (caseDetails.length === 0) {

@@ -76,7 +76,7 @@ export class ProductSubtypeService {
     return db
       .select()
       .from(productSubtypeMaster)
-      .where(eq(productSubtypeMaster.status, 'active'))
+      .where(eq(productSubtypeMaster.status, 'Active'))
       .orderBy(productSubtypeMaster.subtypeName);
   }
 
@@ -201,7 +201,7 @@ export class ProductSubtypeService {
       .select()
       .from(productSubtypeMaster)
       .where(
-        and(eq(productSubtypeMaster.typeId, typeId), eq(productSubtypeMaster.status, 'active')),
+        and(eq(productSubtypeMaster.typeId, typeId), eq(productSubtypeMaster.status, 'Active')),
       )
       .orderBy(productSubtypeMaster.subtypeName);
   }

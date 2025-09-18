@@ -232,7 +232,7 @@ export class TemplateRenderingService {
 
       // Step 2: Apply personalization rules
       const personalizedContent = this.applyPersonalizationRules(
-        baseTemplate.templateContent,
+        baseTemplate.messageBody,
         personalizationRules,
         dataSource,
       );
@@ -647,8 +647,8 @@ export class TemplateRenderingService {
   private async getTemplate(templateId: string): Promise<any> {
     const template = await this.db
       .select()
-      .from(schema.legalNoticeTemplates)
-      .where(eq(schema.legalNoticeTemplates.id, templateId))
+      .from(schema.templateMaster)
+      .where(eq(schema.templateMaster.id, templateId))
       .limit(1);
 
     if (template.length === 0) {

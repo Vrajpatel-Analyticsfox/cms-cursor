@@ -1,0 +1,378 @@
+{
+  "info": {
+    "name": "UC009 - Static File Serving",
+    "description": "API collection for serving static files (uploaded documents) via HTTP endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "test-token",
+      "type": "string"
+    },
+    {
+      "key": "case_id",
+      "value": "7d6e4d5f-4827-4568-93ab-2b828142f01c",
+      "type": "string"
+    },
+    {
+      "key": "filename",
+      "value": "1757705394431-LegalModule_BRD 1.pdf",
+      "type": "string"
+    },
+    {
+      "key": "year",
+      "value": "2025",
+      "type": "string"
+    },
+    {
+      "key": "month",
+      "value": "09",
+      "type": "string"
+    },
+    {
+      "key": "day",
+      "value": "13",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Static File Serving",
+      "item": [
+        {
+          "name": "Serve Document by Case ID and Filename",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/legal/static/document/{{case_id}}/{{filename}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "legal", "static", "document", "{{case_id}}", "{{filename}}"]
+            },
+            "description": "Serve a document file by case ID and filename. This endpoint will stream the file directly to the client."
+          },
+          "response": [
+            {
+              "name": "Success - PDF Document",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer test-token",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "http://localhost:3001/api/v1/legal/static/document/7d6e4d5f-4827-4568-93ab-2b828142f01c/1757705394431-LegalModule_BRD 1.pdf",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3001",
+                  "path": [
+                    "api",
+                    "v1",
+                    "legal",
+                    "static",
+                    "document",
+                    "7d6e4d5f-4827-4568-93ab-2b828142f01c",
+                    "1757705394431-LegalModule_BRD 1.pdf"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/pdf"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1493705"
+                },
+                {
+                  "key": "Content-Disposition",
+                  "value": "inline; filename=\"1757705394431-LegalModule_BRD 1.pdf\""
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "public, max-age=3600"
+                }
+              ],
+              "cookie": [],
+              "body": "[Binary PDF content - file will be streamed directly]"
+            },
+            {
+              "name": "Error - File Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer test-token",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "http://localhost:3001/api/v1/legal/static/document/invalid-case-id/nonexistent-file.pdf",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3001",
+                  "path": [
+                    "api",
+                    "v1",
+                    "legal",
+                    "static",
+                    "document",
+                    "invalid-case-id",
+                    "nonexistent-file.pdf"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"File not found\",\n  \"error\": \"Not Found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Serve Document by Full Path",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/legal/static/document-by-path/{{case_id}}/{{year}}/{{month}}/{{day}}/{{filename}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "legal",
+                "static",
+                "document-by-path",
+                "{{case_id}}",
+                "{{year}}",
+                "{{month}}",
+                "{{day}}",
+                "{{filename}}"
+              ]
+            },
+            "description": "Serve a document file by providing the full path components (case ID, year, month, day, filename). This is more flexible for dynamic file paths."
+          },
+          "response": [
+            {
+              "name": "Success - PDF Document",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer test-token",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "http://localhost:3001/api/v1/legal/static/document-by-path/7d6e4d5f-4827-4568-93ab-2b828142f01c/2025/09/13/1757705394431-LegalModule_BRD 1.pdf",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3001",
+                  "path": [
+                    "api",
+                    "v1",
+                    "legal",
+                    "static",
+                    "document-by-path",
+                    "7d6e4d5f-4827-4568-93ab-2b828142f01c",
+                    "2025",
+                    "09",
+                    "13",
+                    "1757705394431-LegalModule_BRD 1.pdf"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/pdf"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1493705"
+                },
+                {
+                  "key": "Content-Disposition",
+                  "value": "inline; filename=\"1757705394431-LegalModule_BRD 1.pdf\""
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "public, max-age=3600"
+                }
+              ],
+              "cookie": [],
+              "body": "[Binary PDF content - file will be streamed directly]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Test Different File Types",
+      "item": [
+        {
+          "name": "Serve PDF Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/legal/static/document/{{case_id}}/document.pdf",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "legal", "static", "document", "{{case_id}}", "document.pdf"]
+            }
+          }
+        },
+        {
+          "name": "Serve Word Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/legal/static/document/{{case_id}}/document.docx",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "legal", "static", "document", "{{case_id}}", "document.docx"]
+            }
+          }
+        },
+        {
+          "name": "Serve Image File",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/legal/static/document/{{case_id}}/image.jpg",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "legal", "static", "document", "{{case_id}}", "image.jpg"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default values if not provided",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:3001');",
+          "}",
+          "",
+          "if (!pm.environment.get('auth_token')) {",
+          "    pm.environment.set('auth_token', 'test-token');",
+          "}",
+          "",
+          "// Log request details",
+          "console.log('Requesting file:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Test for successful file serving",
+          "if (pm.response.code === 200) {",
+          "    pm.test('File served successfully', function () {",
+          "        pm.expect(pm.response.code).to.eql(200);",
+          "    });",
+          "    ",
+          "    pm.test('Content-Type is set correctly', function () {",
+          "        const contentType = pm.response.headers.get('Content-Type');",
+          "        pm.expect(contentType).to.not.be.null;",
+          "    });",
+          "    ",
+          "    pm.test('Content-Length is set', function () {",
+          "        const contentLength = pm.response.headers.get('Content-Length');",
+          "        pm.expect(contentLength).to.not.be.null;",
+          "        pm.expect(parseInt(contentLength)).to.be.above(0);",
+          "    });",
+          "    ",
+          "    pm.test('Cache-Control header is set', function () {",
+          "        const cacheControl = pm.response.headers.get('Cache-Control');",
+          "        pm.expect(cacheControl).to.not.be.null;",
+          "    });",
+          "} else if (pm.response.code === 404) {",
+          "    pm.test('File not found handled correctly', function () {",
+          "        pm.expect(pm.response.code).to.eql(404);",
+          "    });",
+          "} else {",
+          "    pm.test('Unexpected response code', function () {",
+          "        pm.expect.fail('Unexpected response code: ' + pm.response.code);",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+

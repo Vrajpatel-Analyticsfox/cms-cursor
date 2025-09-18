@@ -73,7 +73,7 @@ export class ProductTypeService {
     return db
       .select()
       .from(productTypeMaster)
-      .where(eq(productTypeMaster.status, 'active'))
+      .where(eq(productTypeMaster.status, 'Active'))
       .orderBy(productTypeMaster.typeName);
   }
 
@@ -190,7 +190,7 @@ export class ProductTypeService {
     return db
       .select()
       .from(productTypeMaster)
-      .where(and(eq(productTypeMaster.groupId, groupId), eq(productTypeMaster.status, 'active')))
+      .where(and(eq(productTypeMaster.groupId, groupId), eq(productTypeMaster.status, 'Active')))
       .orderBy(productTypeMaster.typeName);
   }
 }

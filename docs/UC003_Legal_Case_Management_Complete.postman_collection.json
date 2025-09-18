@@ -1,0 +1,1053 @@
+{
+  "info": {
+    "name": "UC003 Legal Case Management - Complete System",
+    "description": "Comprehensive Postman collection for all Legal Case Management services including CRUD operations, lawyer assignment, document management, status tracking, timeline management, and notifications",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "1. Legal Case CRUD Operations",
+      "item": [
+        {
+          "name": "Create Legal Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanAccountNumber\": \"{{loan_account_number}}\",\n  \"caseType\": \"Civil\",\n  \"courtName\": \"Mumbai Sessions Court\",\n  \"caseFiledDate\": \"2025-07-21\",\n  \"lawyerAssignedId\": \"{{lawyer_id}}\",\n  \"filingJurisdiction\": \"Mumbai, Maharashtra\",\n  \"currentStatus\": \"Filed\",\n  \"nextHearingDate\": \"2025-08-15\",\n  \"lastHearingOutcome\": \"Case admitted for hearing\",\n  \"recoveryActionLinked\": \"None\",\n  \"remarks\": \"Standard civil case for loan recovery\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Legal Cases",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases?page=1&limit=10&caseType=Civil&currentStatus=Filed",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "caseType",
+                  "value": "Civil"
+                },
+                {
+                  "key": "currentStatus",
+                  "value": "Filed"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Legal Case by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases", "{{case_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Legal Case",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courtName\": \"Mumbai High Court\",\n  \"currentStatus\": \"Under Trial\",\n  \"nextHearingDate\": \"2025-08-20\",\n  \"lastHearingOutcome\": \"Case proceedings have begun\",\n  \"remarks\": \"Updated court and status\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases", "{{case_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Legal Case",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases", "{{case_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cases by Account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases/account/{{loan_account_number}}?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases", "account", "{{loan_account_number}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cases by Lawyer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal-cases/lawyer/{{lawyer_id}}?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal-cases", "lawyer", "{{lawyer_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Lawyer Management & Assignment",
+      "item": [
+        {
+          "name": "Create Lawyer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@lawfirm.com\",\n  \"phone\": \"+91-9876543210\",\n  \"barNumber\": \"BAR123456\",\n  \"specialization\": \"Civil Law\",\n  \"experience\": 5,\n  \"lawyerType\": \"Internal\",\n  \"maxCases\": 10,\n  \"officeLocation\": \"Mumbai, Maharashtra\",\n  \"jurisdiction\": \"Mumbai Sessions Court, Bombay High Court\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Lawyers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers?page=1&limit=10&specialization=Civil Law&isAvailable=true",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "specialization",
+                  "value": "Civil Law"
+                },
+                {
+                  "key": "isAvailable",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lawyer by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/{{lawyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "{{lawyer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Lawyer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Criminal Law\",\n  \"maxCases\": 15,\n  \"officeLocation\": \"Delhi, India\",\n  \"jurisdiction\": \"Delhi Sessions Court, Delhi High Court\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/{{lawyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "{{lawyer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Lawyer",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/{{lawyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "{{lawyer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Lawyers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/available?specialization=Civil Law&jurisdiction=Mumbai&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "available"],
+              "query": [
+                {
+                  "key": "specialization",
+                  "value": "Civil Law"
+                },
+                {
+                  "key": "jurisdiction",
+                  "value": "Mumbai"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lawyer Workload Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/{{lawyer_id}}/workload-stats",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "{{lawyer_id}}", "workload-stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Lawyer to Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseId\": \"{{case_id}}\",\n  \"caseType\": \"Civil\",\n  \"jurisdiction\": \"Mumbai\",\n  \"specialization\": \"Civil Law\",\n  \"priority\": \"High\",\n  \"excludeLawyerIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/assign",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "assign"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reassign Lawyer to Case",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Previous lawyer unavailable\",\n  \"notes\": \"Reassignment due to workload\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/{{lawyer_id}}/reassign/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "{{lawyer_id}}", "reassign", "{{case_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lawyer Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/{{lawyer_id}}/assignments",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "{{lawyer_id}}", "assignments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Status Management & Timeline",
+      "item": [
+        {
+          "name": "Update Case Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newStatus\": \"Under Trial\",\n  \"reason\": \"Case proceedings have begun\",\n  \"nextHearingDate\": \"2025-08-15\",\n  \"lastHearingOutcome\": \"Case admitted for trial\",\n  \"outcomeSummary\": \"Case is now under trial proceedings\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/cases/{{case_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "cases", "{{case_id}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Case Timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/cases/{{case_id}}/timeline",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "cases", "{{case_id}}", "timeline"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Timeline Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/timeline/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "timeline", "statistics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Timeline Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseId\": \"{{case_id}}\",\n  \"eventType\": \"Hearing\",\n  \"eventTitle\": \"Court Hearing Scheduled\",\n  \"eventDescription\": \"Next hearing scheduled for case proceedings\",\n  \"eventDate\": \"2025-08-15T10:00:00Z\",\n  \"isMilestone\": true,\n  \"tags\": [\"hearing\", \"court\"],\n  \"eventData\": {\n    \"hearingType\": \"Regular\",\n    \"courtRoom\": \"Room 101\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/timeline/events",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "timeline", "events"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Document Management",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/document.pdf"
+                },
+                {
+                  "key": "linkedEntityType",
+                  "value": "Legal Case",
+                  "type": "text"
+                },
+                {
+                  "key": "linkedEntityId",
+                  "value": "{{case_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "documentName",
+                  "value": "Case Affidavit",
+                  "type": "text"
+                },
+                {
+                  "key": "documentTypeId",
+                  "value": "{{document_type_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "caseDocumentType",
+                  "value": "Affidavit",
+                  "type": "text"
+                },
+                {
+                  "key": "confidentialFlag",
+                  "value": "false",
+                  "type": "text"
+                },
+                {
+                  "key": "remarks",
+                  "value": "Initial case affidavit",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/upload",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "upload"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "{{document_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents?page=1&limit=10&linkedEntityType=Legal Case",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "linkedEntityType",
+                  "value": "Legal Case"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Legal Case Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/legal-case/{{case_id}}?page=1&limit=10&caseDocumentType=Affidavit",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "legal-case", "{{case_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "caseDocumentType",
+                  "value": "Affidavit"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/{{document_id}}/download",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "{{document_id}}", "download"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentName\": \"Updated Case Affidavit\",\n  \"remarks\": \"Updated with new information\",\n  \"confidentialFlag\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "{{document_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "{{document_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Document Versions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/{{document_id}}/versions",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "{{document_id}}", "versions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/documents/search?query=affidavit&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "documents", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "affidavit"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Notifications",
+      "item": [
+        {
+          "name": "Send Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"{{lawyer_id}}\",\n  \"recipientType\": \"lawyer\",\n  \"notificationType\": \"lawyer_assigned\",\n  \"title\": \"New Case Assignment\",\n  \"message\": \"You have been assigned to case LC-20250721-001 for John Doe\",\n  \"priority\": \"high\",\n  \"relatedEntityType\": \"Legal Case\",\n  \"relatedEntityId\": \"{{case_id}}\",\n  \"actionUrl\": \"/legal-cases/{{case_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/notifications/send",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "notifications", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/notifications?recipientId={{lawyer_id}}&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "notifications"],
+              "query": [
+                {
+                  "key": "recipientId",
+                  "value": "{{lawyer_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/notifications/{{notification_id}}/read",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "notifications", "{{notification_id}}", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/notifications/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "notifications", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Pre-Legal Notice Integration",
+      "item": [
+        {
+          "name": "Create Pre-Legal Notice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanAccountNumber\": \"{{loan_account_number}}\",\n  \"dpdDays\": 65,\n  \"triggerType\": \"DPD Threshold\",\n  \"templateId\": \"{{template_id}}\",\n  \"communicationMode\": [\"Email\", \"SMS\"],\n  \"stateId\": \"{{state_id}}\",\n  \"languageId\": \"{{language_id}}\",\n  \"noticeExpiryDate\": \"2025-07-28\",\n  \"legalEntityName\": \"CollectPro Recovery Services\",\n  \"issuedBy\": \"admin\",\n  \"acknowledgementRequired\": true,\n  \"noticeStatus\": \"Draft\",\n  \"remarks\": \"Standard 60-day DPD notice\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Notice Preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{template_id}}\",\n  \"loanAccountNumber\": \"{{loan_account_number}}\",\n  \"dpdDays\": 65,\n  \"legalEntityName\": \"CollectPro Recovery Services\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices/preview",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices", "preview"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pre-Legal Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices?loanAccountNumber={{loan_account_number}}&noticeStatus=Sent&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices"],
+              "query": [
+                {
+                  "key": "loanAccountNumber",
+                  "value": "{{loan_account_number}}"
+                },
+                {
+                  "key": "noticeStatus",
+                  "value": "Sent"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "api_prefix",
+      "value": "api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "loan_account_number",
+      "value": "52222222142",
+      "type": "string"
+    },
+    {
+      "key": "case_id",
+      "value": "123e4567-e89b-12d3-a456-426614174000",
+      "type": "string"
+    },
+    {
+      "key": "lawyer_id",
+      "value": "123e4567-e89b-12d3-a456-426614174001",
+      "type": "string"
+    },
+    {
+      "key": "document_id",
+      "value": "123e4567-e89b-12d3-a456-426614174002",
+      "type": "string"
+    },
+    {
+      "key": "document_type_id",
+      "value": "123e4567-e89b-12d3-a456-426614174003",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "123e4567-e89b-12d3-a456-426614174004",
+      "type": "string"
+    },
+    {
+      "key": "template_id",
+      "value": "123e4567-e89b-12d3-a456-426614174005",
+      "type": "string"
+    },
+    {
+      "key": "state_id",
+      "value": "123e4567-e89b-12d3-a456-426614174006",
+      "type": "string"
+    },
+    {
+      "key": "language_id",
+      "value": "123e4567-e89b-12d3-a456-426614174007",
+      "type": "string"
+    }
+  ]
+}

@@ -127,9 +127,10 @@ export class DocumentResponseDto {
 
   @ApiProperty({
     description: 'Status of the document',
-    example: 'active',
+    enum: ['Active', 'Archived', 'Deleted', 'Pending_approval', 'Rejected'],
+    example: 'Active',
   })
-  documentStatus: string;
+  documentStatus: 'Active' | 'Archived' | 'Deleted' | 'Pending_approval' | 'Rejected';
 
   @ApiProperty({
     description: 'SHA-256 hash of the document for integrity',

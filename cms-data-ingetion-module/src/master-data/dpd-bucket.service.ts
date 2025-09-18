@@ -43,7 +43,21 @@ export class DpdBucketService {
       throw new ConflictException('Bucket ID already exists');
     }
 
-    const [created] = await db.insert(dpdBucketMaster).values(createDpdBucketDto).returning();
+    // Transform DTO to match database schema field names
+    const insertData = {
+      bucketId: createDpdBucketDto.bucketId,
+      bucketName: createDpdBucketDto.bucketName,
+      rangeStart: createDpdBucketDto.rangeStart,
+      rangeEnd: createDpdBucketDto.rangeEnd,
+      minDays: createDpdBucketDto.minDays ?? createDpdBucketDto.rangeStart,
+      maxDays: createDpdBucketDto.maxDays ?? createDpdBucketDto.rangeEnd,
+      module: createDpdBucketDto.module,
+      status: createDpdBucketDto.status || 'Active',
+      description: createDpdBucketDto.description,
+      createdBy: createDpdBucketDto.createdBy,
+    };
+
+    const [created] = await db.insert(dpdBucketMaster).values(insertData).returning();
 
     // Emit event for downstream propagation
     this.eventEmitter.emit('masterData.updated', {
@@ -63,7 +77,7 @@ export class DpdBucketService {
     return db
       .select()
       .from(dpdBucketMaster)
-      .where(eq(dpdBucketMaster.status, 'active'))
+      .where(eq(dpdBucketMaster.status, 'Active'))
       .orderBy(dpdBucketMaster.bucketId);
   }
 
@@ -118,12 +132,32 @@ export class DpdBucketService {
       }
     }
 
+    // Transform DTO to match database schema field names
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    // Only include fields that are provided in the DTO
+    if (updateDpdBucketDto.bucketId !== undefined)
+      updateData.bucketId = updateDpdBucketDto.bucketId;
+    if (updateDpdBucketDto.bucketName !== undefined)
+      updateData.bucketName = updateDpdBucketDto.bucketName;
+    if (updateDpdBucketDto.rangeStart !== undefined)
+      updateData.rangeStart = updateDpdBucketDto.rangeStart;
+    if (updateDpdBucketDto.rangeEnd !== undefined)
+      updateData.rangeEnd = updateDpdBucketDto.rangeEnd;
+    if (updateDpdBucketDto.minDays !== undefined) updateData.minDays = updateDpdBucketDto.minDays;
+    if (updateDpdBucketDto.maxDays !== undefined) updateData.maxDays = updateDpdBucketDto.maxDays;
+    if (updateDpdBucketDto.module !== undefined) updateData.module = updateDpdBucketDto.module;
+    if (updateDpdBucketDto.status !== undefined) updateData.status = updateDpdBucketDto.status;
+    if (updateDpdBucketDto.description !== undefined)
+      updateData.description = updateDpdBucketDto.description;
+    if (updateDpdBucketDto.updatedBy !== undefined)
+      updateData.updatedBy = updateDpdBucketDto.updatedBy;
+
     const [updated] = await db
       .update(dpdBucketMaster)
-      .set({
-        ...updateDpdBucketDto,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(dpdBucketMaster.id, id))
       .returning();
 
@@ -163,7 +197,7 @@ export class DpdBucketService {
   ) {
     // eq(dpdBucketMaster.module, module),
     let whereCondition = and(
-      eq(dpdBucketMaster.status, 'active'),
+      eq(dpdBucketMaster.status, 'Active'),
       or(
         // Check if ranges overlap
         and(gte(dpdBucketMaster.rangeStart, start), lte(dpdBucketMaster.rangeStart, end)),

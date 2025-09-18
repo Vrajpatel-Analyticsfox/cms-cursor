@@ -1,0 +1,1049 @@
+{
+  "info": {
+    "name": "UC001-UC008 Complete Legal System",
+    "description": "Comprehensive Postman collection for all 8 legal system services including Trigger Detection, Event Validation, Template Engine, Template Rendering, Communication Service, Delivery Tracking, Status Tracking, and Audit Trail",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "1. Trigger Detection Service",
+      "item": [
+        {
+          "name": "Run Automated Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/trigger-detection/run-automated",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "trigger-detection", "run-automated"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Run Manual Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumbers\": [\"52222222142\", \"LN4567890\"],\n  \"triggerTypes\": [\"DPD_THRESHOLD\", \"PAYMENT_FAILURE\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/trigger-detection/run-manual",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "trigger-detection", "run-manual"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detect DPD Threshold Breaches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/trigger-detection/dpd-thresholds",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "trigger-detection", "dpd-thresholds"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detect Payment Failures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/trigger-detection/payment-failures",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "trigger-detection", "payment-failures"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detect Triggers for Account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/trigger-detection/account/{{loan_account_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "trigger-detection", "account", "{{loan_account_number}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trigger Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/trigger-detection/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "trigger-detection", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Event Validation Service",
+      "item": [
+        {
+          "name": "Validate Trigger Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"trigger_123\",\n  \"loanAccountId\": \"52222222142\",\n  \"loanAccountNumber\": \"52222222142\",\n  \"borrowerName\": \"John Doe\",\n  \"triggerType\": \"DPD_THRESHOLD\",\n  \"dpdDays\": 65,\n  \"outstandingAmount\": 50000,\n  \"detectedAt\": \"2025-07-21T10:30:00Z\",\n  \"severity\": \"HIGH\",\n  \"eligibilityStatus\": \"ELIGIBLE\",\n  \"metadata\": {\n    \"threshold\": 60,\n    \"triggerReason\": \"DPD exceeded 60 days\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/event-validation/validate-trigger",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "event-validation", "validate-trigger"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Eligibility Criteria",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/event-validation/eligibility/{{loan_account_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "event-validation", "eligibility", "{{loan_account_number}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Business Rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"trigger_123\",\n  \"loanAccountId\": \"52222222142\",\n  \"loanAccountNumber\": \"52222222142\",\n  \"borrowerName\": \"John Doe\",\n  \"triggerType\": \"DPD_THRESHOLD\",\n  \"dpdDays\": 65,\n  \"outstandingAmount\": 50000,\n  \"detectedAt\": \"2025-07-21T10:30:00Z\",\n  \"severity\": \"HIGH\",\n  \"eligibilityStatus\": \"ELIGIBLE\",\n  \"metadata\": {\n    \"threshold\": 60,\n    \"triggerReason\": \"DPD exceeded 60 days\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/event-validation/validate-business-rules",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "event-validation", "validate-business-rules"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Template Engine Service",
+      "item": [
+        {
+          "name": "Render Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{template_id}}\",\n  \"outputFormat\": \"HTML\",\n  \"locale\": \"en-IN\",\n  \"customVariables\": {\n    \"companyLogo\": \"https://example.com/logo.png\",\n    \"customMessage\": \"Please contact us immediately\"\n  },\n  \"templateData\": {\n    \"borrower\": {\n      \"name\": \"Mr. Rajesh Kumar Singh\",\n      \"phone\": \"+91-9876543210\",\n      \"email\": \"rajesh.singh@example.com\",\n      \"address\": {\n        \"line1\": \"123 Main Street\",\n        \"city\": \"Mumbai\",\n        \"state\": \"Maharashtra\",\n        \"pincode\": \"400001\"\n      }\n    },\n    \"loanAccount\": {\n      \"accountNumber\": \"LN4567890\",\n      \"outstandingAmount\": 387500,\n      \"dpdDays\": 65\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/template-engine/render",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "template-engine", "render"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Render Enhanced Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{template_id}}\",\n  \"dataSource\": {\n    \"loanAccountNumber\": \"{{loan_account_number}}\",\n    \"userId\": \"user123\",\n    \"maskSensitiveData\": false,\n    \"ipAddress\": \"192.168.1.1\",\n    \"userAgent\": \"Mozilla/5.0\",\n    \"sessionId\": \"session123\"\n  },\n  \"options\": {\n    \"outputFormat\": \"HTML\",\n    \"locale\": \"en-IN\",\n    \"includeMetadata\": true,\n    \"enableComplianceCheck\": true\n  },\n  \"customVariables\": {\n    \"companyLogo\": \"https://example.com/logo.png\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/template-engine/render-enhanced",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "template-engine", "render-enhanced"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Render Batch Templates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requests\": [\n    {\n      \"templateId\": \"{{template_id}}\",\n      \"templateData\": {\n        \"borrower\": {\n          \"name\": \"Mr. John Doe\",\n          \"phone\": \"+91-9876543210\"\n        },\n        \"loanAccount\": {\n          \"accountNumber\": \"LN4567890\",\n          \"outstandingAmount\": 50000\n        }\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/template-engine/render-batch",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "template-engine", "render-batch"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Template Rendering Service",
+      "item": [
+        {
+          "name": "Render Notice with Borrower Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{template_id}}\",\n  \"dataSource\": {\n    \"loanAccountNumber\": \"{{loan_account_number}}\",\n    \"userId\": \"user123\",\n    \"maskSensitiveData\": false,\n    \"ipAddress\": \"192.168.1.1\",\n    \"userAgent\": \"Mozilla/5.0\",\n    \"sessionId\": \"session123\"\n  },\n  \"options\": {\n    \"outputFormat\": \"HTML\",\n    \"locale\": \"en-IN\",\n    \"includeMetadata\": true,\n    \"enableComplianceCheck\": true\n  },\n  \"customVariables\": {\n    \"companyLogo\": \"https://example.com/logo.png\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/template-rendering/render-notice",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "template-rendering", "render-notice"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Communication Service",
+      "item": [
+        {
+          "name": "Send Communication",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"borrower-123\",\n  \"recipientType\": \"borrower\",\n  \"communicationMode\": \"EMAIL\",\n  \"subject\": \"Legal Notice - Account Overdue\",\n  \"content\": \"Dear Mr. John Doe, your account is overdue by 65 days. Please contact us immediately.\",\n  \"templateId\": \"template-60dpd-001\",\n  \"priority\": \"HIGH\",\n  \"scheduledAt\": \"2025-07-22T10:00:00Z\",\n  \"metadata\": {\n    \"noticeId\": \"PLN-20250721-001\",\n    \"caseId\": \"LC-20250721-001\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/send",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Batch Communications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recipientId\": \"borrower-123\",\n    \"recipientType\": \"borrower\",\n    \"communicationMode\": \"EMAIL\",\n    \"content\": \"Dear Mr. John Doe, your account is overdue.\",\n    \"priority\": \"HIGH\"\n  },\n  {\n    \"recipientId\": \"borrower-456\",\n    \"recipientType\": \"borrower\",\n    \"communicationMode\": \"SMS\",\n    \"content\": \"Your account is overdue. Please contact us.\",\n    \"priority\": \"MEDIUM\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/send-batch",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "send-batch"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Delivery by Message ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/track/{{message_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "track", "{{message_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Delivery by Tracking ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/track-by-tracking-id/{{tracking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "track-by-tracking-id", "{{tracking_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Delivery Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageId\": \"{{message_id}}\",\n  \"trackingId\": \"{{tracking_id}}\",\n  \"status\": \"DELIVERED\",\n  \"deliveryProof\": \"/proofs/delivery-proof-123.pdf\",\n  \"geoLocation\": \"Mumbai, Maharashtra, India\",\n  \"recipientSignature\": \"John_Doe_Signature.png\",\n  \"metadata\": {\n    \"deliveryAgent\": \"Agent-001\",\n    \"deliveryTime\": \"2025-07-21T14:30:00Z\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/update-status",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "update-status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deliveries by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/status/DELIVERED?limit=100&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "status", "DELIVERED"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deliveries by Recipient",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/recipient/{{recipient_id}}?limit=100&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "recipient", "{{recipient_id}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Communication Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/statistics?startDate=2025-07-01&endDate=2025-07-31",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "statistics"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-07-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-07-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Delivery Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/delivery-statistics?startDate=2025-07-01&endDate=2025-07-31",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "delivery-statistics"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-07-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-07-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Delivery Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/report?startDate=2025-07-01&endDate=2025-07-31&status=DELIVERED",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "report"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-07-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-07-31"
+                },
+                {
+                  "key": "status",
+                  "value": "DELIVERED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retry Failed Deliveries",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/retry-failed?maxRetries=3",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "retry-failed"],
+              "query": [
+                {
+                  "key": "maxRetries",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retry Failed Communications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/communication/retry-failed-communications?maxRetries=3",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "communication", "retry-failed-communications"],
+              "query": [
+                {
+                  "key": "maxRetries",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Pre-Legal Notice Service",
+      "item": [
+        {
+          "name": "Create Pre-Legal Notice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanAccountNumber\": \"{{loan_account_number}}\",\n  \"dpdDays\": 65,\n  \"triggerType\": \"DPD Threshold\",\n  \"templateId\": \"{{template_id}}\",\n  \"communicationMode\": [\"Email\", \"SMS\"],\n  \"stateId\": \"{{state_id}}\",\n  \"languageId\": \"{{language_id}}\",\n  \"noticeExpiryDate\": \"2025-07-28\",\n  \"legalEntityName\": \"CollectPro Recovery Services\",\n  \"issuedBy\": \"admin\",\n  \"acknowledgementRequired\": true,\n  \"noticeStatus\": \"Draft\",\n  \"remarks\": \"Standard 60-day DPD notice\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Notice Preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{template_id}}\",\n  \"loanAccountNumber\": \"{{loan_account_number}}\",\n  \"dpdDays\": 65,\n  \"legalEntityName\": \"CollectPro Recovery Services\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices/preview",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices", "preview"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pre-Legal Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices?loanAccountNumber={{loan_account_number}}&noticeStatus=Sent&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices"],
+              "query": [
+                {
+                  "key": "loanAccountNumber",
+                  "value": "{{loan_account_number}}"
+                },
+                {
+                  "key": "noticeStatus",
+                  "value": "Sent"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notice by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices/{{notice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices", "{{notice_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Notice Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"noticeStatus\": \"Sent\",\n  \"documentPath\": \"/documents/notices/PLN-20250721-001.pdf\",\n  \"remarks\": \"Notice sent via email and SMS successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices/{{notice_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices", "{{notice_id}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notices by Account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices/account/{{loan_account_number}}?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices", "account", "{{loan_account_number}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Templates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/pre-legal-notices/templates/active",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "pre-legal-notices", "templates", "active"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Status Tracking Service",
+      "item": [
+        {
+          "name": "Update Case Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newStatus\": \"Under Trial\",\n  \"reason\": \"Case proceedings have begun\",\n  \"nextHearingDate\": \"2025-08-15\",\n  \"lastHearingOutcome\": \"Case admitted for trial\",\n  \"outcomeSummary\": \"Case is now under trial proceedings\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/cases/{{case_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "cases", "{{case_id}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Case Timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/cases/{{case_id}}/timeline",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "cases", "{{case_id}}", "timeline"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Timeline Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/lawyers/timeline/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "lawyers", "timeline", "statistics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Audit Trail Service",
+      "item": [
+        {
+          "name": "Get Audit Trail for Notice",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/audit/notice/{{notice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "audit", "notice", "{{notice_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Trail for Case",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/audit/case/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "audit", "case", "{{case_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Trail by User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/audit/user/{{user_id}}?startDate=2025-07-01&endDate=2025-07-31",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "audit", "user", "{{user_id}}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-07-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-07-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_prefix}}/legal/audit/statistics?startDate=2025-07-01&endDate=2025-07-31",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_prefix}}", "legal", "audit", "statistics"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-07-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-07-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "api_prefix",
+      "value": "api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "loan_account_number",
+      "value": "52222222142",
+      "type": "string"
+    },
+    {
+      "key": "template_id",
+      "value": "template-uuid-here",
+      "type": "string"
+    },
+    {
+      "key": "notice_id",
+      "value": "notice-uuid-here",
+      "type": "string"
+    },
+    {
+      "key": "case_id",
+      "value": "case-uuid-here",
+      "type": "string"
+    },
+    {
+      "key": "message_id",
+      "value": "EMAIL-1721624400000-ABC123",
+      "type": "string"
+    },
+    {
+      "key": "tracking_id",
+      "value": "EMAIL-1721624400000-ABC123",
+      "type": "string"
+    },
+    {
+      "key": "recipient_id",
+      "value": "borrower-123",
+      "type": "string"
+    },
+    {
+      "key": "state_id",
+      "value": "state-uuid-here",
+      "type": "string"
+    },
+    {
+      "key": "language_id",
+      "value": "language-uuid-here",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "user-uuid-here",
+      "type": "string"
+    }
+  ]
+}

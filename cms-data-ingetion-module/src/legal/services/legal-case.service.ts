@@ -1,7 +1,7 @@
-import { Injectable, Inject, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { eq, and, desc, like, count, SQL } from 'drizzle-orm';
-import * as schema from '../../db/schema';
+import { db } from '../../db/drizzle.config';
+import { legalCases, lawyers } from '../../db/schema';
 import { CreateLegalCaseDto } from '../dto/create-legal-case.dto';
 import { UpdateLegalCaseDto } from '../dto/update-legal-case.dto';
 import { LegalCaseResponseDto, LegalCaseListResponseDto } from '../dto/legal-case-response.dto';
@@ -13,7 +13,6 @@ export class LegalCaseService {
   private readonly logger = new Logger(LegalCaseService.name);
 
   constructor(
-    @Inject('DRIZZLE') private readonly db: NodePgDatabase<typeof schema>,
     private readonly caseIdService: CaseIdService,
     private readonly dataIngestionHelper: DataIngestionHelperService,
   ) {}
@@ -44,10 +43,10 @@ export class LegalCaseService {
 
       // Validate lawyer assignment if provided
       if (createDto.lawyerAssignedId) {
-        const lawyer = await this.db
+        const lawyer = await db
           .select()
-          .from(schema.lawyers)
-          .where(eq(schema.lawyers.id, createDto.lawyerAssignedId))
+          .from(lawyers)
+          .where(eq(lawyers.id, createDto.lawyerAssignedId))
           .limit(1);
 
         if (lawyer.length === 0) {
@@ -74,9 +73,17 @@ export class LegalCaseService {
         }
       }
 
+      // Helper function to convert empty strings to null for date fields
+      const sanitizeDateField = (value: string | undefined | null): string | null => {
+        if (!value || value.trim() === '') {
+          return null;
+        }
+        return value;
+      };
+
       // Create the legal case
-      const newCase = await this.db
-        .insert(schema.legalCases)
+      const newCase = await db
+        .insert(legalCases)
         .values({
           caseId: caseIdResult.caseId,
           loanAccountNumber: createDto.loanAccountNumber,
@@ -87,12 +94,12 @@ export class LegalCaseService {
           lawyerAssignedId: createDto.lawyerAssignedId,
           filingJurisdiction: createDto.filingJurisdiction,
           currentStatus: createDto.currentStatus || 'Filed',
-          nextHearingDate: createDto.nextHearingDate,
-          lastHearingOutcome: createDto.lastHearingOutcome,
-          recoveryActionLinked: createDto.recoveryActionLinked,
-          caseRemarks: createDto.caseRemarks,
-          caseClosureDate: createDto.caseClosureDate,
-          outcomeSummary: createDto.outcomeSummary,
+          nextHearingDate: sanitizeDateField(createDto.nextHearingDate),
+          lastHearingOutcome: createDto.lastHearingOutcome || null,
+          recoveryActionLinked: createDto.recoveryActionLinked || null,
+          caseRemarks: createDto.caseRemarks || null,
+          caseClosureDate: sanitizeDateField(createDto.caseClosureDate),
+          outcomeSummary: createDto.outcomeSummary || null,
           createdBy,
         })
         .returning();
@@ -113,33 +120,33 @@ export class LegalCaseService {
    */
   async getLegalCaseById(id: string): Promise<LegalCaseResponseDto> {
     try {
-      const legalCase = await this.db
+      const legalCase = await db
         .select({
-          id: schema.legalCases.id,
-          caseId: schema.legalCases.caseId,
-          loanAccountNumber: schema.legalCases.loanAccountNumber,
-          borrowerName: schema.legalCases.borrowerName,
-          caseType: schema.legalCases.caseType,
-          courtName: schema.legalCases.courtName,
-          caseFiledDate: schema.legalCases.caseFiledDate,
-          lawyerAssignedId: schema.legalCases.lawyerAssignedId,
-          filingJurisdiction: schema.legalCases.filingJurisdiction,
-          currentStatus: schema.legalCases.currentStatus,
-          nextHearingDate: schema.legalCases.nextHearingDate,
-          lastHearingOutcome: schema.legalCases.lastHearingOutcome,
-          recoveryActionLinked: schema.legalCases.recoveryActionLinked,
-          createdBy: schema.legalCases.createdBy,
-          caseRemarks: schema.legalCases.caseRemarks,
-          caseClosureDate: schema.legalCases.caseClosureDate,
-          outcomeSummary: schema.legalCases.outcomeSummary,
-          createdAt: schema.legalCases.createdAt,
-          updatedAt: schema.legalCases.updatedAt,
-          updatedBy: schema.legalCases.updatedBy,
-          lawyerName: schema.lawyers.fullName,
+          id: legalCases.id,
+          caseId: legalCases.caseId,
+          loanAccountNumber: legalCases.loanAccountNumber,
+          borrowerName: legalCases.borrowerName,
+          caseType: legalCases.caseType,
+          courtName: legalCases.courtName,
+          caseFiledDate: legalCases.caseFiledDate,
+          lawyerAssignedId: legalCases.lawyerAssignedId,
+          filingJurisdiction: legalCases.filingJurisdiction,
+          currentStatus: legalCases.currentStatus,
+          nextHearingDate: legalCases.nextHearingDate,
+          lastHearingOutcome: legalCases.lastHearingOutcome,
+          recoveryActionLinked: legalCases.recoveryActionLinked,
+          createdBy: legalCases.createdBy,
+          caseRemarks: legalCases.caseRemarks,
+          caseClosureDate: legalCases.caseClosureDate,
+          outcomeSummary: legalCases.outcomeSummary,
+          createdAt: legalCases.createdAt,
+          updatedAt: legalCases.updatedAt,
+          updatedBy: legalCases.updatedBy,
+          lawyerName: lawyers.fullName,
         })
-        .from(schema.legalCases)
-        .leftJoin(schema.lawyers, eq(schema.legalCases.lawyerAssignedId, schema.lawyers.id))
-        .where(eq(schema.legalCases.id, id))
+        .from(legalCases)
+        .leftJoin(lawyers, eq(legalCases.lawyerAssignedId, lawyers.id))
+        .where(and(eq(legalCases.id, id), eq(legalCases.status, 'Active')))
         .limit(1);
 
       if (legalCase.length === 0) {
@@ -158,33 +165,33 @@ export class LegalCaseService {
    */
   async getLegalCaseByCaseId(caseId: string): Promise<LegalCaseResponseDto> {
     try {
-      const legalCase = await this.db
+      const legalCase = await db
         .select({
-          id: schema.legalCases.id,
-          caseId: schema.legalCases.caseId,
-          loanAccountNumber: schema.legalCases.loanAccountNumber,
-          borrowerName: schema.legalCases.borrowerName,
-          caseType: schema.legalCases.caseType,
-          courtName: schema.legalCases.courtName,
-          caseFiledDate: schema.legalCases.caseFiledDate,
-          lawyerAssignedId: schema.legalCases.lawyerAssignedId,
-          filingJurisdiction: schema.legalCases.filingJurisdiction,
-          currentStatus: schema.legalCases.currentStatus,
-          nextHearingDate: schema.legalCases.nextHearingDate,
-          lastHearingOutcome: schema.legalCases.lastHearingOutcome,
-          recoveryActionLinked: schema.legalCases.recoveryActionLinked,
-          createdBy: schema.legalCases.createdBy,
-          caseRemarks: schema.legalCases.caseRemarks,
-          caseClosureDate: schema.legalCases.caseClosureDate,
-          outcomeSummary: schema.legalCases.outcomeSummary,
-          createdAt: schema.legalCases.createdAt,
-          updatedAt: schema.legalCases.updatedAt,
-          updatedBy: schema.legalCases.updatedBy,
-          lawyerName: schema.lawyers.fullName,
+          id: legalCases.id,
+          caseId: legalCases.caseId,
+          loanAccountNumber: legalCases.loanAccountNumber,
+          borrowerName: legalCases.borrowerName,
+          caseType: legalCases.caseType,
+          courtName: legalCases.courtName,
+          caseFiledDate: legalCases.caseFiledDate,
+          lawyerAssignedId: legalCases.lawyerAssignedId,
+          filingJurisdiction: legalCases.filingJurisdiction,
+          currentStatus: legalCases.currentStatus,
+          nextHearingDate: legalCases.nextHearingDate,
+          lastHearingOutcome: legalCases.lastHearingOutcome,
+          recoveryActionLinked: legalCases.recoveryActionLinked,
+          createdBy: legalCases.createdBy,
+          caseRemarks: legalCases.caseRemarks,
+          caseClosureDate: legalCases.caseClosureDate,
+          outcomeSummary: legalCases.outcomeSummary,
+          createdAt: legalCases.createdAt,
+          updatedAt: legalCases.updatedAt,
+          updatedBy: legalCases.updatedBy,
+          lawyerName: lawyers.fullName,
         })
-        .from(schema.legalCases)
-        .leftJoin(schema.lawyers, eq(schema.legalCases.lawyerAssignedId, schema.lawyers.id))
-        .where(eq(schema.legalCases.caseId, caseId))
+        .from(legalCases)
+        .leftJoin(lawyers, eq(legalCases.lawyerAssignedId, lawyers.id))
+        .where(and(eq(legalCases.caseId, caseId), eq(legalCases.status, 'Active')))
         .limit(1);
 
       if (legalCase.length === 0) {
@@ -214,70 +221,68 @@ export class LegalCaseService {
   ): Promise<LegalCaseListResponseDto> {
     try {
       const offset = (page - 1) * limit;
-      let whereConditions: SQL[] = [];
+      const whereConditions: SQL[] = [];
+
+      // Always filter out deleted cases
+      whereConditions.push(eq(legalCases.status, 'Active'));
 
       // Apply filters
       if (filters?.caseType) {
-        whereConditions.push(eq(schema.legalCases.caseType, filters.caseType as any));
+        whereConditions.push(eq(legalCases.caseType, filters.caseType as any));
       }
       if (filters?.currentStatus) {
-        whereConditions.push(eq(schema.legalCases.currentStatus, filters.currentStatus as any));
+        whereConditions.push(eq(legalCases.currentStatus, filters.currentStatus as any));
       }
       if (filters?.lawyerAssignedId) {
-        whereConditions.push(eq(schema.legalCases.lawyerAssignedId, filters.lawyerAssignedId));
+        whereConditions.push(eq(legalCases.lawyerAssignedId, filters.lawyerAssignedId));
       }
       if (filters?.loanAccountNumber) {
-        whereConditions.push(
-          like(schema.legalCases.loanAccountNumber, `%${filters.loanAccountNumber}%`),
-        );
+        whereConditions.push(like(legalCases.loanAccountNumber, `%${filters.loanAccountNumber}%`));
       }
       if (filters?.borrowerName) {
-        whereConditions.push(like(schema.legalCases.borrowerName, `%${filters.borrowerName}%`));
+        whereConditions.push(like(legalCases.borrowerName, `%${filters.borrowerName}%`));
       }
 
       const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
       // Get total count
-      const totalResult = await this.db
-        .select({ count: count() })
-        .from(schema.legalCases)
-        .where(whereClause);
+      const totalResult = await db.select({ count: count() }).from(legalCases).where(whereClause);
 
       const total = totalResult[0].count;
 
       // Get paginated results
-      const legalCases = await this.db
+      const legalCasesList = await db
         .select({
-          id: schema.legalCases.id,
-          caseId: schema.legalCases.caseId,
-          loanAccountNumber: schema.legalCases.loanAccountNumber,
-          borrowerName: schema.legalCases.borrowerName,
-          caseType: schema.legalCases.caseType,
-          courtName: schema.legalCases.courtName,
-          caseFiledDate: schema.legalCases.caseFiledDate,
-          lawyerAssignedId: schema.legalCases.lawyerAssignedId,
-          filingJurisdiction: schema.legalCases.filingJurisdiction,
-          currentStatus: schema.legalCases.currentStatus,
-          nextHearingDate: schema.legalCases.nextHearingDate,
-          lastHearingOutcome: schema.legalCases.lastHearingOutcome,
-          recoveryActionLinked: schema.legalCases.recoveryActionLinked,
-          createdBy: schema.legalCases.createdBy,
-          caseRemarks: schema.legalCases.caseRemarks,
-          caseClosureDate: schema.legalCases.caseClosureDate,
-          outcomeSummary: schema.legalCases.outcomeSummary,
-          createdAt: schema.legalCases.createdAt,
-          updatedAt: schema.legalCases.updatedAt,
-          updatedBy: schema.legalCases.updatedBy,
-          lawyerName: schema.lawyers.fullName,
+          id: legalCases.id,
+          caseId: legalCases.caseId,
+          loanAccountNumber: legalCases.loanAccountNumber,
+          borrowerName: legalCases.borrowerName,
+          caseType: legalCases.caseType,
+          courtName: legalCases.courtName,
+          caseFiledDate: legalCases.caseFiledDate,
+          lawyerAssignedId: legalCases.lawyerAssignedId,
+          filingJurisdiction: legalCases.filingJurisdiction,
+          currentStatus: legalCases.currentStatus,
+          nextHearingDate: legalCases.nextHearingDate,
+          lastHearingOutcome: legalCases.lastHearingOutcome,
+          recoveryActionLinked: legalCases.recoveryActionLinked,
+          createdBy: legalCases.createdBy,
+          caseRemarks: legalCases.caseRemarks,
+          caseClosureDate: legalCases.caseClosureDate,
+          outcomeSummary: legalCases.outcomeSummary,
+          createdAt: legalCases.createdAt,
+          updatedAt: legalCases.updatedAt,
+          updatedBy: legalCases.updatedBy,
+          lawyerName: lawyers.fullName,
         })
-        .from(schema.legalCases)
-        .leftJoin(schema.lawyers, eq(schema.legalCases.lawyerAssignedId, schema.lawyers.id))
+        .from(legalCases)
+        .leftJoin(lawyers, eq(legalCases.lawyerAssignedId, lawyers.id))
         .where(whereClause)
-        .orderBy(desc(schema.legalCases.createdAt))
+        .orderBy(desc(legalCases.createdAt))
         .limit(limit)
         .offset(offset);
 
-      const cases = legalCases.map((case_) => this.mapToResponseDtoWithLawyer(case_));
+      const cases = legalCasesList.map((case_) => this.mapToResponseDtoWithLawyer(case_));
 
       return {
         cases,
@@ -301,11 +306,11 @@ export class LegalCaseService {
     updatedBy: string,
   ): Promise<LegalCaseResponseDto> {
     try {
-      // Check if case exists
-      const existingCase = await this.db
+      // Check if case exists and is active
+      const existingCase = await db
         .select()
-        .from(schema.legalCases)
-        .where(eq(schema.legalCases.id, id))
+        .from(legalCases)
+        .where(and(eq(legalCases.id, id), eq(legalCases.status, 'Active')))
         .limit(1);
 
       if (existingCase.length === 0) {
@@ -314,10 +319,10 @@ export class LegalCaseService {
 
       // Validate lawyer assignment if provided
       if (updateDto.lawyerAssignedId) {
-        const lawyer = await this.db
+        const lawyer = await db
           .select()
-          .from(schema.lawyers)
-          .where(eq(schema.lawyers.id, updateDto.lawyerAssignedId))
+          .from(lawyers)
+          .where(eq(lawyers.id, updateDto.lawyerAssignedId))
           .limit(1);
 
         if (lawyer.length === 0) {
@@ -348,15 +353,48 @@ export class LegalCaseService {
         }
       }
 
+      // Helper function to convert empty strings to null for date fields
+      const sanitizeDateField = (value: string | undefined | null): string | null => {
+        if (!value || value.trim() === '') {
+          return null;
+        }
+        return value;
+      };
+
+      // Prepare update data with proper null handling
+      const updateData: any = {
+        ...updateDto,
+        updatedAt: new Date(),
+        updatedBy,
+      };
+
+      // Sanitize date fields
+      if (updateDto.nextHearingDate !== undefined) {
+        updateData.nextHearingDate = sanitizeDateField(updateDto.nextHearingDate);
+      }
+      if (updateDto.caseClosureDate !== undefined) {
+        updateData.caseClosureDate = sanitizeDateField(updateDto.caseClosureDate);
+      }
+
+      // Sanitize text fields to null if empty
+      if (updateDto.lastHearingOutcome !== undefined) {
+        updateData.lastHearingOutcome = updateDto.lastHearingOutcome || null;
+      }
+      if (updateDto.recoveryActionLinked !== undefined) {
+        updateData.recoveryActionLinked = updateDto.recoveryActionLinked || null;
+      }
+      if (updateDto.caseRemarks !== undefined) {
+        updateData.caseRemarks = updateDto.caseRemarks || null;
+      }
+      if (updateDto.outcomeSummary !== undefined) {
+        updateData.outcomeSummary = updateDto.outcomeSummary || null;
+      }
+
       // Update the legal case
-      const updatedCase = await this.db
-        .update(schema.legalCases)
-        .set({
-          ...updateDto,
-          updatedAt: new Date(),
-          updatedBy,
-        })
-        .where(eq(schema.legalCases.id, id))
+      const updatedCase = await db
+        .update(legalCases)
+        .set(updateData)
+        .where(eq(legalCases.id, id))
         .returning();
 
       this.logger.log(`Updated legal case: ${updatedCase[0].caseId}`);
@@ -386,17 +424,17 @@ export class LegalCaseService {
       };
 
       if (caseClosureDate) {
-        updateData.caseClosureDate = caseClosureDate;
+        updateData.caseClosureDate = caseClosureDate.trim() === '' ? null : caseClosureDate;
       }
 
       if (outcomeSummary) {
         updateData.outcomeSummary = outcomeSummary;
       }
 
-      const updatedCase = await this.db
-        .update(schema.legalCases)
+      const updatedCase = await db
+        .update(legalCases)
         .set(updateData)
-        .where(eq(schema.legalCases.id, id))
+        .where(eq(legalCases.id, id))
         .returning();
 
       if (updatedCase.length === 0) {
@@ -420,25 +458,25 @@ export class LegalCaseService {
     deletedBy: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const existingCase = await this.db
+      const existingCase = await db
         .select()
-        .from(schema.legalCases)
-        .where(eq(schema.legalCases.id, id))
+        .from(legalCases)
+        .where(and(eq(legalCases.id, id), eq(legalCases.status, 'Active')))
         .limit(1);
 
       if (existingCase.length === 0) {
         throw new NotFoundException(`Legal case with ID ${id} not found`);
       }
 
-      // For now, we'll just update the updatedBy field to indicate deletion
-      // In a real implementation, you might want to add a deletedAt field or isDeleted flag
-      await this.db
-        .update(schema.legalCases)
+      // Soft delete by setting status to 'deleted'
+      await db
+        .update(legalCases)
         .set({
+          status: 'Inactive',
           updatedAt: new Date(),
           updatedBy: `${deletedBy}-DELETED`,
         })
-        .where(eq(schema.legalCases.id, id));
+        .where(eq(legalCases.id, id));
 
       this.logger.log(`Deleted legal case: ${existingCase[0].caseId}`);
 
@@ -457,36 +495,36 @@ export class LegalCaseService {
    */
   async getCasesByStatus(status: string): Promise<LegalCaseResponseDto[]> {
     try {
-      const legalCases = await this.db
+      const legalCasesList = await db
         .select({
-          id: schema.legalCases.id,
-          caseId: schema.legalCases.caseId,
-          loanAccountNumber: schema.legalCases.loanAccountNumber,
-          borrowerName: schema.legalCases.borrowerName,
-          caseType: schema.legalCases.caseType,
-          courtName: schema.legalCases.courtName,
-          caseFiledDate: schema.legalCases.caseFiledDate,
-          lawyerAssignedId: schema.legalCases.lawyerAssignedId,
-          filingJurisdiction: schema.legalCases.filingJurisdiction,
-          currentStatus: schema.legalCases.currentStatus,
-          nextHearingDate: schema.legalCases.nextHearingDate,
-          lastHearingOutcome: schema.legalCases.lastHearingOutcome,
-          recoveryActionLinked: schema.legalCases.recoveryActionLinked,
-          createdBy: schema.legalCases.createdBy,
-          caseRemarks: schema.legalCases.caseRemarks,
-          caseClosureDate: schema.legalCases.caseClosureDate,
-          outcomeSummary: schema.legalCases.outcomeSummary,
-          createdAt: schema.legalCases.createdAt,
-          updatedAt: schema.legalCases.updatedAt,
-          updatedBy: schema.legalCases.updatedBy,
-          lawyerName: schema.lawyers.fullName,
+          id: legalCases.id,
+          caseId: legalCases.caseId,
+          loanAccountNumber: legalCases.loanAccountNumber,
+          borrowerName: legalCases.borrowerName,
+          caseType: legalCases.caseType,
+          courtName: legalCases.courtName,
+          caseFiledDate: legalCases.caseFiledDate,
+          lawyerAssignedId: legalCases.lawyerAssignedId,
+          filingJurisdiction: legalCases.filingJurisdiction,
+          currentStatus: legalCases.currentStatus,
+          nextHearingDate: legalCases.nextHearingDate,
+          lastHearingOutcome: legalCases.lastHearingOutcome,
+          recoveryActionLinked: legalCases.recoveryActionLinked,
+          createdBy: legalCases.createdBy,
+          caseRemarks: legalCases.caseRemarks,
+          caseClosureDate: legalCases.caseClosureDate,
+          outcomeSummary: legalCases.outcomeSummary,
+          createdAt: legalCases.createdAt,
+          updatedAt: legalCases.updatedAt,
+          updatedBy: legalCases.updatedBy,
+          lawyerName: lawyers.fullName,
         })
-        .from(schema.legalCases)
-        .leftJoin(schema.lawyers, eq(schema.legalCases.lawyerAssignedId, schema.lawyers.id))
-        .where(eq(schema.legalCases.currentStatus, status as any))
-        .orderBy(desc(schema.legalCases.createdAt));
+        .from(legalCases)
+        .leftJoin(lawyers, eq(legalCases.lawyerAssignedId, lawyers.id))
+        .where(and(eq(legalCases.currentStatus, status as any), eq(legalCases.status, 'Active')))
+        .orderBy(desc(legalCases.createdAt));
 
-      return legalCases.map((case_) => this.mapToResponseDtoWithLawyer(case_));
+      return legalCasesList.map((case_) => this.mapToResponseDtoWithLawyer(case_));
     } catch (error) {
       this.logger.error(`Error getting cases by status ${status}:`, error);
       throw error;
@@ -498,36 +536,36 @@ export class LegalCaseService {
    */
   async getCasesByLawyer(lawyerId: string): Promise<LegalCaseResponseDto[]> {
     try {
-      const legalCases = await this.db
+      const legalCasesList = await db
         .select({
-          id: schema.legalCases.id,
-          caseId: schema.legalCases.caseId,
-          loanAccountNumber: schema.legalCases.loanAccountNumber,
-          borrowerName: schema.legalCases.borrowerName,
-          caseType: schema.legalCases.caseType,
-          courtName: schema.legalCases.courtName,
-          caseFiledDate: schema.legalCases.caseFiledDate,
-          lawyerAssignedId: schema.legalCases.lawyerAssignedId,
-          filingJurisdiction: schema.legalCases.filingJurisdiction,
-          currentStatus: schema.legalCases.currentStatus,
-          nextHearingDate: schema.legalCases.nextHearingDate,
-          lastHearingOutcome: schema.legalCases.lastHearingOutcome,
-          recoveryActionLinked: schema.legalCases.recoveryActionLinked,
-          createdBy: schema.legalCases.createdBy,
-          caseRemarks: schema.legalCases.caseRemarks,
-          caseClosureDate: schema.legalCases.caseClosureDate,
-          outcomeSummary: schema.legalCases.outcomeSummary,
-          createdAt: schema.legalCases.createdAt,
-          updatedAt: schema.legalCases.updatedAt,
-          updatedBy: schema.legalCases.updatedBy,
-          lawyerName: schema.lawyers.fullName,
+          id: legalCases.id,
+          caseId: legalCases.caseId,
+          loanAccountNumber: legalCases.loanAccountNumber,
+          borrowerName: legalCases.borrowerName,
+          caseType: legalCases.caseType,
+          courtName: legalCases.courtName,
+          caseFiledDate: legalCases.caseFiledDate,
+          lawyerAssignedId: legalCases.lawyerAssignedId,
+          filingJurisdiction: legalCases.filingJurisdiction,
+          currentStatus: legalCases.currentStatus,
+          nextHearingDate: legalCases.nextHearingDate,
+          lastHearingOutcome: legalCases.lastHearingOutcome,
+          recoveryActionLinked: legalCases.recoveryActionLinked,
+          createdBy: legalCases.createdBy,
+          caseRemarks: legalCases.caseRemarks,
+          caseClosureDate: legalCases.caseClosureDate,
+          outcomeSummary: legalCases.outcomeSummary,
+          createdAt: legalCases.createdAt,
+          updatedAt: legalCases.updatedAt,
+          updatedBy: legalCases.updatedBy,
+          lawyerName: lawyers.fullName,
         })
-        .from(schema.legalCases)
-        .leftJoin(schema.lawyers, eq(schema.legalCases.lawyerAssignedId, schema.lawyers.id))
-        .where(eq(schema.legalCases.lawyerAssignedId, lawyerId))
-        .orderBy(desc(schema.legalCases.createdAt));
+        .from(legalCases)
+        .leftJoin(lawyers, eq(legalCases.lawyerAssignedId, lawyers.id))
+        .where(and(eq(legalCases.lawyerAssignedId, lawyerId), eq(legalCases.status, 'Active')))
+        .orderBy(desc(legalCases.createdAt));
 
-      return legalCases.map((case_) => this.mapToResponseDtoWithLawyer(case_));
+      return legalCasesList.map((case_) => this.mapToResponseDtoWithLawyer(case_));
     } catch (error) {
       this.logger.error(`Error getting cases by lawyer ${lawyerId}:`, error);
       throw error;

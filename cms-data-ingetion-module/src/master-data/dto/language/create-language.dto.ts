@@ -13,8 +13,8 @@ export class CreateLanguageDto {
   @IsString()
   scriptSupport: string;
 
-  @IsEnum(['active', 'inactive'])
-  status: 'active' | 'inactive' = 'active';
+  @IsEnum(['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'])
+  status: 'Active' | 'Inactive' | 'Draft' | 'Pending' | 'Completed' | 'Cancelled' = 'Active';
 
   @IsOptional()
   @IsString()

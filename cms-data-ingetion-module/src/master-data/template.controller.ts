@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { TemplateService } from './template.service';
-import { CreateTemplateDto, UpdateTemplateDto } from './dto/template';
+import { CreateTemplateDto, UpdateTemplateDto, TemplateType, TemplateStatus } from './dto/template';
 
 @ApiTags('Master Data - Template')
 @Controller('master-data/template')
@@ -46,14 +46,15 @@ export class TemplateController {
           type: 'string',
           example: 'Hello {{customer_name}}, your payment is due.',
         },
-        maxCharacters: {
-          type: 'number',
-          example: 160,
+        templateType: {
+          type: 'string',
+          enum: Object.values(TemplateType),
+          example: TemplateType.PRE_LEGAL,
         },
         status: {
           type: 'string',
-          enum: ['active', 'inactive', 'draft'],
-          example: 'active',
+          enum: Object.values(TemplateStatus),
+          example: TemplateStatus.ACTIVE,
         },
         createdAt: {
           type: 'string',
@@ -90,8 +91,8 @@ export class TemplateController {
           languageId: { type: 'string', format: 'uuid' },
           templateName: { type: 'string' },
           messageBody: { type: 'string' },
-          maxCharacters: { type: 'number' },
-          status: { type: 'string', enum: ['active', 'inactive', 'draft'] },
+          templateType: { type: 'string', enum: Object.values(TemplateType) },
+          status: { type: 'string', enum: Object.values(TemplateStatus) },
           createdAt: { type: 'string', format: 'date-time' },
           createdBy: { type: 'string' },
         },
@@ -121,7 +122,6 @@ export class TemplateController {
           languageId: { type: 'string', format: 'uuid' },
           templateName: { type: 'string' },
           messageBody: { type: 'string' },
-          maxCharacters: { type: 'number' },
           status: { type: 'string', enum: ['active'] },
           createdAt: { type: 'string', format: 'date-time' },
           createdBy: { type: 'string' },
@@ -157,8 +157,8 @@ export class TemplateController {
           languageId: { type: 'string', format: 'uuid' },
           templateName: { type: 'string' },
           messageBody: { type: 'string' },
-          maxCharacters: { type: 'number' },
-          status: { type: 'string', enum: ['active', 'inactive', 'draft'] },
+          templateType: { type: 'string', enum: Object.values(TemplateType) },
+          status: { type: 'string', enum: Object.values(TemplateStatus) },
           createdAt: { type: 'string', format: 'date-time' },
           createdBy: { type: 'string' },
         },
@@ -184,6 +184,171 @@ export class TemplateController {
     return this.templateService.findActiveByLanguage(languageId);
   }
 
+  @Get('by-template-type')
+  @ApiOperation({
+    summary: 'Get templates by template type',
+    description:
+      'Retrieves templates filtered by template type (Pre-Legal, Legal, Final Warning, etc.)',
+  })
+  @ApiQuery({
+    name: 'templateType',
+    description: 'Template type to filter by',
+    enum: TemplateType,
+    example: TemplateType.PRE_LEGAL,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Templates by type retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          templateId: { type: 'string' },
+          channelId: { type: 'string', format: 'uuid' },
+          languageId: { type: 'string', format: 'uuid' },
+          templateName: { type: 'string' },
+          messageBody: { type: 'string' },
+          templateType: { type: 'string', enum: Object.values(TemplateType) },
+          status: { type: 'string', enum: Object.values(TemplateStatus) },
+          createdAt: { type: 'string', format: 'date-time' },
+          createdBy: { type: 'string' },
+        },
+      },
+    },
+  })
+  async findByTemplateType(@Query('templateType') templateType: TemplateType) {
+    return this.templateService.findByTemplateType(templateType);
+  }
+
+  @Get('active/by-template-type')
+  @ApiOperation({
+    summary: 'Get active templates by template type',
+    description: 'Retrieves active templates filtered by template type',
+  })
+  @ApiQuery({
+    name: 'templateType',
+    description: 'Template type to filter by',
+    enum: TemplateType,
+    example: TemplateType.PRE_LEGAL,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Active templates by type retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          templateId: { type: 'string' },
+          channelId: { type: 'string', format: 'uuid' },
+          languageId: { type: 'string', format: 'uuid' },
+          templateName: { type: 'string' },
+          messageBody: { type: 'string' },
+          templateType: { type: 'string', enum: Object.values(TemplateType) },
+          status: { type: 'string', enum: [TemplateStatus.ACTIVE] },
+          createdAt: { type: 'string', format: 'date-time' },
+          createdBy: { type: 'string' },
+        },
+      },
+    },
+  })
+  async findActiveByTemplateType(@Query('templateType') templateType: TemplateType) {
+    return this.templateService.findActiveByTemplateType(templateType);
+  }
+
+  @Get('by-channel-and-template-type')
+  @ApiOperation({
+    summary: 'Get templates by channel and template type',
+    description: 'Retrieves templates filtered by both channel and template type',
+  })
+  @ApiQuery({
+    name: 'channelId',
+    description: 'Channel UUID to filter by',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiQuery({
+    name: 'templateType',
+    description: 'Template type to filter by',
+    enum: TemplateType,
+    example: TemplateType.PRE_LEGAL,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Templates by channel and type retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          templateId: { type: 'string' },
+          channelId: { type: 'string', format: 'uuid' },
+          languageId: { type: 'string', format: 'uuid' },
+          templateName: { type: 'string' },
+          messageBody: { type: 'string' },
+          templateType: { type: 'string', enum: Object.values(TemplateType) },
+          status: { type: 'string', enum: Object.values(TemplateStatus) },
+          createdAt: { type: 'string', format: 'date-time' },
+          createdBy: { type: 'string' },
+        },
+      },
+    },
+  })
+  async findByChannelAndTemplateType(
+    @Query('channelId') channelId: string,
+    @Query('templateType') templateType: TemplateType,
+  ) {
+    return this.templateService.findByChannelAndTemplateType(channelId, templateType);
+  }
+
+  @Get('active/by-channel-and-template-type')
+  @ApiOperation({
+    summary: 'Get active templates by channel and template type',
+    description: 'Retrieves active templates filtered by both channel and template type',
+  })
+  @ApiQuery({
+    name: 'channelId',
+    description: 'Channel UUID to filter by',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiQuery({
+    name: 'templateType',
+    description: 'Template type to filter by',
+    enum: TemplateType,
+    example: TemplateType.PRE_LEGAL,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Active templates by channel and type retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          templateId: { type: 'string' },
+          channelId: { type: 'string', format: 'uuid' },
+          languageId: { type: 'string', format: 'uuid' },
+          templateName: { type: 'string' },
+          messageBody: { type: 'string' },
+          templateType: { type: 'string', enum: Object.values(TemplateType) },
+          status: { type: 'string', enum: [TemplateStatus.ACTIVE] },
+          createdAt: { type: 'string', format: 'date-time' },
+          createdBy: { type: 'string' },
+        },
+      },
+    },
+  })
+  async findActiveByChannelAndTemplateType(
+    @Query('channelId') channelId: string,
+    @Query('templateType') templateType: TemplateType,
+  ) {
+    return this.templateService.findActiveByChannelAndTemplateType(channelId, templateType);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get template by ID',
@@ -206,7 +371,6 @@ export class TemplateController {
         languageId: { type: 'string', format: 'uuid' },
         templateName: { type: 'string' },
         messageBody: { type: 'string' },
-        maxCharacters: { type: 'number' },
         status: { type: 'string', enum: ['active', 'inactive', 'draft'] },
         createdAt: { type: 'string', format: 'date-time' },
         createdBy: { type: 'string' },
@@ -251,7 +415,6 @@ export class TemplateController {
         languageId: { type: 'string', format: 'uuid' },
         templateName: { type: 'string' },
         messageBody: { type: 'string' },
-        maxCharacters: { type: 'number' },
         status: { type: 'string', enum: ['active', 'inactive', 'draft'] },
         updatedAt: { type: 'string', format: 'date-time' },
         updatedBy: { type: 'string' },

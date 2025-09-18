@@ -184,7 +184,7 @@ export class TemplateEngineService {
       const enrichedData = this.enrichTemplateData(request.templateData, request.customVariables);
 
       // Step 4: Compile and render template
-      const compiledTemplate = this.handlebars.compile(template.templateContent);
+      const compiledTemplate = this.handlebars.compile(template.messageBody);
       const renderedContent = compiledTemplate(enrichedData);
 
       // Step 5: Post-process based on output format
@@ -271,11 +271,11 @@ export class TemplateEngineService {
       const optionalVariables: string[] = [];
 
       // Parse template for variables
-      const variables = this.extractTemplateVariables(template.templateContent);
+      const variables = this.extractTemplateVariables(template.messageBody);
 
       // Check template syntax
       try {
-        this.handlebars.compile(template.templateContent);
+        this.handlebars.compile(template.messageBody);
       } catch (syntaxError) {
         errors.push(`Template syntax error: ${syntaxError.message}`);
       }
@@ -297,13 +297,12 @@ export class TemplateEngineService {
         }
       });
 
-      // Check character limits
-      const estimatedLength = template.templateContent.length;
-      const maxCharacters = template.maxCharacters || 2000;
-      const characterLimitOk = estimatedLength <= maxCharacters;
+      // Check character limits (removed maxCharacters field)
+      const estimatedLength = template.messageBody.length;
+      const characterLimitOk = estimatedLength <= 2000; // Default limit
 
       if (!characterLimitOk) {
-        warnings.push(`Template may exceed character limit: ${estimatedLength}/${maxCharacters}`);
+        warnings.push(`Template may exceed character limit: ${estimatedLength}/2000`);
       }
 
       const result: TemplateValidationResult = {
@@ -332,13 +331,13 @@ export class TemplateEngineService {
    */
   async createDynamicTemplate(
     templateName: string,
-    templateContent: string,
+    messageBody: string,
     templateType: string,
     metadata?: Record<string, any>,
   ): Promise<string> {
     try {
       // Validate template syntax
-      this.handlebars.compile(templateContent);
+      this.handlebars.compile(messageBody);
 
       // Get default language and channel IDs (you may need to adjust these)
       const defaultLanguageId = 'uuid-default-language';
@@ -346,22 +345,20 @@ export class TemplateEngineService {
 
       // Create template record
       const template = await this.db
-        .insert(schema.legalNoticeTemplates)
+        .insert(schema.templateMaster)
         .values({
-          templateCode: `DYN-${Date.now()}`,
+          templateId: `DYN-${Date.now()}`,
           templateName,
           templateType: templateType as any,
-          templateContent,
+          messageBody: messageBody,
           languageId: defaultLanguageId,
           channelId: defaultChannelId,
-          isActive: true,
-          maxCharacters: templateContent.length + 500, // Allow for data expansion
           description: `Dynamic template: ${templateName}`,
-          status: 'active',
+          status: 'Active',
           createdBy: 'template-engine-service',
           updatedBy: 'template-engine-service',
         })
-        .returning({ id: schema.legalNoticeTemplates.id });
+        .returning({ id: schema.templateMaster.id });
 
       this.logger.log(`Created dynamic template: ${templateName} (ID: ${template[0].id})`);
       return template[0].id;
@@ -475,8 +472,8 @@ export class TemplateEngineService {
   private async getTemplate(templateId: string): Promise<any> {
     const template = await this.db
       .select()
-      .from(schema.legalNoticeTemplates)
-      .where(eq(schema.legalNoticeTemplates.id, templateId))
+      .from(schema.templateMaster)
+      .where(eq(schema.templateMaster.id, templateId))
       .limit(1);
 
     if (template.length === 0) {
@@ -510,7 +507,7 @@ export class TemplateEngineService {
     }
 
     // Check template-specific requirements
-    const variables = this.extractTemplateVariables(template.templateContent);
+    const variables = this.extractTemplateVariables(template.messageBody);
 
     variables.forEach((variable) => {
       const value = this.getNestedProperty(data, variable);
@@ -525,7 +522,7 @@ export class TemplateEngineService {
       warnings,
       requiredVariables: variables,
       optionalVariables: [],
-      estimatedLength: template.templateContent.length,
+      estimatedLength: template.messageBody.length,
       compliance: {
         characterLimit: true,
         mandatoryFields: errors.length === 0,
@@ -700,11 +697,11 @@ export class TemplateEngineService {
     const wordCount = content.split(/\s+/).filter((word) => word.length > 0).length;
     const estimatedReadingTime = Math.ceil(wordCount / 200); // 200 words per minute
 
-    const variablesUsed = this.extractTemplateVariables(template.templateContent).filter(
+    const variablesUsed = this.extractTemplateVariables(template.messageBody).filter(
       (variable) => this.getNestedProperty(data, variable) !== undefined,
     );
 
-    const missingVariables = this.extractTemplateVariables(template.templateContent).filter(
+    const missingVariables = this.extractTemplateVariables(template.messageBody).filter(
       (variable) => this.getNestedProperty(data, variable) === undefined,
     );
 

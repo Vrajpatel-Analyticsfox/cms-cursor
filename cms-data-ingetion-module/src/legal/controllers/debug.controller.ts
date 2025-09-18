@@ -6,6 +6,133 @@ import * as schema from '../../db/schema';
 export class DebugController {
   constructor(@Inject('DRIZZLE') private readonly db: any) {}
 
+  @Get('populate-document-types')
+  async populateDocumentTypes() {
+    try {
+      console.log('Starting document types population...');
+
+      // Check if document types already exist
+      const existingTypes = await this.db
+        .select({ count: schema.documentTypes.id })
+        .from(schema.documentTypes);
+
+      console.log('Existing document types:', existingTypes.length);
+
+      if (existingTypes.length > 0) {
+        return { message: 'Document types already populated, skipping...' };
+      }
+
+      // Insert document types
+      console.log('Inserting document types...');
+
+      const documentTypes = [
+        // Legal Notice Documents
+        {
+          docTypeCode: 'LNT001',
+          docTypeName: 'Pre-Legal Notice',
+          docCategory: 'Legal Notice' as any,
+          isConfidential: false,
+          maxFileSizeMb: 5,
+          allowedFormats: 'PDF,DOCX',
+          description: 'Pre-legal notice documents',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        {
+          docTypeCode: 'LNT002',
+          docTypeName: 'Legal Notice',
+          docCategory: 'Legal Notice' as any,
+          isConfidential: false,
+          maxFileSizeMb: 5,
+          allowedFormats: 'PDF,DOCX',
+          description: 'Legal notice documents',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        // Court Documents
+        {
+          docTypeCode: 'COU001',
+          docTypeName: 'Court Order',
+          docCategory: 'Court Order' as any,
+          isConfidential: true,
+          maxFileSizeMb: 10,
+          allowedFormats: 'PDF,DOCX',
+          description: 'Court orders and judgments',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        {
+          docTypeCode: 'COU002',
+          docTypeName: 'Summons',
+          docCategory: 'Court Order' as any,
+          isConfidential: true,
+          maxFileSizeMb: 10,
+          allowedFormats: 'PDF,DOCX',
+          description: 'Court summons and notices',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        // Affidavits
+        {
+          docTypeCode: 'AFF001',
+          docTypeName: 'Affidavit',
+          docCategory: 'Affidavit' as any,
+          isConfidential: true,
+          maxFileSizeMb: 10,
+          allowedFormats: 'PDF,DOCX',
+          description: 'Legal affidavits',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        // Case Documents
+        {
+          docTypeCode: 'CAS001',
+          docTypeName: 'Case Summary',
+          docCategory: 'Case Summary' as any,
+          isConfidential: true,
+          maxFileSizeMb: 15,
+          allowedFormats: 'PDF,DOCX',
+          description: 'Case summaries and reports',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        {
+          docTypeCode: 'CAS002',
+          docTypeName: 'Evidence',
+          docCategory: 'Proof' as any,
+          isConfidential: true,
+          maxFileSizeMb: 20,
+          allowedFormats: 'PDF,DOCX,JPG,PNG',
+          description: 'Evidence documents',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+        // Other Documents
+        {
+          docTypeCode: 'OTH001',
+          docTypeName: 'Other Legal Document',
+          docCategory: 'Other' as any,
+          isConfidential: false,
+          maxFileSizeMb: 10,
+          allowedFormats: 'PDF,DOCX,JPG,PNG',
+          description: 'Other legal documents',
+          status: 'active' as any,
+          createdBy: 'system',
+        },
+      ];
+
+      for (const docType of documentTypes) {
+        await this.db.insert(schema.documentTypes).values(docType);
+      }
+
+      console.log('Document types populated successfully!');
+      return { message: 'Document types populated successfully!', count: documentTypes.length };
+    } catch (error) {
+      console.error('Error populating document types:', error);
+      return { error: error.message };
+    }
+  }
+
   @Get('populate-database')
   async populateDatabase() {
     try {
@@ -283,8 +410,8 @@ export class DebugController {
       let lntError = null;
       try {
         const lntResult = await this.db
-          .select({ count: schema.legalNoticeTemplates.id })
-          .from(schema.legalNoticeTemplates);
+          .select({ count: schema.templateMaster.id })
+          .from(schema.templateMaster);
         lntCount = lntResult.length;
       } catch (error) {
         lntError = error.message;
@@ -317,7 +444,7 @@ export class DebugController {
         dataIngestionFailed: {
           count: failedCount.length,
         },
-        legalNoticeTemplates: {
+        templateMaster: {
           count: lntCount,
           error: lntError,
         },

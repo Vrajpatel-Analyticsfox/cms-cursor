@@ -10,8 +10,8 @@ export class UpdateSchemaConfigurationDto {
   sourceType?: string;
 
   @IsOptional()
-  @IsEnum(['active', 'inactive', 'draft'])
-  status?: 'active' | 'inactive' | 'draft';
+  @IsEnum(['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'])
+  status?: 'Active' | 'Inactive' | 'Draft' | 'Pending' | 'Completed' | 'Cancelled';
 
   @IsOptional()
   @IsString()

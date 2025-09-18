@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { legalCases, caseIdSequence } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import {
   CaseIdGenerationRequestDto,
   CaseIdGenerationResponseDto,
@@ -291,7 +291,7 @@ export class CaseIdService {
       const existingCase = await this.db
         .select()
         .from(legalCases)
-        .where(eq(legalCases.caseId, caseId))
+        .where(and(eq(legalCases.caseId, caseId), eq(legalCases.status, 'Active')))
         .limit(1);
 
       return existingCase.length === 0;

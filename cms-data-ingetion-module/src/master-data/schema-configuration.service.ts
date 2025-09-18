@@ -47,7 +47,7 @@ export class SchemaConfigurationService {
     return db
       .select()
       .from(schemaConfiguration)
-      .where(eq(schemaConfiguration.status, 'active'))
+      .where(eq(schemaConfiguration.status, 'Active'))
       .orderBy(schemaConfiguration.schemaName);
   }
 
@@ -136,7 +136,7 @@ export class SchemaConfigurationService {
       .where(
         and(
           eq(schemaConfiguration.sourceType, sourceType),
-          eq(schemaConfiguration.status, 'active'),
+          eq(schemaConfiguration.status, 'Active'),
         ),
       )
       .orderBy(schemaConfiguration.schemaName);

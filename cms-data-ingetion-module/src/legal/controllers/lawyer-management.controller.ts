@@ -22,6 +22,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { LawyerAssignmentService } from '../services/lawyer-assignment.service';
+import { LawyerService } from '../services/lawyer.service';
 import { NotificationService } from '../services/notification.service';
 import { StatusManagementService } from '../services/status-management.service';
 import { TimelineTrackingService } from '../services/timeline-tracking.service';
@@ -37,6 +38,7 @@ import { StatusUpdateDto } from '../dto/status-update.dto';
 export class LawyerManagementController {
   constructor(
     private readonly lawyerAssignmentService: LawyerAssignmentService,
+    private readonly lawyerService: LawyerService,
     private readonly notificationService: NotificationService,
     private readonly statusManagementService: StatusManagementService,
     private readonly timelineTrackingService: TimelineTrackingService,
@@ -55,14 +57,20 @@ export class LawyerManagementController {
     @Body() createDto: CreateLawyerDto,
     @Request() req: any,
   ): Promise<LawyerResponseDto> {
-    // Implementation would go here
-    throw new Error('Method not implemented.');
+    return this.lawyerService.createLawyer(createDto, req.user?.id || 'system');
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all lawyers with workload information' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by name, email, or bar number',
+  })
   @ApiQuery({
     name: 'specialization',
     required: false,
@@ -75,6 +83,18 @@ export class LawyerManagementController {
     type: Boolean,
     description: 'Filter by availability',
   })
+  @ApiQuery({
+    name: 'isActive',
+    required: false,
+    type: Boolean,
+    description: 'Filter by active status',
+  })
+  @ApiQuery({
+    name: 'lawyerType',
+    required: false,
+    type: String,
+    description: 'Filter by lawyer type (Internal/External)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lawyers retrieved successfully',
@@ -83,11 +103,141 @@ export class LawyerManagementController {
   async getLawyers(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('search') search?: string,
     @Query('specialization') specialization?: string,
     @Query('isAvailable') isAvailable?: boolean,
+    @Query('isActive') isActive?: boolean,
+    @Query('lawyerType') lawyerType?: string,
   ): Promise<LawyerListResponseDto> {
-    // Implementation would go here
-    throw new Error('Method not implemented.');
+    return this.lawyerService.getLawyers(
+      page,
+      limit,
+      search,
+      specialization,
+      isAvailable,
+      isActive,
+      lawyerType,
+    );
+  }
+
+  @Get('available')
+  @ApiOperation({ summary: 'Get available lawyers for case assignment' })
+  @ApiQuery({
+    name: 'specialization',
+    required: false,
+    type: String,
+    description: 'Filter by specialization',
+  })
+  @ApiQuery({
+    name: 'jurisdiction',
+    required: false,
+    type: String,
+    description: 'Filter by jurisdiction',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of lawyers to return',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Available lawyers retrieved successfully',
+    type: [LawyerResponseDto],
+  })
+  async getAvailableLawyers(
+    @Query('specialization') specialization?: string,
+    @Query('jurisdiction') jurisdiction?: string,
+    @Query('limit') limit?: number,
+  ): Promise<LawyerResponseDto[]> {
+    return this.lawyerService.getAvailableLawyers(specialization, jurisdiction, limit);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get lawyer by ID' })
+  @ApiParam({ name: 'id', description: 'Lawyer ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lawyer retrieved successfully',
+    type: LawyerResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Lawyer not found',
+  })
+  async getLawyerById(@Param('id') id: string): Promise<LawyerResponseDto> {
+    return this.lawyerService.getLawyerById(id);
+  }
+
+  @Get('email/:email')
+  @ApiOperation({ summary: 'Get lawyer by email' })
+  @ApiParam({ name: 'email', description: 'Lawyer email' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lawyer retrieved successfully',
+    type: LawyerResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Lawyer not found',
+  })
+  async getLawyerByEmail(@Param('email') email: string): Promise<LawyerResponseDto> {
+    return this.lawyerService.getLawyerByEmail(email);
+  }
+
+  @Get(':id/workload')
+  @ApiOperation({ summary: 'Get lawyer workload statistics' })
+  @ApiParam({ name: 'id', description: 'Lawyer ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Workload statistics retrieved successfully',
+  })
+  async getLawyerWorkloadStats(@Param('id') id: string) {
+    return this.lawyerService.getLawyerWorkloadStats(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update lawyer information' })
+  @ApiParam({ name: 'id', description: 'Lawyer ID' })
+  @ApiBody({ type: UpdateLawyerDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Lawyer updated successfully',
+    type: LawyerResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Lawyer not found',
+  })
+  async updateLawyer(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateLawyerDto,
+    @Request() req: any,
+  ): Promise<LawyerResponseDto> {
+    return this.lawyerService.updateLawyer(id, updateDto, req.user?.id || 'system');
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete lawyer (soft delete)' })
+  @ApiParam({ name: 'id', description: 'Lawyer ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lawyer deleted successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Lawyer not found',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete lawyer with active cases',
+  })
+  async deleteLawyer(
+    @Param('id') id: string,
+    @Request() req: any,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.lawyerService.deleteLawyer(id, req.user?.id || 'system');
   }
 
   @Get('workload')
@@ -338,4 +488,3 @@ export class LawyerManagementController {
     };
   }
 }
-

@@ -17,12 +17,12 @@ export class UpdateStateDto extends PartialType(CreateStateDto) {
 
   @ApiPropertyOptional({
     description: 'State status',
-    enum: ['active', 'inactive'],
-    example: 'inactive',
+    enum: ['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'],
+    example: 'Inactive',
   })
-  @IsEnum(['active', 'inactive'])
+  @IsEnum(['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'])
   @IsOptional()
-  status?: 'active' | 'inactive';
+  status?: 'Active' | 'Inactive' | 'Draft' | 'Pending' | 'Completed' | 'Cancelled';
 
   @ApiPropertyOptional({
     description: 'User who updated the state',

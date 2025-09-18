@@ -66,4 +66,3 @@ export class StatusUpdateDto {
   @MaxLength(1000)
   outcomeSummary?: string;
 }
-

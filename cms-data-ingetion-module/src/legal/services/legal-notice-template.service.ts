@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { db } from '../../db/drizzle.config';
 import { eq, and, like, or } from 'drizzle-orm';
-import { legalNoticeTemplates } from '../../db/schema';
+import { templateMaster } from '../../db/schema';
 import { CreateLegalNoticeTemplateDto } from '../dto/create-legal-notice-template.dto';
 import { UpdateLegalNoticeTemplateDto } from '../dto/update-legal-notice-template.dto';
 import { LegalNoticeTemplateResponseDto } from '../dto/legal-notice-template-response.dto';
@@ -12,31 +12,29 @@ export class LegalNoticeTemplateService {
 
   async create(createDto: CreateLegalNoticeTemplateDto): Promise<LegalNoticeTemplateResponseDto> {
     try {
-      // Check if template code already exists
+      // Check if template ID already exists
       const existingTemplate = await db
         .select()
-        .from(legalNoticeTemplates)
-        .where(eq(legalNoticeTemplates.templateCode, createDto.templateCode))
+        .from(templateMaster)
+        .where(eq(templateMaster.templateId, createDto.templateId))
         .limit(1);
 
       if (existingTemplate.length > 0) {
-        throw new BadRequestException(
-          `Template with code '${createDto.templateCode}' already exists`,
-        );
+        throw new BadRequestException(`Template with ID '${createDto.templateId}' already exists`);
       }
 
       // Create new template
       const [newTemplate] = await db
-        .insert(legalNoticeTemplates)
+        .insert(templateMaster)
         .values({
-          templateCode: createDto.templateCode,
+          templateId: createDto.templateId,
           templateName: createDto.templateName,
           templateType: createDto.templateType,
-          templateContent: createDto.templateContent,
+          messageBody: createDto.messageBody,
           languageId: createDto.languageId,
-          maxCharacters: createDto.maxCharacters,
+          channelId: createDto.channelId,
           description: createDto.description,
-          status: createDto.status || 'active',
+          status: createDto.status || 'Active',
           createdBy: createDto.createdBy || 'system',
         })
         .returning();
@@ -71,19 +69,19 @@ export class LegalNoticeTemplateService {
       if (search) {
         conditions.push(
           or(
-            like(legalNoticeTemplates.templateName, `%${search}%`),
-            like(legalNoticeTemplates.templateCode, `%${search}%`),
-            like(legalNoticeTemplates.description, `%${search}%`),
+            like(templateMaster.templateName, `%${search}%`),
+            like(templateMaster.templateId, `%${search}%`),
+            like(templateMaster.description, `%${search}%`),
           ),
         );
       }
 
       if (templateType) {
-        conditions.push(eq(legalNoticeTemplates.templateType, templateType as any));
+        conditions.push(eq(templateMaster.templateType, templateType as any));
       }
 
       if (status) {
-        conditions.push(eq(legalNoticeTemplates.status, status as any));
+        conditions.push(eq(templateMaster.status, status as any));
       }
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -91,16 +89,16 @@ export class LegalNoticeTemplateService {
       // Get templates with pagination
       const templates = await db
         .select()
-        .from(legalNoticeTemplates)
+        .from(templateMaster)
         .where(whereClause)
         .limit(limit)
         .offset(offset)
-        .orderBy(legalNoticeTemplates.createdAt);
+        .orderBy(templateMaster.createdAt);
 
       // Get total count
       const totalResult = await db
-        .select({ count: legalNoticeTemplates.id })
-        .from(legalNoticeTemplates)
+        .select({ count: templateMaster.id })
+        .from(templateMaster)
         .where(whereClause);
 
       const total = totalResult.length;
@@ -120,8 +118,8 @@ export class LegalNoticeTemplateService {
     try {
       const [template] = await db
         .select()
-        .from(legalNoticeTemplates)
-        .where(eq(legalNoticeTemplates.id, id))
+        .from(templateMaster)
+        .where(eq(templateMaster.id, id))
         .limit(1);
 
       if (!template) {
@@ -141,8 +139,8 @@ export class LegalNoticeTemplateService {
     try {
       const [template] = await db
         .select()
-        .from(legalNoticeTemplates)
-        .where(eq(legalNoticeTemplates.templateCode, templateCode))
+        .from(templateMaster)
+        .where(eq(templateMaster.templateId, templateCode))
         .limit(1);
 
       if (!template) {
@@ -167,28 +165,28 @@ export class LegalNoticeTemplateService {
       const existingTemplate = await this.findOne(id);
 
       // Check if template code is being changed and if it already exists
-      if (updateDto.templateCode && updateDto.templateCode !== existingTemplate.templateCode) {
+      if (updateDto.templateId && updateDto.templateId !== existingTemplate.templateCode) {
         const codeExists = await db
           .select()
-          .from(legalNoticeTemplates)
-          .where(eq(legalNoticeTemplates.templateCode, updateDto.templateCode))
+          .from(templateMaster)
+          .where(eq(templateMaster.templateId, updateDto.templateId))
           .limit(1);
 
         if (codeExists.length > 0) {
           throw new BadRequestException(
-            `Template with code '${updateDto.templateCode}' already exists`,
+            `Template with ID '${updateDto.templateId}' already exists`,
           );
         }
       }
 
       // Update template
       const [updatedTemplate] = await db
-        .update(legalNoticeTemplates)
+        .update(templateMaster)
         .set({
           ...updateDto,
           updatedAt: new Date(),
         })
-        .where(eq(legalNoticeTemplates.id, id))
+        .where(eq(templateMaster.id, id))
         .returning();
 
       return this.mapToResponseDto(updatedTemplate);
@@ -206,7 +204,7 @@ export class LegalNoticeTemplateService {
       await this.findOne(id);
 
       // Hard delete
-      await db.delete(legalNoticeTemplates).where(eq(legalNoticeTemplates.id, id));
+      await db.delete(templateMaster).where(eq(templateMaster.id, id));
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -218,12 +216,12 @@ export class LegalNoticeTemplateService {
   private mapToResponseDto(template: any): LegalNoticeTemplateResponseDto {
     return {
       id: template.id,
-      templateCode: template.templateCode,
+      templateCode: template.templateId,
       templateName: template.templateName,
       templateType: template.templateType,
-      templateContent: template.templateContent,
+      templateContent: template.messageBody,
       languageId: template.languageId,
-      maxCharacters: template.maxCharacters,
+      channelId: template.channelId,
       description: template.description,
       status: template.status,
       createdBy: template.createdBy,

@@ -11,7 +11,7 @@ import {
 export class CreateLegalNoticeTemplateDto {
   @IsString()
   @MaxLength(50)
-  templateCode: string;
+  templateId: string;
 
   @IsString()
   @MaxLength(100)
@@ -21,22 +21,21 @@ export class CreateLegalNoticeTemplateDto {
   templateType: 'Pre-Legal' | 'Legal' | 'Final Warning' | 'Arbitration' | 'Court Summon';
 
   @IsString()
-  templateContent: string;
+  messageBody: string;
 
   @IsUUID()
   languageId: string;
 
-  @IsOptional()
-  @IsNumber()
-  maxCharacters?: number;
+  @IsUUID()
+  channelId: string;
 
   @IsOptional()
   @IsString()
   description?: string;
 
   @IsOptional()
-  @IsEnum(['active', 'inactive'])
-  status?: 'active' | 'inactive';
+  @IsEnum(['Active', 'Inactive'])
+  status?: 'Active' | 'Inactive';
 
   @IsOptional()
   @IsString()

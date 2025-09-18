@@ -131,7 +131,7 @@ export class DocumentManagementService {
           versionNumber: schema.documentRepository.versionNumber,
           parentDocumentId: schema.documentRepository.parentDocumentId,
           isLatestVersion: schema.documentRepository.isLatestVersion,
-          documentStatus: schema.documentRepository.documentStatus,
+          documentStatus: schema.documentRepository.documentStatusEnum,
           documentHash: schema.documentRepository.documentHash,
           mimeType: schema.documentRepository.mimeType,
           caseDocumentType: schema.documentRepository.caseDocumentType,
@@ -203,7 +203,9 @@ export class DocumentManagementService {
         );
       }
       if (filters?.documentStatus) {
-        whereConditions.push(eq(schema.documentRepository.documentStatus, filters.documentStatus));
+        whereConditions.push(
+          eq(schema.documentRepository.documentStatusEnum, filters.documentStatus),
+        );
       }
       if (filters?.confidentialFlag !== undefined) {
         whereConditions.push(
@@ -242,7 +244,7 @@ export class DocumentManagementService {
           versionNumber: schema.documentRepository.versionNumber,
           parentDocumentId: schema.documentRepository.parentDocumentId,
           isLatestVersion: schema.documentRepository.isLatestVersion,
-          documentStatus: schema.documentRepository.documentStatus,
+          documentStatus: schema.documentRepository.documentStatusEnum,
           documentHash: schema.documentRepository.documentHash,
           mimeType: schema.documentRepository.mimeType,
           caseDocumentType: schema.documentRepository.caseDocumentType,
@@ -504,7 +506,7 @@ export class DocumentManagementService {
         const legalCase = await this.db
           .select()
           .from(schema.legalCases)
-          .where(eq(schema.legalCases.id, entityId))
+          .where(and(eq(schema.legalCases.id, entityId), eq(schema.legalCases.status, 'Active')))
           .limit(1);
         if (legalCase.length === 0) {
           throw new BadRequestException(`Legal case with ID ${entityId} not found`);

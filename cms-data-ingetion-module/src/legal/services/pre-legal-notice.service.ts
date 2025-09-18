@@ -1,7 +1,14 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/drizzle.config';
 import { eq, and, gte, lte, desc, count } from 'drizzle-orm';
-import { legalNotices, legalNoticeTemplates, users, caseIdSequence } from '../../db/schema';
+import {
+  legalNotices,
+  templateMaster,
+  users,
+  caseIdSequence,
+  stateMaster,
+  languageMaster,
+} from '../../db/schema';
 import { DataIngestionHelperService } from './data-ingestion-helper.service';
 import {
   CreatePreLegalNoticeDto,
@@ -12,7 +19,6 @@ import {
   NoticePreviewResponseDto,
   NoticeFilterDto,
   NoticeStatus,
-  CommunicationMode,
 } from '../dto/pre-legal-notice.dto';
 
 @Injectable()
@@ -39,8 +45,7 @@ export class PreLegalNoticeService {
     // Step 4: Generate unique notice code
     const noticeCode = await this.generateNoticeCode();
 
-    // Step 5: Validate communication modes
-    this.validateCommunicationModes(createDto.communicationMode);
+    // Step 5: Communication modes are now simple text strings (no validation needed)
 
     // Step 6: Create the notice record
     const notice = await db
@@ -52,6 +57,8 @@ export class PreLegalNoticeService {
         triggerType: createDto.triggerType,
         templateId: createDto.templateId,
         communicationMode: createDto.communicationMode.join(', '),
+        stateId: createDto.stateId,
+        languageId: createDto.languageId,
         noticeExpiryDate: createDto.noticeExpiryDate,
         legalEntityName: createDto.legalEntityName,
         issuedBy: createDto.issuedBy,
@@ -62,8 +69,26 @@ export class PreLegalNoticeService {
       })
       .returning();
 
-    // Step 7: Return formatted response
-    return this.formatNoticeResponse(notice[0], loanAccount, template);
+    // Step 7: Get state and language names
+    const state = await db
+      .select()
+      .from(stateMaster)
+      .where(eq(stateMaster.id, createDto.stateId))
+      .limit(1);
+    const language = await db
+      .select()
+      .from(languageMaster)
+      .where(eq(languageMaster.id, createDto.languageId))
+      .limit(1);
+
+    // Step 8: Return formatted response
+    return this.formatNoticeResponse(
+      notice[0],
+      loanAccount,
+      template,
+      state[0]?.stateName,
+      language[0]?.languageName,
+    );
   }
 
   /**
@@ -109,7 +134,7 @@ export class PreLegalNoticeService {
     const updatedNotice = await db
       .update(legalNotices)
       .set({
-        noticeStatus: updateDto.noticeStatus,
+        noticeStatus: updateDto.noticeStatus as any,
         documentPath: updateDto.documentPath,
         remarks: updateDto.remarks || existingNotice.remarks,
         updatedBy,
@@ -131,11 +156,29 @@ export class PreLegalNoticeService {
 
     const template = await db
       .select()
-      .from(legalNoticeTemplates)
-      .where(eq(legalNoticeTemplates.id, updatedNotice[0].templateId))
+      .from(templateMaster)
+      .where(eq(templateMaster.id, updatedNotice[0].templateId))
       .limit(1);
 
-    return this.formatNoticeResponse(updatedNotice[0], loanAccount, template[0]);
+    // Get state and language names
+    const state = await db
+      .select()
+      .from(stateMaster)
+      .where(eq(stateMaster.id, updatedNotice[0].stateId))
+      .limit(1);
+    const language = await db
+      .select()
+      .from(languageMaster)
+      .where(eq(languageMaster.id, updatedNotice[0].languageId))
+      .limit(1);
+
+    return this.formatNoticeResponse(
+      updatedNotice[0],
+      loanAccount,
+      template[0],
+      state[0]?.stateName,
+      language[0]?.languageName,
+    );
   }
 
   /**
@@ -153,11 +196,29 @@ export class PreLegalNoticeService {
 
     const template = await db
       .select()
-      .from(legalNoticeTemplates)
-      .where(eq(legalNoticeTemplates.id, notice.templateId))
+      .from(templateMaster)
+      .where(eq(templateMaster.id, notice.templateId))
       .limit(1);
 
-    return this.formatNoticeResponse(notice, loanAccount, template[0]);
+    // Get state and language names
+    const state = await db
+      .select()
+      .from(stateMaster)
+      .where(eq(stateMaster.id, notice.stateId))
+      .limit(1);
+    const language = await db
+      .select()
+      .from(languageMaster)
+      .where(eq(languageMaster.id, notice.languageId))
+      .limit(1);
+
+    return this.formatNoticeResponse(
+      notice,
+      loanAccount,
+      template[0],
+      state[0]?.stateName,
+      language[0]?.languageName,
+    );
   }
 
   /**
@@ -169,7 +230,7 @@ export class PreLegalNoticeService {
 
     // Apply filters
     if (filters.noticeStatus) {
-      conditions.push(eq(legalNotices.noticeStatus, filters.noticeStatus));
+      conditions.push(eq(legalNotices.noticeStatus, filters.noticeStatus as any));
     }
 
     if (filters.triggerType) {
@@ -217,19 +278,75 @@ export class PreLegalNoticeService {
 
     const total = totalResult[0].count;
 
-    // Get notices with pagination and sorting
+    // Get notices with pagination and sorting, including state and language names
     const offset = ((filters.page || 1) - 1) * (filters.limit || 10);
     const notices = whereCondition
       ? await db
-          .select()
+          .select({
+            // Legal notices fields
+            id: legalNotices.id,
+            noticeCode: legalNotices.noticeCode,
+            loanAccountNumber: legalNotices.loanAccountNumber,
+            dpdDays: legalNotices.dpdDays,
+            triggerType: legalNotices.triggerType,
+            templateId: legalNotices.templateId,
+            communicationMode: legalNotices.communicationMode,
+            stateId: legalNotices.stateId,
+            languageId: legalNotices.languageId,
+            noticeGenerationDate: legalNotices.noticeGenerationDate,
+            noticeExpiryDate: legalNotices.noticeExpiryDate,
+            legalEntityName: legalNotices.legalEntityName,
+            issuedBy: legalNotices.issuedBy,
+            acknowledgementRequired: legalNotices.acknowledgementRequired,
+            noticeStatus: legalNotices.noticeStatus,
+            documentPath: legalNotices.documentPath,
+            remarks: legalNotices.remarks,
+            createdAt: legalNotices.createdAt,
+            updatedAt: legalNotices.updatedAt,
+            createdBy: legalNotices.createdBy,
+            // State master fields
+            stateName: stateMaster.stateName,
+            // Language master fields
+            languageName: languageMaster.languageName,
+          })
           .from(legalNotices)
+          .leftJoin(stateMaster, eq(legalNotices.stateId, stateMaster.id))
+          .leftJoin(languageMaster, eq(legalNotices.languageId, languageMaster.id))
           .where(whereCondition)
           .orderBy(desc(legalNotices.createdAt))
           .limit(filters.limit || 10)
           .offset(offset)
       : await db
-          .select()
+          .select({
+            // Legal notices fields
+            id: legalNotices.id,
+            noticeCode: legalNotices.noticeCode,
+            loanAccountNumber: legalNotices.loanAccountNumber,
+            dpdDays: legalNotices.dpdDays,
+            triggerType: legalNotices.triggerType,
+            templateId: legalNotices.templateId,
+            communicationMode: legalNotices.communicationMode,
+            stateId: legalNotices.stateId,
+            languageId: legalNotices.languageId,
+            noticeGenerationDate: legalNotices.noticeGenerationDate,
+            noticeExpiryDate: legalNotices.noticeExpiryDate,
+            legalEntityName: legalNotices.legalEntityName,
+            issuedBy: legalNotices.issuedBy,
+            acknowledgementRequired: legalNotices.acknowledgementRequired,
+            noticeStatus: legalNotices.noticeStatus,
+            documentPath: legalNotices.documentPath,
+            remarks: legalNotices.remarks,
+            createdAt: legalNotices.createdAt,
+            updatedAt: legalNotices.updatedAt,
+            createdBy: legalNotices.createdBy,
+            // State master fields
+            stateName: stateMaster.stateName,
+            // Language master fields
+            languageName: languageMaster.languageName,
+          })
           .from(legalNotices)
+          .leftJoin(stateMaster, eq(legalNotices.stateId, stateMaster.id))
+          .leftJoin(languageMaster, eq(legalNotices.languageId, languageMaster.id))
           .orderBy(desc(legalNotices.createdAt))
           .limit(filters.limit || 10)
           .offset(offset);
@@ -248,11 +365,17 @@ export class PreLegalNoticeService {
 
         const template = await db
           .select()
-          .from(legalNoticeTemplates)
-          .where(eq(legalNoticeTemplates.id, notice.templateId))
+          .from(templateMaster)
+          .where(eq(templateMaster.id, notice.templateId))
           .limit(1);
 
-        return this.formatNoticeResponse(notice, loanAccount, template[0]);
+        return this.formatNoticeResponse(
+          notice,
+          loanAccount,
+          template[0],
+          notice.stateName || undefined,
+          notice.languageName || undefined,
+        );
       }),
     );
 
@@ -279,15 +402,15 @@ export class PreLegalNoticeService {
   private async validateTemplate(templateId: string) {
     const template = await db
       .select()
-      .from(legalNoticeTemplates)
-      .where(eq(legalNoticeTemplates.id, templateId))
+      .from(templateMaster)
+      .where(eq(templateMaster.id, templateId))
       .limit(1);
 
     if (!template.length) {
       throw new NotFoundException(`Template ${templateId} not found`);
     }
 
-    if (template[0].status !== 'active') {
+    if (template[0].status !== 'Active') {
       throw new BadRequestException(`Template ${templateId} is not active`);
     }
 
@@ -371,15 +494,6 @@ export class PreLegalNoticeService {
     return `${prefix}-${dateStr}-${categoryCode ? `${categoryCode}-` : ''}${formattedSequence}`;
   }
 
-  private validateCommunicationModes(modes: CommunicationMode[]) {
-    const validModes = Object.values(CommunicationMode);
-    const invalidModes = modes.filter((mode) => !validModes.includes(mode));
-
-    if (invalidModes.length > 0) {
-      throw new BadRequestException(`Invalid communication modes: ${invalidModes.join(', ')}`);
-    }
-  }
-
   private async findNoticeById(noticeId: string) {
     const notice = await db
       .select()
@@ -395,7 +509,7 @@ export class PreLegalNoticeService {
   }
 
   private mergeTemplateData(template: any, data: any): string {
-    let content = template.templateContent;
+    let content = template.messageBody;
 
     // Simple template merge - replace placeholders with actual data
     content = content.replace(/{{borrowerName}}/g, data.borrowerName);
@@ -411,6 +525,8 @@ export class PreLegalNoticeService {
     notice: any,
     loanAccount: any,
     template: any,
+    stateName?: string,
+    languageName?: string,
   ): Promise<PreLegalNoticeResponseDto> {
     // Get user info for issuedBy
     const user = await db.select().from(users).where(eq(users.fullName, notice.issuedBy)).limit(1);
@@ -426,6 +542,10 @@ export class PreLegalNoticeService {
       templateId: notice.templateId,
       templateName: template.templateName,
       communicationMode: notice.communicationMode.split(', '),
+      stateId: notice.stateId,
+      stateName: stateName || 'Unknown',
+      languageId: notice.languageId,
+      languageName: languageName || 'Unknown',
       noticeGenerationDate: notice.noticeGenerationDate,
       noticeExpiryDate: notice.noticeExpiryDate,
       legalEntityName: notice.legalEntityName,

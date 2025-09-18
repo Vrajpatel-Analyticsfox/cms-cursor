@@ -1,4 +1,5 @@
 import { IsOptional, IsString, IsEnum, IsUUID, IsNumber, Min } from 'class-validator';
+import { TemplateType, TemplateStatus } from './create-template.dto';
 
 export class UpdateTemplateDto {
   @IsOptional()
@@ -22,13 +23,12 @@ export class UpdateTemplateDto {
   messageBody?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  maxCharacters?: number;
+  @IsEnum(TemplateType)
+  templateType?: TemplateType;
 
   @IsOptional()
-  @IsEnum(['active', 'inactive', 'draft'])
-  status?: 'active' | 'inactive' | 'draft';
+  @IsEnum(TemplateStatus)
+  status?: TemplateStatus;
 
   @IsOptional()
   @IsString()

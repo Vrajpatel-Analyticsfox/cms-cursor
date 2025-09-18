@@ -171,4 +171,3 @@ export class LawyerListResponseDto {
   })
   totalPages: number;
 }
-

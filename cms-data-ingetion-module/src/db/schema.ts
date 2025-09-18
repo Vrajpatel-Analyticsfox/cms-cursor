@@ -18,23 +18,24 @@ import {
 
 // Unified status enum for consistency
 export const statusEnum = pgEnum('status', [
-  'active',
-  'inactive',
-  'draft',
-  'pending',
-  'completed',
-  'cancelled',
+  'Active',
+  'Inactive',
+  'Draft',
+  'Pending',
+  'Completed',
+  'Cancelled',
 ]);
 
 // User Management Enums
 export const userRoleEnum = pgEnum('user_role', ['TENANT_ADMIN', 'USER', 'MANAGER', 'SUPERVISOR']);
+
+export const templateStatusEnum = pgEnum('template_status', ['Active', 'Inactive']);
 
 // Legacy status enums (maintained for backward compatibility)
 export const stateStatusEnum = statusEnum;
 export const dpdBucketStatusEnum = statusEnum;
 export const channelStatusEnum = statusEnum;
 export const languageStatusEnum = statusEnum;
-export const templateStatusEnum = statusEnum;
 export const productStatusEnum = statusEnum;
 export const schemaStatusEnum = statusEnum;
 
@@ -59,6 +60,13 @@ export const caseStatusEnum = pgEnum('case_status', [
   'Closed',
 ]);
 
+// Legal Case System Status Enum
+export const legalCaseSystemStatusEnum = pgEnum('legal_case_system_status', [
+  'Active',
+  'Inactive',
+  'Deleted',
+]);
+
 export const lawyerTypeEnum = pgEnum('lawyer_type', [
   'Internal',
   'External',
@@ -67,7 +75,7 @@ export const lawyerTypeEnum = pgEnum('lawyer_type', [
   'Associate',
 ]);
 
-export const noticeTypeEnum = pgEnum('notice_type', [
+export const templateTypeEnum = pgEnum('template_type', [
   'Pre-Legal',
   'Legal',
   'Final Warning',
@@ -81,7 +89,7 @@ export const noticeStatusEnum = pgEnum('notice_status', [
   'Sent',
   'Failed',
   'Acknowledged',
-  'Expired',
+  'Inactive',
 ]);
 
 export const triggerTypeEnum = pgEnum('trigger_type', [
@@ -146,9 +154,8 @@ export const documentCategoryEnum = pgEnum('document_category', [
   'Case Summary',
   'Proof',
   'Contract',
-  'Agreement',
-  'Receipt',
-  'Invoice',
+  'Identity Proof',
+  'Address Proof',
   'Other',
 ]);
 
@@ -182,11 +189,11 @@ export const caseDocumentTypeEnum = pgEnum('case_document_type', [
 ]);
 
 export const documentStatusEnum = pgEnum('document_status', [
-  'active',
-  'archived',
-  'deleted',
-  'pending_approval',
-  'rejected',
+  'Active',
+  'Archived',
+  'Deleted',
+  'Pending_approval',
+  'Rejected',
 ]);
 
 export const recoveryActionEnum = pgEnum('recovery_action', [
@@ -231,7 +238,7 @@ export const stateMaster = pgTable('state_master', {
   stateCode: text('state_code').notNull().unique(),
   stateName: text('state_name').notNull(),
   stateId: text('state_id').notNull().unique(),
-  status: stateStatusEnum('status').notNull().default('active'),
+  status: stateStatusEnum('status').notNull().default('Active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   createdBy: text('created_by').notNull(),
@@ -248,7 +255,7 @@ export const dpdBucketMaster = pgTable('dpd_bucket_master', {
   minDays: integer('min_days').notNull(),
   maxDays: integer('max_days').notNull(),
   module: text('module').notNull(), // Digital/Call Centre/etc
-  status: dpdBucketStatusEnum('status').notNull().default('active'),
+  status: dpdBucketStatusEnum('status').notNull().default('Active'),
   isActive: boolean('is_active').default(true),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -266,7 +273,7 @@ export const channelMaster = pgTable('channel_master', {
   channelId: text('channel_id').notNull().unique(),
   channelName: text('channel_name').notNull(), // 'SMS', 'WhatsApp', 'IVR', 'Email'
   channelType: text('channel_type'), // field temporary null, removed from requirements
-  status: channelStatusEnum('status').notNull().default('active'),
+  status: channelStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -280,7 +287,7 @@ export const languageMaster = pgTable('language_master', {
   languageCode: text('language_code').notNull().unique(),
   languageName: text('language_name').notNull(),
   scriptSupport: text('script_support').notNull(), // Latin, Devanagari, etc.
-  status: languageStatusEnum('status').notNull().default('active'),
+  status: languageStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -292,16 +299,23 @@ export const languageMaster = pgTable('language_master', {
 export const templateMaster = pgTable('template_master', {
   id: uuid('id').primaryKey().defaultRandom(),
   templateId: text('template_id').notNull().unique(),
+  templateName: text('template_name').notNull(),
+  messageBody: text('message_body').notNull(),
+  templateType: templateTypeEnum('template_type').notNull(),
+  status: templateStatusEnum('status').notNull().default('Active'),
   channelId: uuid('channel_id')
     .notNull()
     .references(() => channelMaster.id),
   languageId: uuid('language_id')
     .notNull()
     .references(() => languageMaster.id),
-  templateName: text('template_name').notNull(),
-  messageBody: text('message_body').notNull(),
-  maxCharacters: integer('max_characters').notNull(),
-  status: templateStatusEnum('status').notNull().default('active'),
+
+  // SMS API integration fields
+  smsTemplateId: integer('sms_template_id'),
+  dltTemplateId: text('dlt_template_id'),
+  isApproved: boolean('is_approved').default(false),
+  isActive: boolean('is_active').default(false),
+
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -316,7 +330,7 @@ export const productGroupMaster = pgTable('product_group_master', {
   id: uuid('id').primaryKey().defaultRandom(),
   groupId: text('group_id').notNull().unique(),
   groupName: text('group_name').notNull(),
-  status: productStatusEnum('status').notNull().default('active'),
+  status: productStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -332,7 +346,7 @@ export const productTypeMaster = pgTable('product_type_master', {
     .notNull()
     .references(() => productGroupMaster.id),
   typeName: text('type_name').notNull(),
-  status: productStatusEnum('status').notNull().default('active'),
+  status: productStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -348,7 +362,7 @@ export const productSubtypeMaster = pgTable('product_subtype_master', {
     .notNull()
     .references(() => productTypeMaster.id),
   subtypeName: text('subtype_name').notNull(),
-  status: productStatusEnum('status').notNull().default('active'),
+  status: productStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -364,7 +378,7 @@ export const productVariantMaster = pgTable('product_variant_master', {
     .notNull()
     .references(() => productSubtypeMaster.id),
   variantName: text('variant_name').notNull(),
-  status: productStatusEnum('status').notNull().default('active'),
+  status: productStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -377,7 +391,7 @@ export const schemaConfiguration = pgTable('schema_configuration', {
   id: uuid('id').primaryKey().defaultRandom(),
   schemaName: text('schema_name').notNull().unique(),
   sourceType: text('source_type').notNull(), // Manual, SFTP, API, LMS
-  status: schemaStatusEnum('status').notNull().default('active'),
+  status: schemaStatusEnum('status').notNull().default('Active'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -388,25 +402,6 @@ export const schemaConfiguration = pgTable('schema_configuration', {
 // ============================================================================
 // LEGAL MODULE TABLES
 // ============================================================================
-
-// Legal Notice Templates
-export const legalNoticeTemplates = pgTable('legal_notice_templates', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  templateCode: text('template_code').notNull().unique(),
-  templateName: text('template_name').notNull(),
-  templateType: noticeTypeEnum('template_type').notNull(),
-  templateContent: text('template_content').notNull(),
-  languageId: uuid('language_id')
-    .notNull()
-    .references(() => languageMaster.id),
-  maxCharacters: integer('max_characters'),
-  description: text('description'),
-  status: statusEnum('status').notNull().default('active'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  createdBy: text('created_by').notNull(),
-  updatedBy: text('updated_by'),
-});
 
 // Courts
 export const courts = pgTable('courts', {
@@ -420,7 +415,7 @@ export const courts = pgTable('courts', {
     .references(() => stateMaster.id),
   address: text('address'),
   contactInfo: text('contact_info'),
-  status: statusEnum('status').notNull().default('active'),
+  status: statusEnum('status').notNull().default('Active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   createdBy: text('created_by').notNull(),
@@ -437,7 +432,7 @@ export const documentTypes = pgTable('document_types', {
   maxFileSizeMb: integer('max_file_size_mb').default(10),
   allowedFormats: text('allowed_formats'),
   description: text('description'),
-  status: statusEnum('status').notNull().default('active'),
+  status: statusEnum('status').notNull().default('Active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   createdBy: text('created_by').notNull(),
@@ -571,6 +566,8 @@ export const legalCases = pgTable('legal_cases', {
   filingJurisdiction: text('filing_jurisdiction').notNull(),
   // Current Status - Dropdown, Present legal state of the case
   currentStatus: caseStatusEnum('current_status').notNull().default('Filed'),
+  // System Status - For soft deletion and system management
+  status: legalCaseSystemStatusEnum('status').notNull().default('Active'),
   // Next Hearing Date - Date Picker, Scheduled date for next hearing, Must be today or later if provided
   nextHearingDate: date('next_hearing_date'),
   // Last Hearing Outcome - Text Area, Remarks or decisions from last hearing, Max 500 characters
@@ -602,8 +599,14 @@ export const legalNotices = pgTable('legal_notices', {
   triggerType: triggerTypeEnum('trigger_type').notNull(),
   templateId: uuid('template_id')
     .notNull()
-    .references(() => legalNoticeTemplates.id),
+    .references(() => templateMaster.id),
   communicationMode: text('communication_mode').notNull(),
+  stateId: uuid('state_id')
+    .notNull()
+    .references(() => stateMaster.id),
+  languageId: uuid('language_id')
+    .notNull()
+    .references(() => languageMaster.id),
   noticeGenerationDate: timestamp('notice_generation_date').defaultNow(),
   noticeExpiryDate: date('notice_expiry_date').notNull(),
   legalEntityName: text('legal_entity_name').notNull(),
@@ -697,6 +700,31 @@ export const noticeAcknowledgements = pgTable('notice_acknowledgements', {
   updatedBy: text('updated_by'),
 });
 
+// Communication Tracking
+export const communicationTracking = pgTable('communication_tracking', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  trackingId: text('tracking_id').notNull().unique(),
+  messageId: text('message_id').notNull().unique(),
+  recipientId: text('recipient_id').notNull(),
+  recipientType: text('recipient_type').notNull(), // 'borrower', 'lawyer', 'admin'
+  communicationMode: text('communication_mode').notNull(), // 'SMS', 'Email', 'WhatsApp', 'Courier'
+  messageContent: text('message_content').notNull(),
+  status: text('status').notNull().default('PENDING'), // 'PENDING', 'SENT', 'DELIVERED', 'FAILED'
+  priority: text('priority').notNull().default('medium'), // 'low', 'medium', 'high', 'urgent'
+  sentAt: timestamp('sent_at'),
+  deliveredAt: timestamp('delivered_at'),
+  failureReason: text('failure_reason'),
+  retryCount: integer('retry_count').default(0),
+  maxRetries: integer('max_retries').default(3),
+  externalProviderId: text('external_provider_id'), // Provider's message ID
+  externalProviderResponse: text('external_provider_response'),
+  metadata: jsonb('metadata'), // Additional tracking data
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  createdBy: text('created_by').notNull(),
+  updatedBy: text('updated_by'),
+});
+
 // Recovery Triggers
 export const recoveryTriggers = pgTable('recovery_triggers', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -754,7 +782,7 @@ export const documentRepository = pgTable('document_repository', {
   parentDocumentId: uuid('parent_document_id').references(() => documentRepository.id), // For versioning
   isLatestVersion: boolean('is_latest_version').default(true),
   // Document Status
-  documentStatus: text('document_status').default('active'), // active, archived, deleted
+  documentStatusEnum: text('document_status').default('Active'), // active, archived, deleted
   // Metadata
   documentHash: text('document_hash'), // SHA-256 hash for integrity
   mimeType: text('mime_type'), // application/pdf, image/jpeg, etc.
@@ -953,7 +981,7 @@ export const legalRelations = {
   // Legal Notices relationships - now uses loan account number directly
   noticeToTemplate: {
     fields: [legalNotices.templateId],
-    references: [legalNoticeTemplates.id],
+    references: [templateMaster.id],
   },
   noticeToUser: {
     fields: [legalNotices.issuedBy],
@@ -1012,12 +1040,6 @@ export const legalRelations = {
   documentToUser: {
     fields: [documentRepository.uploadedBy],
     references: [users.id],
-  },
-
-  // Legal Notice Templates relationships
-  templateToLanguage: {
-    fields: [legalNoticeTemplates.languageId],
-    references: [languageMaster.id],
   },
 
   // Courts relationships

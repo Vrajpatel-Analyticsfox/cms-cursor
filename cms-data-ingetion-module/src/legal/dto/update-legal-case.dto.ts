@@ -8,6 +8,7 @@ import {
   IsDateString,
   ValidateIf,
 } from 'class-validator';
+import { IsFutureOrToday, IsAfterOrEqualDate } from '../validators/date-validators';
 
 export class UpdateLegalCaseDto {
   @ApiProperty({
@@ -80,8 +81,13 @@ export class UpdateLegalCaseDto {
     required: false,
   })
   @IsOptional()
+  @ValidateIf(
+    (o) =>
+      o.nextHearingDate !== undefined && o.nextHearingDate !== null && o.nextHearingDate !== '',
+  )
   @IsDateString()
-  nextHearingDate?: string;
+  @IsFutureOrToday({ message: 'Next hearing date must be today or later' })
+  nextHearingDate?: string | null;
 
   @ApiProperty({
     description: 'Remarks or decisions from last hearing',
@@ -92,7 +98,7 @@ export class UpdateLegalCaseDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  lastHearingOutcome?: string;
+  lastHearingOutcome?: string | null;
 
   @ApiProperty({
     description: 'If case resulted in any recovery action',
@@ -102,7 +108,7 @@ export class UpdateLegalCaseDto {
   })
   @IsOptional()
   @IsEnum(['Repossession', 'Settlement', 'Warrant Issued', 'None'])
-  recoveryActionLinked?: 'Repossession' | 'Settlement' | 'Warrant Issued' | 'None';
+  recoveryActionLinked?: 'Repossession' | 'Settlement' | 'Warrant Issued' | 'None' | null;
 
   @ApiProperty({
     description: 'Internal notes for tracking',
@@ -113,7 +119,7 @@ export class UpdateLegalCaseDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  caseRemarks?: string;
+  caseRemarks?: string | null;
 
   @ApiProperty({
     description: 'Date on which case was officially closed',
@@ -123,9 +129,16 @@ export class UpdateLegalCaseDto {
     required: false,
   })
   @IsOptional()
+  @ValidateIf(
+    (o) =>
+      o.caseClosureDate !== undefined && o.caseClosureDate !== null && o.caseClosureDate !== '',
+  )
   @IsDateString()
   @ValidateIf((o) => o.currentStatus === 'Closed' || o.currentStatus === 'Resolved')
-  caseClosureDate?: string;
+  @IsAfterOrEqualDate('caseFiledDate', {
+    message: 'Case closure date must be greater than or equal to case filed date',
+  })
+  caseClosureDate?: string | null;
 
   @ApiProperty({
     description: 'Final decision or resolution notes',
@@ -136,5 +149,5 @@ export class UpdateLegalCaseDto {
   @IsOptional()
   @IsString()
   @MaxLength(1000)
-  outcomeSummary?: string;
+  outcomeSummary?: string | null;
 }

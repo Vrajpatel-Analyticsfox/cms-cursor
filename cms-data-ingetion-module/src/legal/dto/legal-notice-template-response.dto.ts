@@ -1,11 +1,11 @@
 export class LegalNoticeTemplateResponseDto {
   id: string;
-  templateCode: string;
+  templateCode: string; // Keep for backward compatibility
   templateName: string;
   templateType: string;
-  templateContent: string;
+  templateContent: string; // Keep for backward compatibility
   languageId: string;
-  maxCharacters?: number;
+  channelId: string;
   description?: string;
   status: string;
   createdBy?: string;

@@ -27,7 +27,7 @@ import { LegalCaseResponseDto, LegalCaseListResponseDto } from '../dto/legal-cas
 
 @ApiTags('Legal Case Management')
 @ApiBearerAuth()
-@Controller('legal-cases')
+@Controller('legal/legal-cases')
 export class LegalCaseController {
   constructor(private readonly legalCaseService: LegalCaseService) {}
 

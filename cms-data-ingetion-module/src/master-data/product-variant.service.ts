@@ -76,7 +76,7 @@ export class ProductVariantService {
     return db
       .select()
       .from(productVariantMaster)
-      .where(eq(productVariantMaster.status, 'active'))
+      .where(eq(productVariantMaster.status, 'Active'))
       .orderBy(productVariantMaster.variantName);
   }
 
@@ -203,7 +203,7 @@ export class ProductVariantService {
       .where(
         and(
           eq(productVariantMaster.subtypeId, subtypeId),
-          eq(productVariantMaster.status, 'active'),
+          eq(productVariantMaster.status, 'Active'),
         ),
       )
       .orderBy(productVariantMaster.variantName);

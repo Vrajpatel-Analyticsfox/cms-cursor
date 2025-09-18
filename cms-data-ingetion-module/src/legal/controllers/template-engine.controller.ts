@@ -101,22 +101,18 @@ export class TemplateEngineController {
   async renderTemplate(
     @Body() renderRequest: TemplateRenderRequestDto,
   ): Promise<TemplateRenderResultDto> {
-    try {
-      const result = await this.templateEngine.renderTemplate(renderRequest);
-      return {
-        ...result,
-        templateInfo: {
-          ...result.templateInfo,
-          lastModified: result.templateInfo.lastModified.toISOString(),
-        },
-        renderMetadata: {
-          ...result.renderMetadata,
-          renderedAt: result.renderMetadata.renderedAt.toISOString(),
-        },
-      };
-    } catch (error) {
-      throw error;
-    }
+    const result = await this.templateEngine.renderTemplate(renderRequest);
+    return {
+      ...result,
+      templateInfo: {
+        ...result.templateInfo,
+        lastModified: result.templateInfo.lastModified.toISOString(),
+      },
+      renderMetadata: {
+        ...result.renderMetadata,
+        renderedAt: result.renderMetadata.renderedAt.toISOString(),
+      },
+    };
   }
 
   @Post('render-enhanced')
@@ -448,7 +444,7 @@ export class TemplateEngineController {
         summary: 'Create custom template',
         value: {
           templateName: 'Custom 90 DPD Notice',
-          templateContent: `
+          messageBody: `
             <h1>{{notice.noticeType}}</h1>
             <p>Dear {{borrower.name}},</p>
             <p>Your loan account {{loanAccount.accountNumber}} is overdue by {{loanAccount.dpdDays}} days.</p>
@@ -480,7 +476,7 @@ export class TemplateEngineController {
     try {
       const templateId = await this.templateEngine.createDynamicTemplate(
         createRequest.templateName,
-        createRequest.templateContent,
+        createRequest.messageBody,
         createRequest.templateType,
         createRequest.metadata,
       );

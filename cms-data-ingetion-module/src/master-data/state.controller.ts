@@ -269,6 +269,48 @@ export class StateController {
     },
   })
   @ApiResponse({
+    status: 400,
+    description: 'Cannot delete state due to foreign key constraints',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: {
+          type: 'string',
+          example: 'Cannot delete state. It is referenced by 5 record(s) in other tables.',
+        },
+        error: { type: 'string', example: 'Foreign Key Constraint Violation' },
+        details: {
+          type: 'object',
+          properties: {
+            stateId: { type: 'string', format: 'uuid' },
+            totalReferences: { type: 'number', example: 5 },
+            constraints: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  table: { type: 'string', example: 'courts' },
+                  count: { type: 'number', example: 3 },
+                },
+              },
+            },
+            constraintDetails: {
+              type: 'string',
+              example:
+                '- 3 court(s) are associated with this state\n- 2 legal notice(s) are associated with this state',
+            },
+            suggestion: {
+              type: 'string',
+              example:
+                'Please delete or reassign the associated records before deleting this state.',
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
     status: 404,
     description: 'State not found',
     schema: {

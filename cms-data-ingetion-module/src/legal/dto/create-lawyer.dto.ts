@@ -133,4 +133,3 @@ export class CreateLawyerDto {
   @IsOptional()
   isAvailable?: boolean = true;
 }
-

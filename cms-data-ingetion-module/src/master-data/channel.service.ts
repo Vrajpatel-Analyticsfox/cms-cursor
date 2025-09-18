@@ -68,7 +68,7 @@ export class ChannelService {
     return db
       .select()
       .from(channelMaster)
-      .where(eq(channelMaster.status, 'active'))
+      .where(eq(channelMaster.status, 'Active'))
       .orderBy(channelMaster.channelName);
   }
 

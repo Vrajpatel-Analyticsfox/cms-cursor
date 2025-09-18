@@ -10,7 +10,9 @@ import {
   IsArray,
   MaxLength,
   ArrayMinSize,
+  ValidateIf,
 } from 'class-validator';
+import { IsFutureOrToday } from '../validators/date-validators';
 
 export class CreateDocumentDto {
   @ApiProperty({
@@ -149,8 +151,10 @@ export class CreateDocumentDto {
     required: false,
   })
   @IsOptional()
+  @ValidateIf((o) => o.hearingDate !== undefined && o.hearingDate !== null && o.hearingDate !== '')
   @IsDateString()
-  hearingDate?: string;
+  @IsFutureOrToday({ message: 'Hearing date must be today or later' })
+  hearingDate?: string | null;
 
   @ApiProperty({
     description: 'Date when the document was created/issued',
@@ -161,7 +165,7 @@ export class CreateDocumentDto {
   })
   @IsOptional()
   @IsDateString()
-  documentDate?: string;
+  documentDate?: string | null;
 
   @ApiProperty({
     description: 'Tags or remarks for the document',

@@ -52,7 +52,7 @@ export class ProductGroupService {
     return db
       .select()
       .from(productGroupMaster)
-      .where(eq(productGroupMaster.status, 'active'))
+      .where(eq(productGroupMaster.status, 'Active'))
       .orderBy(productGroupMaster.groupName);
   }
 

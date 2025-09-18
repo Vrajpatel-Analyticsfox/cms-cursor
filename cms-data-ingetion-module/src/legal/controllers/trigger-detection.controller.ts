@@ -88,12 +88,18 @@ export class TriggerDetectionController {
           detectedAt: account.detectedAt.toISOString(),
         })),
         ineligibleAccounts: result.ineligibleAccounts.map((account) => ({
-          ...account,
-          triggerType: account.triggerType as any,
-          severity: account.severity as any,
-          eligibilityStatus: account.eligibilityStatus as any,
-          lastPaymentDate: account.lastPaymentDate?.toISOString(),
-          detectedAt: account.detectedAt.toISOString(),
+          id: `ineligible_${Date.now()}_${account.accountNumber}`,
+          loanAccountId: account.accountNumber,
+          loanAccountNumber: account.accountNumber,
+          borrowerName: 'Unknown',
+          triggerType: 'INELIGIBLE' as any,
+          severity: 'LOW' as any,
+          eligibilityStatus: 'INELIGIBLE' as any,
+          dpdDays: 0,
+          outstandingAmount: 0,
+          lastPaymentDate: undefined,
+          detectedAt: new Date().toISOString(),
+          metadata: { reason: account.reason },
         })),
       };
     } catch (error) {
@@ -128,7 +134,21 @@ export class TriggerDetectionController {
   async getTriggerStatistics(@Query('days') days: number = 7): Promise<TriggerStatisticsDto> {
     try {
       const statistics = await this.triggerDetectionService.getTriggerStatistics();
-      return statistics;
+
+      // Convert TriggerStatistics to TriggerStatisticsDto
+      const statisticsArray = Object.entries(statistics.triggersByType).map(
+        ([triggerType, count]) => ({
+          triggerType,
+          severity: 'medium', // Default severity since we don't have this breakdown
+          count,
+        }),
+      );
+
+      return {
+        period: `Last ${days} days`,
+        statistics: statisticsArray,
+        totalTriggers: statistics.totalTriggers,
+      };
     } catch (error) {
       throw error;
     }

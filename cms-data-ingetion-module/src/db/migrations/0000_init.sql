@@ -3,15 +3,17 @@ CREATE TYPE "public"."allocation_status" AS ENUM('Active', 'Completed', 'Cancell
 CREATE TYPE "public"."case_document_type" AS ENUM('Affidavit', 'Summons', 'Court Order', 'Evidence', 'Witness Statement', 'Expert Report', 'Medical Report', 'Financial Statement', 'Property Document', 'Legal Notice', 'Reply Notice', 'Counter Affidavit', 'Interim Order', 'Final Order', 'Judgment', 'Settlement Agreement', 'Compromise Deed', 'Power of Attorney', 'Authorization Letter', 'Identity Proof', 'Address Proof', 'Income Proof', 'Bank Statement', 'Loan Agreement', 'Security Document', 'Other');--> statement-breakpoint
 CREATE TYPE "public"."case_status" AS ENUM('Filed', 'Under Trial', 'Stayed', 'Dismissed', 'Resolved', 'Closed');--> statement-breakpoint
 CREATE TYPE "public"."case_type" AS ENUM('Civil', 'Criminal', 'Arbitration', '138 Bounce', 'SARFAESI');--> statement-breakpoint
-CREATE TYPE "public"."status" AS ENUM('active', 'inactive', 'draft', 'pending', 'completed', 'cancelled');--> statement-breakpoint
-CREATE TYPE "public"."document_category" AS ENUM('Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Contract', 'Agreement', 'Receipt', 'Invoice', 'Other');--> statement-breakpoint
-CREATE TYPE "public"."document_status" AS ENUM('active', 'archived', 'deleted', 'pending_approval', 'rejected');--> statement-breakpoint
+CREATE TYPE "public"."status" AS ENUM('Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled');--> statement-breakpoint
+CREATE TYPE "public"."document_category" AS ENUM('Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Contract', 'Identity Proof', 'Address Proof', 'Other');--> statement-breakpoint
+CREATE TYPE "public"."document_status" AS ENUM('Active', 'Archived', 'Deleted', 'Pending_approval', 'Rejected');--> statement-breakpoint
 CREATE TYPE "public"."hearing_status" AS ENUM('Scheduled', 'Attended', 'Hearing Missed', 'Rescheduled', 'Adjourned', 'Completed', 'Cancelled');--> statement-breakpoint
 CREATE TYPE "public"."hearing_type" AS ENUM('Appearance', 'Filing', 'Evidence', 'Cross-Examination', 'Judgment');--> statement-breakpoint
 CREATE TYPE "public"."lawyer_type" AS ENUM('Internal', 'External', 'Senior', 'Junior', 'Associate');--> statement-breakpoint
-CREATE TYPE "public"."notice_status" AS ENUM('Draft', 'Generated', 'Sent', 'Failed', 'Acknowledged', 'Expired');--> statement-breakpoint
-CREATE TYPE "public"."notice_type" AS ENUM('Pre-Legal', 'Legal', 'Final Warning', 'Arbitration', 'Court Summon');--> statement-breakpoint
+CREATE TYPE "public"."legal_case_system_status" AS ENUM('Active', 'Inactive', 'Deleted');--> statement-breakpoint
+CREATE TYPE "public"."notice_status" AS ENUM('Draft', 'Generated', 'Sent', 'Failed', 'Acknowledged', 'Inactive');--> statement-breakpoint
 CREATE TYPE "public"."recovery_action" AS ENUM('Repossession', 'Settlement', 'Warrant Issued', 'None');--> statement-breakpoint
+CREATE TYPE "public"."template_status" AS ENUM('Active', 'Inactive');--> statement-breakpoint
+CREATE TYPE "public"."template_type" AS ENUM('Pre-Legal', 'Legal', 'Final Warning', 'Arbitration', 'Court Summon');--> statement-breakpoint
 CREATE TYPE "public"."trigger_severity" AS ENUM('Low', 'Medium', 'High', 'Critical');--> statement-breakpoint
 CREATE TYPE "public"."trigger_status" AS ENUM('Open', 'In Progress', 'Escalated', 'Resolved', 'Closed');--> statement-breakpoint
 CREATE TYPE "public"."trigger_type" AS ENUM('DPD Threshold', 'Payment Failure', 'Manual Trigger', 'Broken PTP', 'Acknowledgement Pending');--> statement-breakpoint
@@ -87,13 +89,39 @@ CREATE TABLE "channel_master" (
 	"channel_id" text NOT NULL,
 	"channel_name" text NOT NULL,
 	"channel_type" text,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
 	"updated_by" text,
 	CONSTRAINT "channel_master_channel_id_unique" UNIQUE("channel_id")
+);
+--> statement-breakpoint
+CREATE TABLE "communication_tracking" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"tracking_id" text NOT NULL,
+	"message_id" text NOT NULL,
+	"recipient_id" text NOT NULL,
+	"recipient_type" text NOT NULL,
+	"communication_mode" text NOT NULL,
+	"message_content" text NOT NULL,
+	"status" text DEFAULT 'PENDING' NOT NULL,
+	"priority" text DEFAULT 'medium' NOT NULL,
+	"sent_at" timestamp,
+	"delivered_at" timestamp,
+	"failure_reason" text,
+	"retry_count" integer DEFAULT 0,
+	"max_retries" integer DEFAULT 3,
+	"external_provider_id" text,
+	"external_provider_response" text,
+	"metadata" jsonb,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	"created_by" text NOT NULL,
+	"updated_by" text,
+	CONSTRAINT "communication_tracking_tracking_id_unique" UNIQUE("tracking_id"),
+	CONSTRAINT "communication_tracking_message_id_unique" UNIQUE("message_id")
 );
 --> statement-breakpoint
 CREATE TABLE "court_hearings" (
@@ -127,7 +155,7 @@ CREATE TABLE "courts" (
 	"state_id" uuid NOT NULL,
 	"address" text,
 	"contact_info" text,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
@@ -175,7 +203,7 @@ CREATE TABLE "document_repository" (
 	"version_number" integer DEFAULT 1,
 	"parent_document_id" uuid,
 	"is_latest_version" boolean DEFAULT true,
-	"document_status" text DEFAULT 'active',
+	"document_status" text DEFAULT 'Active',
 	"document_hash" text,
 	"mime_type" text,
 	"case_document_type" "case_document_type",
@@ -202,7 +230,7 @@ CREATE TABLE "document_types" (
 	"max_file_size_mb" integer DEFAULT 10,
 	"allowed_formats" text,
 	"description" text,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
@@ -219,7 +247,7 @@ CREATE TABLE "dpd_bucket_master" (
 	"min_days" integer NOT NULL,
 	"max_days" integer NOT NULL,
 	"module" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"is_active" boolean DEFAULT true,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
@@ -248,7 +276,7 @@ CREATE TABLE "language_master" (
 	"language_code" text NOT NULL,
 	"language_name" text NOT NULL,
 	"script_support" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -316,6 +344,7 @@ CREATE TABLE "legal_cases" (
 	"lawyer_assigned_id" uuid,
 	"filing_jurisdiction" text NOT NULL,
 	"current_status" "case_status" DEFAULT 'Filed' NOT NULL,
+	"status" "legal_case_system_status" DEFAULT 'Active' NOT NULL,
 	"next_hearing_date" date,
 	"last_hearing_outcome" text,
 	"recovery_action_linked" "recovery_action",
@@ -329,24 +358,6 @@ CREATE TABLE "legal_cases" (
 	CONSTRAINT "legal_cases_case_id_unique" UNIQUE("case_id")
 );
 --> statement-breakpoint
-CREATE TABLE "legal_notice_templates" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"template_code" text NOT NULL,
-	"template_name" text NOT NULL,
-	"template_type" "notice_type" NOT NULL,
-	"template_content" text NOT NULL,
-	"language_id" uuid NOT NULL,
-	"channel_id" uuid NOT NULL,
-	"max_characters" integer,
-	"description" text,
-	"status" "status" DEFAULT 'active' NOT NULL,
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
-	"created_by" text NOT NULL,
-	"updated_by" text,
-	CONSTRAINT "legal_notice_templates_template_code_unique" UNIQUE("template_code")
-);
---> statement-breakpoint
 CREATE TABLE "legal_notices" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"notice_code" text NOT NULL,
@@ -355,6 +366,8 @@ CREATE TABLE "legal_notices" (
 	"trigger_type" "trigger_type" NOT NULL,
 	"template_id" uuid NOT NULL,
 	"communication_mode" text NOT NULL,
+	"state_id" uuid NOT NULL,
+	"language_id" uuid NOT NULL,
 	"notice_generation_date" timestamp DEFAULT now(),
 	"notice_expiry_date" date NOT NULL,
 	"legal_entity_name" text NOT NULL,
@@ -427,7 +440,7 @@ CREATE TABLE "product_group_master" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"group_id" text NOT NULL,
 	"group_name" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -441,7 +454,7 @@ CREATE TABLE "product_subtype_master" (
 	"subtype_id" text NOT NULL,
 	"type_id" uuid NOT NULL,
 	"subtype_name" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -455,7 +468,7 @@ CREATE TABLE "product_type_master" (
 	"type_id" text NOT NULL,
 	"group_id" uuid NOT NULL,
 	"type_name" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -469,7 +482,7 @@ CREATE TABLE "product_variant_master" (
 	"variant_id" text NOT NULL,
 	"subtype_id" uuid NOT NULL,
 	"variant_name" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -533,7 +546,7 @@ CREATE TABLE "schema_configuration" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"schema_name" text NOT NULL,
 	"source_type" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -554,7 +567,7 @@ CREATE TABLE "state_master" (
 	"state_code" text NOT NULL,
 	"state_name" text NOT NULL,
 	"state_id" text NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"status" "status" DEFAULT 'Active' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
@@ -566,12 +579,16 @@ CREATE TABLE "state_master" (
 CREATE TABLE "template_master" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"template_id" text NOT NULL,
-	"channel_id" uuid NOT NULL,
-	"language_id" uuid NOT NULL,
 	"template_name" text NOT NULL,
 	"message_body" text NOT NULL,
-	"max_characters" integer NOT NULL,
-	"status" "status" DEFAULT 'active' NOT NULL,
+	"template_type" "template_type" NOT NULL,
+	"status" "template_status" DEFAULT 'Active' NOT NULL,
+	"channel_id" uuid NOT NULL,
+	"language_id" uuid NOT NULL,
+	"sms_template_id" integer,
+	"dlt_template_id" text,
+	"is_approved" boolean DEFAULT false,
+	"is_active" boolean DEFAULT false,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -616,9 +633,9 @@ ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_case_id_lega
 ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_lawyer_id_lawyers_id_fk" FOREIGN KEY ("lawyer_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_allocated_by_users_id_fk" FOREIGN KEY ("allocated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_cases" ADD CONSTRAINT "legal_cases_lawyer_assigned_id_lawyers_id_fk" FOREIGN KEY ("lawyer_assigned_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "legal_notice_templates" ADD CONSTRAINT "legal_notice_templates_language_id_language_master_id_fk" FOREIGN KEY ("language_id") REFERENCES "public"."language_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "legal_notice_templates" ADD CONSTRAINT "legal_notice_templates_channel_id_channel_master_id_fk" FOREIGN KEY ("channel_id") REFERENCES "public"."channel_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_template_id_legal_notice_templates_id_fk" FOREIGN KEY ("template_id") REFERENCES "public"."legal_notice_templates"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_template_id_template_master_id_fk" FOREIGN KEY ("template_id") REFERENCES "public"."template_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_state_id_state_master_id_fk" FOREIGN KEY ("state_id") REFERENCES "public"."state_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_language_id_language_master_id_fk" FOREIGN KEY ("language_id") REFERENCES "public"."language_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notice_acknowledgements" ADD CONSTRAINT "notice_acknowledgements_notice_id_legal_notices_id_fk" FOREIGN KEY ("notice_id") REFERENCES "public"."legal_notices"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notice_acknowledgements" ADD CONSTRAINT "notice_acknowledgements_captured_by_users_id_fk" FOREIGN KEY ("captured_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_subtype_master" ADD CONSTRAINT "product_subtype_master_type_id_product_type_master_id_fk" FOREIGN KEY ("type_id") REFERENCES "public"."product_type_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

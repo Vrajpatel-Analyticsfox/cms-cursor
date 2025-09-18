@@ -59,4 +59,3 @@ export class AssignmentRequestDto {
   @IsString({ each: true })
   excludeLawyerIds?: string[];
 }
-

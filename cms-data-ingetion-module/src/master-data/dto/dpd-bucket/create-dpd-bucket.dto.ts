@@ -10,6 +10,7 @@ import {
   Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateDpdBucketDto {
   @ApiProperty({
@@ -60,27 +61,31 @@ export class CreateDpdBucketDto {
   @Max(10)
   rangeEnd: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Minimum days for this bucket',
     example: 0,
     minimum: 0,
     maximum: 365,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(365)
-  minDays: number;
+  @Transform(({ value }) => value)
+  minDays?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Maximum days for this bucket',
     example: 30,
     minimum: 0,
     maximum: 365,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(365)
-  maxDays: number;
+  @Transform(({ value }) => value)
+  maxDays?: number;
 
   @ApiProperty({
     description: 'Module or collection strategy this bucket belongs to',
@@ -95,13 +100,13 @@ export class CreateDpdBucketDto {
 
   @ApiProperty({
     description: 'Bucket status',
-    enum: ['active', 'inactive'],
-    example: 'active',
-    default: 'active',
+    enum: ['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'],
+    example: 'Active',
+    default: 'Active',
   })
-  @IsEnum(['active', 'inactive'])
+  @IsEnum(['Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled'])
   @IsOptional()
-  status?: 'active' | 'inactive';
+  status?: 'Active' | 'Inactive' | 'Draft' | 'Pending' | 'Completed' | 'Cancelled';
 
   @ApiPropertyOptional({
     description: 'Additional description or notes about the bucket',

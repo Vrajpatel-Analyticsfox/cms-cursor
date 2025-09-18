@@ -1,5 +1,5 @@
 {
-  "id": "51811f93-1744-469f-9755-e61c5606dda3",
+  "id": "20444081-6e03-4648-b1bb-c90c52524851",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -471,7 +471,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -515,6 +515,167 @@
           "nullsNotDistinct": false,
           "columns": [
             "channel_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.communication_tracking": {
+      "name": "communication_tracking",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "tracking_id": {
+          "name": "tracking_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recipient_id": {
+          "name": "recipient_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recipient_type": {
+          "name": "recipient_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "communication_mode": {
+          "name": "communication_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_content": {
+          "name": "message_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "priority": {
+          "name": "priority",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'medium'"
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "delivered_at": {
+          "name": "delivered_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_reason": {
+          "name": "failure_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retry_count": {
+          "name": "retry_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "max_retries": {
+          "name": "max_retries",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 3
+        },
+        "external_provider_id": {
+          "name": "external_provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "external_provider_response": {
+          "name": "external_provider_response",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "communication_tracking_tracking_id_unique": {
+          "name": "communication_tracking_tracking_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "tracking_id"
+          ]
+        },
+        "communication_tracking_message_id_unique": {
+          "name": "communication_tracking_message_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "message_id"
           ]
         }
       },
@@ -757,7 +918,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "created_at": {
           "name": "created_at",
@@ -1059,7 +1220,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "document_hash": {
           "name": "document_hash",
@@ -1255,7 +1416,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "created_at": {
           "name": "created_at",
@@ -1359,7 +1520,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "is_active": {
           "name": "is_active",
@@ -1532,7 +1693,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -1993,6 +2154,14 @@
           "notNull": true,
           "default": "'Filed'"
         },
+        "status": {
+          "name": "status",
+          "type": "legal_case_system_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Active'"
+        },
         "next_hearing_date": {
           "name": "next_hearing_date",
           "type": "date",
@@ -2087,144 +2256,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.legal_notice_templates": {
-      "name": "legal_notice_templates",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "template_code": {
-          "name": "template_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "template_name": {
-          "name": "template_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "template_type": {
-          "name": "template_type",
-          "type": "notice_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "template_content": {
-          "name": "template_content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "language_id": {
-          "name": "language_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "channel_id": {
-          "name": "channel_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "max_characters": {
-          "name": "max_characters",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'active'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "legal_notice_templates_language_id_language_master_id_fk": {
-          "name": "legal_notice_templates_language_id_language_master_id_fk",
-          "tableFrom": "legal_notice_templates",
-          "tableTo": "language_master",
-          "columnsFrom": [
-            "language_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "legal_notice_templates_channel_id_channel_master_id_fk": {
-          "name": "legal_notice_templates_channel_id_channel_master_id_fk",
-          "tableFrom": "legal_notice_templates",
-          "tableTo": "channel_master",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "legal_notice_templates_template_code_unique": {
-          "name": "legal_notice_templates_template_code_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "template_code"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.legal_notices": {
       "name": "legal_notices",
       "schema": "",
@@ -2270,6 +2301,18 @@
         "communication_mode": {
           "name": "communication_mode",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state_id": {
+          "name": "state_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "language_id": {
+          "name": "language_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -2354,12 +2397,38 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "legal_notices_template_id_legal_notice_templates_id_fk": {
-          "name": "legal_notices_template_id_legal_notice_templates_id_fk",
+        "legal_notices_template_id_template_master_id_fk": {
+          "name": "legal_notices_template_id_template_master_id_fk",
           "tableFrom": "legal_notices",
-          "tableTo": "legal_notice_templates",
+          "tableTo": "template_master",
           "columnsFrom": [
             "template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "legal_notices_state_id_state_master_id_fk": {
+          "name": "legal_notices_state_id_state_master_id_fk",
+          "tableFrom": "legal_notices",
+          "tableTo": "state_master",
+          "columnsFrom": [
+            "state_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "legal_notices_language_id_language_master_id_fk": {
+          "name": "legal_notices_language_id_language_master_id_fk",
+          "tableFrom": "legal_notices",
+          "tableTo": "language_master",
+          "columnsFrom": [
+            "language_id"
           ],
           "columnsTo": [
             "id"
@@ -2753,7 +2822,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -2839,7 +2908,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -2939,7 +3008,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -3039,7 +3108,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -3451,7 +3520,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "description": {
           "name": "description",
@@ -3574,7 +3643,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
         },
         "created_at": {
           "name": "created_at",
@@ -3643,18 +3712,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "channel_id": {
-          "name": "channel_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "language_id": {
-          "name": "language_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "template_name": {
           "name": "template_name",
           "type": "text",
@@ -3667,19 +3724,58 @@
           "primaryKey": false,
           "notNull": true
         },
-        "max_characters": {
-          "name": "max_characters",
-          "type": "integer",
+        "template_type": {
+          "name": "template_type",
+          "type": "template_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
         "status": {
           "name": "status",
-          "type": "status",
+          "type": "template_status",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": "'Active'"
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "language_id": {
+          "name": "language_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sms_template_id": {
+          "name": "sms_template_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dlt_template_id": {
+          "name": "dlt_template_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_approved": {
+          "name": "is_approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         },
         "description": {
           "name": "description",
@@ -3990,12 +4086,12 @@
       "name": "status",
       "schema": "public",
       "values": [
-        "active",
-        "inactive",
-        "draft",
-        "pending",
-        "completed",
-        "cancelled"
+        "Active",
+        "Inactive",
+        "Draft",
+        "Pending",
+        "Completed",
+        "Cancelled"
       ]
     },
     "public.document_category": {
@@ -4008,9 +4104,8 @@
         "Case Summary",
         "Proof",
         "Contract",
-        "Agreement",
-        "Receipt",
-        "Invoice",
+        "Identity Proof",
+        "Address Proof",
         "Other"
       ]
     },
@@ -4018,11 +4113,11 @@
       "name": "document_status",
       "schema": "public",
       "values": [
-        "active",
-        "archived",
-        "deleted",
-        "pending_approval",
-        "rejected"
+        "Active",
+        "Archived",
+        "Deleted",
+        "Pending_approval",
+        "Rejected"
       ]
     },
     "public.hearing_status": {
@@ -4060,6 +4155,15 @@
         "Associate"
       ]
     },
+    "public.legal_case_system_status": {
+      "name": "legal_case_system_status",
+      "schema": "public",
+      "values": [
+        "Active",
+        "Inactive",
+        "Deleted"
+      ]
+    },
     "public.notice_status": {
       "name": "notice_status",
       "schema": "public",
@@ -4069,18 +4173,7 @@
         "Sent",
         "Failed",
         "Acknowledged",
-        "Expired"
-      ]
-    },
-    "public.notice_type": {
-      "name": "notice_type",
-      "schema": "public",
-      "values": [
-        "Pre-Legal",
-        "Legal",
-        "Final Warning",
-        "Arbitration",
-        "Court Summon"
+        "Inactive"
       ]
     },
     "public.recovery_action": {
@@ -4091,6 +4184,25 @@
         "Settlement",
         "Warrant Issued",
         "None"
+      ]
+    },
+    "public.template_status": {
+      "name": "template_status",
+      "schema": "public",
+      "values": [
+        "Active",
+        "Inactive"
+      ]
+    },
+    "public.template_type": {
+      "name": "template_type",
+      "schema": "public",
+      "values": [
+        "Pre-Legal",
+        "Legal",
+        "Final Warning",
+        "Arbitration",
+        "Court Summon"
       ]
     },
     "public.trigger_severity": {

@@ -350,7 +350,6 @@ export class PreLegalNoticeController {
           templateCode: { type: 'string', example: 'PLN-60DPD-STD' },
           templateName: { type: 'string', example: 'Template-60DPD-Standard' },
           templateType: { type: 'string', example: 'Pre-Legal' },
-          maxCharacters: { type: 'number', example: 500 },
           description: { type: 'string', example: 'Standard template for 60+ DPD accounts' },
         },
       },

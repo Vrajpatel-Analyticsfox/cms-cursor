@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 
 // Controllers
 import { StateController } from './state.controller';
@@ -12,6 +14,7 @@ import { ProductTypeController } from './product-type.controller';
 import { ProductSubtypeController } from './product-subtype.controller';
 import { ProductVariantController } from './product-variant.controller';
 import { SchemaConfigurationController } from './schema-configuration.controller';
+import { SmsTemplateController } from './controllers/sms-template.controller';
 
 // Services
 import { StateService } from './state.service';
@@ -24,12 +27,22 @@ import { ProductTypeService } from './product-type.service';
 import { ProductSubtypeService } from './product-subtype.service';
 import { ProductVariantService } from './product-variant.service';
 import { SchemaConfigurationService } from './schema-configuration.service';
+import { SmsApiService } from './services/sms-api.service';
+import { SmsTemplateService } from './services/sms-template.service';
+import { TemplateFormatService } from './services/template-format.service';
 
 // Event Listeners
 import { MasterDataUpdatedListener } from './master-data-updated.listener';
 
 @Module({
-  imports: [EventEmitterModule.forRoot()],
+  imports: [
+    EventEmitterModule.forRoot(),
+    ConfigModule,
+    HttpModule.register({
+      timeout: 10000,
+      maxRedirects: 5,
+    }),
+  ],
   controllers: [
     StateController,
     DpdBucketController,
@@ -41,6 +54,7 @@ import { MasterDataUpdatedListener } from './master-data-updated.listener';
     ProductSubtypeController,
     ProductVariantController,
     SchemaConfigurationController,
+    SmsTemplateController,
   ],
   providers: [
     StateService,
@@ -53,6 +67,9 @@ import { MasterDataUpdatedListener } from './master-data-updated.listener';
     ProductSubtypeService,
     ProductVariantService,
     SchemaConfigurationService,
+    SmsApiService,
+    SmsTemplateService,
+    TemplateFormatService,
     MasterDataUpdatedListener,
   ],
   exports: [
@@ -66,6 +83,9 @@ import { MasterDataUpdatedListener } from './master-data-updated.listener';
     ProductSubtypeService,
     ProductVariantService,
     SchemaConfigurationService,
+    SmsApiService,
+    SmsTemplateService,
+    TemplateFormatService,
   ],
 })
 export class MasterDataModule {}

@@ -241,4 +241,3 @@ export class BorrowerListResponseDto {
   })
   hasPreviousPage: boolean;
 }
-

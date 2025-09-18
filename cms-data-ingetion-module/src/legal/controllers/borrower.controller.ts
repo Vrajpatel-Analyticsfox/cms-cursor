@@ -125,4 +125,3 @@ export class BorrowerController {
     return this.borrowerService.searchBorrowers(searchDto);
   }
 }
-

@@ -1,9 +1,14 @@
 import { IsNotEmpty, IsString, IsEnum, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductGroupDto {
-  @IsNotEmpty()
+  @ApiPropertyOptional({
+    description: 'Unique group identifier (auto-generated if not provided)',
+    example: 'GROUP_001',
+  })
   @IsString()
-  groupId: string;
+  @IsOptional()
+  groupId?: string;
 
   @IsNotEmpty()
   @IsString()

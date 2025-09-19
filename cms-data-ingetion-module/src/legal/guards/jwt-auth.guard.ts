@@ -19,4 +19,3 @@ export class JwtAuthGuard implements CanActivate {
     return token && token.length > 0;
   }
 }
-

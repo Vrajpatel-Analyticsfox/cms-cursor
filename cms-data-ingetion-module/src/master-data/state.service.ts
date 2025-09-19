@@ -5,14 +5,63 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { db } from '../db/drizzle.config';
-import { stateMaster, courts, legalNotices } from '../db/schema';
+import { stateMaster, courts, legalNotices, users } from '../db/schema';
 import { CreateStateDto, UpdateStateDto } from './dto/state';
-import { eq, count } from 'drizzle-orm';
+import { eq, count, sql, desc } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class StateService {
   constructor(private eventEmitter: EventEmitter2) {}
+
+  /**
+   * Get user information by ID or return 'system' if not found
+   */
+  private async getUserInfo(userId: string): Promise<string> {
+    try {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(userId)) {
+        return 'system'; // Assuming UUIDs are external system IDs not in our users table
+      }
+      const numericId = parseInt(userId);
+      if (!isNaN(numericId)) {
+        const user = await db
+          .select({ fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, numericId))
+          .limit(1);
+        return user.length > 0 ? user[0].fullName : 'system';
+      }
+      return userId; // Return as-is if not UUID or numeric
+    } catch (error) {
+      return 'system';
+    }
+  }
+
+  /**
+   * Generate next numeric stateId
+   */
+  private async generateNextStateId(): Promise<string> {
+    try {
+      // Get the highest numeric stateId
+      const result = await db
+        .select({ stateId: stateMaster.stateId })
+        .from(stateMaster)
+        .where(sql`${stateMaster.stateId} ~ '^[0-9]+$'`)
+        .orderBy(desc(sql`CAST(${stateMaster.stateId} AS INTEGER)`))
+        .limit(1);
+
+      if (result.length === 0) {
+        return '1'; // First state
+      }
+
+      const lastId = parseInt(result[0].stateId);
+      return (lastId + 1).toString();
+    } catch (error) {
+      // Fallback to timestamp-based ID
+      return Date.now().toString();
+    }
+  }
 
   async create(createStateDto: CreateStateDto) {
     // Check for duplicate state code
@@ -26,18 +75,45 @@ export class StateService {
       throw new ConflictException('State code already exists');
     }
 
+    // Generate stateId if not provided
+    let stateId = createStateDto.stateId;
+    if (!stateId) {
+      stateId = await this.generateNextStateId();
+    }
+
     // Check for duplicate state ID
     const existingStateId = await db
       .select()
       .from(stateMaster)
-      .where(eq(stateMaster.stateId, createStateDto.stateId))
+      .where(eq(stateMaster.stateId, stateId))
       .limit(1);
 
     if (existingStateId.length > 0) {
       throw new ConflictException('State ID already exists');
     }
 
-    const [created] = await db.insert(stateMaster).values(createStateDto).returning();
+    // Check for duplicate state name (case-insensitive)
+    const existingStateName = await db
+      .select()
+      .from(stateMaster)
+      .where(sql`LOWER(${stateMaster.stateName}) = LOWER(${createStateDto.stateName})`)
+      .limit(1);
+
+    if (existingStateName.length > 0) {
+      throw new ConflictException('State name already exists');
+    }
+
+    // Get user information
+    const userInfo = await this.getUserInfo(createStateDto.createdBy);
+
+    // Create state with generated ID and resolved user
+    const stateData = {
+      ...createStateDto,
+      stateId: stateId,
+      createdBy: userInfo,
+    };
+
+    const [created] = await db.insert(stateMaster).values(stateData).returning();
 
     // Emit event for downstream propagation
     this.eventEmitter.emit('masterData.updated', {
@@ -101,10 +177,33 @@ export class StateService {
       }
     }
 
+    // If updating state name, check for duplicates (case-insensitive)
+    if (
+      updateStateDto.stateName &&
+      updateStateDto.stateName.toLowerCase() !== existingState.stateName.toLowerCase()
+    ) {
+      const duplicateStateName = await db
+        .select()
+        .from(stateMaster)
+        .where(sql`LOWER(${stateMaster.stateName}) = LOWER(${updateStateDto.stateName})`)
+        .limit(1);
+
+      if (duplicateStateName.length > 0 && duplicateStateName[0].id !== id) {
+        throw new ConflictException('State name already exists');
+      }
+    }
+
+    // Get user information for updatedBy
+    let updatedBy = updateStateDto.updatedBy;
+    if (updatedBy) {
+      updatedBy = await this.getUserInfo(updatedBy);
+    }
+
     const [updated] = await db
       .update(stateMaster)
       .set({
         ...updateStateDto,
+        updatedBy: updatedBy,
         updatedAt: new Date(),
       })
       .where(eq(stateMaster.id, id))

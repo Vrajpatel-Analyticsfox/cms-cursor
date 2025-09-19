@@ -17,7 +17,7 @@ export class TemplateFormatService {
       return template;
     }
 
-    return template.replace(/{{\s*(\w+)\s*}}/g, '{#var#}');
+    return template.replace(/{{\s*([^}]+)\s*}}/g, '{#var#}');
   }
 
   /**
@@ -35,7 +35,7 @@ export class TemplateFormatService {
       return template;
     }
 
-    return template.replace(/\{#(\w+)#\}/g, '{{$1}}');
+    return template.replace(/\{#([^}]+)#\}/g, '{{$1}}');
   }
 
   /**
@@ -54,7 +54,7 @@ export class TemplateFormatService {
       return template;
     }
 
-    return template.replace(/{{\s*(\w+)\s*}}/g, '{#$1#}');
+    return template.replace(/{{\s*([^}]+)\s*}}/g, '{#$1#}');
   }
 
   /**
@@ -72,7 +72,7 @@ export class TemplateFormatService {
       return template;
     }
 
-    return template.replace(/\{#(\w+)#\}/g, '{{$1}}');
+    return template.replace(/\{#([^}]+)#\}/g, '{{$1}}');
   }
 
   /**
@@ -86,7 +86,7 @@ export class TemplateFormatService {
       return false;
     }
 
-    return /{{\s*\w+\s*}}/.test(template);
+    return /{{\s*[^}]+\s*}}/.test(template);
   }
 
   /**
@@ -100,7 +100,7 @@ export class TemplateFormatService {
       return false;
     }
 
-    return /\{#\w+#\}/.test(template);
+    return /\{#[^}]+#\}/.test(template);
   }
 
   /**

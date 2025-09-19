@@ -13,20 +13,20 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
 export class CreateDpdBucketDto {
-  @ApiProperty({
-    description: 'Unique bucket identifier',
+  @ApiPropertyOptional({
+    description: 'Unique bucket identifier (auto-generated if not provided)',
     example: 'BUCKET_001',
     minLength: 3,
     maxLength: 50,
     pattern: '^[A-Z0-9_]+$',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Length(3, 50)
   @Matches(/^[A-Z0-9_]+$/, {
     message: 'Bucket ID must contain only uppercase letters, numbers, and underscores',
   })
-  bucketId: string;
+  bucketId?: string;
 
   @ApiProperty({
     description: 'Descriptive name for the DPD bucket',

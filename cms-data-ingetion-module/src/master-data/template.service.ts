@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { db } from '../db/drizzle.config';
-import { templateMaster, channelMaster, languageMaster } from '../db/schema';
+import { templateMaster, channelMaster, languageMaster, users } from '../db/schema';
 import { CreateTemplateDto, UpdateTemplateDto } from './dto/template';
 import { eq, and, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -19,69 +19,34 @@ export class TemplateService {
   ) {}
 
   /**
-   * Generate a unique numeric template ID
-   * Format: 1, 2, 3, 4, etc. (incremental numbers only)
+   * Get user information by ID or return 'system' if not found
    */
-  private async generateNumericTemplateId(): Promise<string> {
+  private async getUserInfo(userId: string): Promise<string> {
     try {
-      // Get the highest numeric template ID
-      const result = await db
-        .select({
-          maxId: sql<number>`COALESCE(
-            MAX(
-              CASE 
-                WHEN template_id ~ '^[0-9]+$' 
-                THEN CAST(template_id AS INTEGER)
-                ELSE 0
-              END
-            ), 0
-          )`,
-        })
-        .from(templateMaster);
-
-      const maxId = result[0]?.maxId || 0;
-      const nextId = maxId + 1;
-
-      return nextId.toString();
-    } catch (error) {
-      // Fallback to timestamp-based ID if database query fails
-      const timestamp = Date.now().toString().slice(-6);
-      return timestamp;
-    }
-  }
-
-  /**
-   * Check if a template ID already exists
-   */
-  private async isTemplateIdExists(templateId: string): Promise<boolean> {
-    try {
-      const result = await db
-        .select({ count: sql<number>`COUNT(*)` })
-        .from(templateMaster)
-        .where(eq(templateMaster.templateId, templateId));
-
-      return (result[0]?.count || 0) > 0;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Generate a unique numeric template ID with retry logic
-   */
-  private async generateUniqueNumericTemplateId(maxRetries: number = 5): Promise<string> {
-    for (let i = 0; i < maxRetries; i++) {
-      const templateId = await this.generateNumericTemplateId();
-      const exists = await this.isTemplateIdExists(templateId);
-
-      if (!exists) {
-        return templateId;
+      // Check if it's a UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(userId)) {
+        // If it's a UUID, return 'system' as we don't have UUID-based users
+        return 'system';
       }
-    }
 
-    // Fallback to timestamp-based ID if all retries fail
-    const timestamp = Date.now().toString();
-    return timestamp;
+      // Check if it's a numeric ID
+      const numericId = parseInt(userId);
+      if (!isNaN(numericId)) {
+        const user = await db
+          .select({ fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, numericId))
+          .limit(1);
+
+        return user.length > 0 ? user[0].fullName : 'system';
+      }
+
+      // If it's neither UUID nor numeric, return as-is (could be a username)
+      return userId;
+    } catch (error) {
+      return 'system';
+    }
   }
 
   async create(createTemplateDto: CreateTemplateDto) {
@@ -107,11 +72,8 @@ export class TemplateService {
       throw new BadRequestException('Language not found');
     }
 
-    // Generate template ID if not provided
-    let templateId = createTemplateDto.templateId;
-    if (!templateId) {
-      templateId = await this.generateUniqueNumericTemplateId();
-    }
+    // Use provided template ID
+    const templateId = createTemplateDto.templateId;
 
     // Check for duplicate template ID
     const existingTemplateId = await db
@@ -143,10 +105,15 @@ export class TemplateService {
       );
     }
 
-    // Create template in database with generated templateId
+    // Get user information
+    const userInfo = await this.getUserInfo(createTemplateDto.createdBy);
+
+    // Store original messageBody in database (SMS service will handle HTML stripping for SMS portal)
     const templateData = {
       ...createTemplateDto,
       templateId: templateId,
+      messageBody: createTemplateDto.messageBody, // Store original HTML content
+      createdBy: userInfo,
     };
 
     const [created] = await db.insert(templateMaster).values(templateData).returning();
@@ -156,47 +123,19 @@ export class TemplateService {
       const smsResult = await this.smsTemplateService.createSmsTemplate(createTemplateDto);
 
       if (smsResult && typeof smsResult === 'object') {
-        // For SMS templates, use the smsTemplateId as the main templateId
-        const smsTemplateId = smsResult.smsTemplateId?.toString();
-        if (smsTemplateId) {
-          // Update the template with SMS-generated templateId
-          await db
-            .update(templateMaster)
-            .set({
-              templateId: smsTemplateId, // Use SMS template ID as main templateId
-              smsTemplateId: smsResult.smsTemplateId,
-              dltTemplateId: smsResult.dltTemplateId,
-              isApproved: smsResult.isApproved,
-              isActive: smsResult.isActive,
-              updatedAt: new Date(),
-            })
-            .where(eq(templateMaster.id, created.id));
+        // Update the template with SMS API details (keeping original templateId)
+        await db
+          .update(templateMaster)
+          .set({
+            smsTemplateId: smsResult.smsTemplateId,
+            dltTemplateId: smsResult.dltTemplateId,
+            updatedAt: new Date(),
+          })
+          .where(eq(templateMaster.id, created.id));
 
-          // Update the created object with SMS details
-          (created as any).templateId = smsTemplateId;
-          (created as any).smsTemplateId = smsResult.smsTemplateId;
-          (created as any).dltTemplateId = smsResult.dltTemplateId;
-          (created as any).isApproved = smsResult.isApproved;
-          (created as any).isActive = smsResult.isActive;
-        } else {
-          // Fallback: Update with SMS API details but keep original templateId
-          await db
-            .update(templateMaster)
-            .set({
-              smsTemplateId: smsResult.smsTemplateId,
-              dltTemplateId: smsResult.dltTemplateId,
-              isApproved: smsResult.isApproved,
-              isActive: smsResult.isActive,
-              updatedAt: new Date(),
-            })
-            .where(eq(templateMaster.id, created.id));
-
-          // Update the created object with SMS details
-          (created as any).smsTemplateId = smsResult.smsTemplateId;
-          (created as any).dltTemplateId = smsResult.dltTemplateId;
-          (created as any).isApproved = smsResult.isApproved;
-          (created as any).isActive = smsResult.isActive;
-        }
+        // Update the created object with SMS details
+        (created as any).smsTemplateId = smsResult.smsTemplateId;
+        (created as any).dltTemplateId = smsResult.dltTemplateId;
       }
     } catch (error) {
       // Log error but don't fail the template creation
@@ -309,12 +248,23 @@ export class TemplateService {
       }
     }
 
+    // Get user information for updatedBy if provided
+    let updatedBy = updateTemplateDto.updatedBy;
+    if (updatedBy) {
+      updatedBy = await this.getUserInfo(updatedBy);
+    }
+
+    // Store original messageBody in database (SMS service will handle HTML stripping for SMS portal)
+    const updateData = {
+      ...updateTemplateDto,
+      messageBody: updateTemplateDto.messageBody, // Store original HTML content
+      updatedBy: updatedBy,
+      updatedAt: new Date(),
+    };
+
     const [updated] = await db
       .update(templateMaster)
-      .set({
-        ...updateTemplateDto,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(templateMaster.id, id))
       .returning();
 

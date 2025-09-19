@@ -1,5 +1,5 @@
 {
-  "id": "20444081-6e03-4648-b1bb-c90c52524851",
+  "id": "6ab53e5d-ea43-4ab2-be88-df3edff03d4b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1669,6 +1669,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "language_id": {
+          "name": "language_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "language_code": {
           "name": "language_code",
           "type": "text",
@@ -1732,6 +1738,13 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
+        "language_master_language_id_unique": {
+          "name": "language_master_language_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "language_id"
+          ]
+        },
         "language_master_language_code_unique": {
           "name": "language_master_language_code_unique",
           "nullsNotDistinct": false,
@@ -3763,20 +3776,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "is_approved": {
-          "name": "is_approved",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
         "description": {
           "name": "description",
           "type": "text",
@@ -3942,11 +3941,9 @@
         },
         "role": {
           "name": "role",
-          "type": "user_role",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'USER'"
+          "notNull": false
         },
         "address": {
           "name": "address",
@@ -4235,16 +4232,6 @@
         "Manual Trigger",
         "Broken PTP",
         "Acknowledgement Pending"
-      ]
-    },
-    "public.user_role": {
-      "name": "user_role",
-      "schema": "public",
-      "values": [
-        "TENANT_ADMIN",
-        "USER",
-        "MANAGER",
-        "SUPERVISOR"
       ]
     }
   },

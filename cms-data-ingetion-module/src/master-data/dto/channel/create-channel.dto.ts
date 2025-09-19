@@ -1,9 +1,14 @@
 import { IsNotEmpty, IsString, IsEnum, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateChannelDto {
-  @IsNotEmpty()
+  @ApiPropertyOptional({
+    description: 'Unique channel identifier (auto-generated if not provided)',
+    example: 'CHANNEL_001',
+  })
   @IsString()
-  channelId: string;
+  @IsOptional()
+  channelId?: string;
 
   @IsNotEmpty()
   @IsString()

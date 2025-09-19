@@ -12,7 +12,8 @@ export class StateController {
   @Post()
   @ApiOperation({
     summary: 'Create a new state',
-    description: 'Creates a new geographic state with unique state code and ID',
+    description:
+      'Creates a new geographic state with unique state code, ID, and name (case-insensitive validation)',
   })
   @ApiResponse({
     status: 201,
@@ -68,12 +69,12 @@ export class StateController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Conflict - state code or ID already exists',
+    description: 'Conflict - state code, ID, or name already exists',
     schema: {
       type: 'object',
       properties: {
         statusCode: { type: 'number', example: 409 },
-        message: { type: 'string', example: 'State code or ID already exists' },
+        message: { type: 'string', example: 'State code, ID, or name already exists' },
         error: { type: 'string', example: 'Conflict' },
       },
     },

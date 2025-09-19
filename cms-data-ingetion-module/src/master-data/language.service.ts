@@ -5,14 +5,142 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { db } from '../db/drizzle.config';
-import { languageMaster } from '../db/schema';
+import { languageMaster, users } from '../db/schema';
 import { CreateLanguageDto, UpdateLanguageDto } from './dto/language';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class LanguageService {
   constructor(private eventEmitter: EventEmitter2) {}
+
+  /**
+   * Get user information by ID or return 'system' if not found
+   */
+  private async getUserInfo(userId: string): Promise<string> {
+    try {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(userId)) {
+        return 'system'; // Assuming UUIDs are external system IDs not in our users table
+      }
+      const numericId = parseInt(userId);
+      if (!isNaN(numericId)) {
+        const user = await db
+          .select({ fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, numericId))
+          .limit(1);
+        return user.length > 0 ? user[0].fullName : 'system';
+      }
+      return userId; // Return as-is if not UUID or numeric
+    } catch (error) {
+      return 'system';
+    }
+  }
+
+  /**
+   * Generate next numeric languageId
+   */
+  private async generateNextLanguageId(): Promise<string> {
+    try {
+      // Get the highest numeric languageId
+      const result = await db
+        .select({ languageId: languageMaster.languageId })
+        .from(languageMaster)
+        .where(sql`${languageMaster.languageId} ~ '^[0-9]+$'`)
+        .orderBy(desc(sql`CAST(${languageMaster.languageId} AS INTEGER)`))
+        .limit(1);
+
+      if (result.length === 0) {
+        return '1'; // First language
+      }
+
+      const lastId = parseInt(result[0].languageId);
+      return (lastId + 1).toString();
+    } catch (error) {
+      // Fallback to timestamp-based ID
+      return Date.now().toString();
+    }
+  }
+
+  /**
+   * Generate alphabetic language code from language name
+   */
+  private generateLanguageCode(languageName: string): string {
+    // Convert to uppercase and take first 2-3 characters
+    const cleanName = languageName.trim().toUpperCase();
+
+    // Handle common language name mappings
+    const languageMappings: { [key: string]: string } = {
+      ENGLISH: 'EN',
+      HINDI: 'HI',
+      SPANISH: 'ES',
+      FRENCH: 'FR',
+      GERMAN: 'DE',
+      ITALIAN: 'IT',
+      PORTUGUESE: 'PT',
+      RUSSIAN: 'RU',
+      CHINESE: 'ZH',
+      JAPANESE: 'JA',
+      KOREAN: 'KO',
+      ARABIC: 'AR',
+      BENGALI: 'BN',
+      TAMIL: 'TA',
+      TELUGU: 'TE',
+      MARATHI: 'MR',
+      GUJARATI: 'GU',
+      KANNADA: 'KN',
+      MALAYALAM: 'ML',
+      PUNJABI: 'PA',
+      URDU: 'UR',
+      ORIYA: 'OR',
+      ASSAMESE: 'AS',
+      NEPALI: 'NE',
+      SANSKRIT: 'SA',
+    };
+
+    // Check if we have a direct mapping
+    if (languageMappings[cleanName]) {
+      return languageMappings[cleanName];
+    }
+
+    // For other languages, take first 2-3 characters
+    if (cleanName.length >= 3) {
+      return cleanName.substring(0, 3);
+    } else {
+      return cleanName.substring(0, 2);
+    }
+  }
+
+  /**
+   * Check if language code already exists
+   */
+  private async isLanguageCodeExists(languageCode: string): Promise<boolean> {
+    const existing = await db
+      .select()
+      .from(languageMaster)
+      .where(eq(languageMaster.languageCode, languageCode))
+      .limit(1);
+
+    return existing.length > 0;
+  }
+
+  /**
+   * Generate unique language code
+   */
+  private async generateUniqueLanguageCode(languageName: string): Promise<string> {
+    let baseCode = this.generateLanguageCode(languageName);
+    let languageCode = baseCode;
+    let counter = 1;
+
+    // Keep trying until we find a unique code
+    while (await this.isLanguageCodeExists(languageCode)) {
+      languageCode = `${baseCode}${counter}`;
+      counter++;
+    }
+
+    return languageCode;
+  }
 
   async create(createLanguageDto: CreateLanguageDto) {
     // Validate script support
@@ -23,29 +151,63 @@ export class LanguageService {
       );
     }
 
-    // Check for duplicate language code
-    const existingLanguageCode = await db
-      .select()
-      .from(languageMaster)
-      .where(eq(languageMaster.languageCode, createLanguageDto.languageCode))
-      .limit(1);
-
-    if (existingLanguageCode.length > 0) {
-      throw new ConflictException('Language code already exists');
-    }
-
-    // Check for duplicate language name
+    // Check for case-insensitive duplicate language name
     const existingLanguageName = await db
       .select()
       .from(languageMaster)
-      .where(eq(languageMaster.languageName, createLanguageDto.languageName))
+      .where(sql`LOWER(${languageMaster.languageName}) = LOWER(${createLanguageDto.languageName})`)
       .limit(1);
 
     if (existingLanguageName.length > 0) {
       throw new ConflictException('Language name already exists');
     }
 
-    const [created] = await db.insert(languageMaster).values(createLanguageDto).returning();
+    // Generate languageId if not provided
+    let languageId = createLanguageDto.languageId;
+    if (!languageId) {
+      languageId = await this.generateNextLanguageId();
+    }
+
+    // Check for duplicate language ID
+    const existingLanguageId = await db
+      .select()
+      .from(languageMaster)
+      .where(eq(languageMaster.languageId, languageId))
+      .limit(1);
+
+    if (existingLanguageId.length > 0) {
+      throw new ConflictException('Language ID already exists');
+    }
+
+    // Generate language code if not provided
+    let languageCode = createLanguageDto.languageCode;
+    if (!languageCode) {
+      languageCode = await this.generateUniqueLanguageCode(createLanguageDto.languageName);
+    } else {
+      // Check for duplicate language code if provided
+      const existingLanguageCode = await db
+        .select()
+        .from(languageMaster)
+        .where(eq(languageMaster.languageCode, languageCode))
+        .limit(1);
+
+      if (existingLanguageCode.length > 0) {
+        throw new ConflictException('Language code already exists');
+      }
+    }
+
+    // Get user information
+    const userInfo = await this.getUserInfo(createLanguageDto.createdBy);
+
+    // Create language with generated IDs and resolved user
+    const languageData = {
+      ...createLanguageDto,
+      languageId: languageId,
+      languageCode: languageCode,
+      createdBy: userInfo,
+    };
+
+    const [created] = await db.insert(languageMaster).values(languageData).returning();
 
     // Emit event for downstream propagation
     this.eventEmitter.emit('masterData.updated', {
@@ -99,7 +261,7 @@ export class LanguageService {
       }
     }
 
-    // If updating language name, check for duplicates
+    // If updating language name, check for case-insensitive duplicates
     if (
       updateLanguageDto.languageName &&
       updateLanguageDto.languageName !== existingLanguage.languageName
@@ -107,7 +269,9 @@ export class LanguageService {
       const duplicateLanguageName = await db
         .select()
         .from(languageMaster)
-        .where(eq(languageMaster.languageName, updateLanguageDto.languageName))
+        .where(
+          sql`LOWER(${languageMaster.languageName}) = LOWER(${updateLanguageDto.languageName})`,
+        )
         .limit(1);
 
       if (duplicateLanguageName.length > 0) {
@@ -125,10 +289,17 @@ export class LanguageService {
       }
     }
 
+    // Get user information for updatedBy if provided
+    let updatedBy = updateLanguageDto.updatedBy;
+    if (updatedBy) {
+      updatedBy = await this.getUserInfo(updatedBy);
+    }
+
     const [updated] = await db
       .update(languageMaster)
       .set({
         ...updateLanguageDto,
+        updatedBy: updatedBy,
         updatedAt: new Date(),
       })
       .where(eq(languageMaster.id, id))

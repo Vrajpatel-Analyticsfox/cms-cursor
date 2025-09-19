@@ -1,9 +1,14 @@
-import { IsString, IsEnum, IsUUID, IsNotEmpty } from 'class-validator';
+import { IsString, IsEnum, IsUUID, IsNotEmpty, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductVariantDto {
-  @IsNotEmpty()
+  @ApiPropertyOptional({
+    description: 'Unique variant identifier (auto-generated if not provided)',
+    example: 'VARIANT_001',
+  })
   @IsString()
-  variantId: string;
+  @IsOptional()
+  variantId?: string;
 
   @IsNotEmpty()
   @IsUUID()

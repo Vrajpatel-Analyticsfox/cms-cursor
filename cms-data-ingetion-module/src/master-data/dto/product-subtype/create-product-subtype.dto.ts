@@ -1,9 +1,14 @@
 import { IsNotEmpty, IsString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductSubtypeDto {
-  @IsNotEmpty()
+  @ApiPropertyOptional({
+    description: 'Unique subtype identifier (auto-generated if not provided)',
+    example: 'SUBTYPE_001',
+  })
   @IsString()
-  subtypeId: string;
+  @IsOptional()
+  subtypeId?: string;
 
   @IsNotEmpty()
   @IsUUID()

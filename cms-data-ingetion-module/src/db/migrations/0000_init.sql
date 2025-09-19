@@ -17,7 +17,6 @@ CREATE TYPE "public"."template_type" AS ENUM('Pre-Legal', 'Legal', 'Final Warnin
 CREATE TYPE "public"."trigger_severity" AS ENUM('Low', 'Medium', 'High', 'Critical');--> statement-breakpoint
 CREATE TYPE "public"."trigger_status" AS ENUM('Open', 'In Progress', 'Escalated', 'Resolved', 'Closed');--> statement-breakpoint
 CREATE TYPE "public"."trigger_type" AS ENUM('DPD Threshold', 'Payment Failure', 'Manual Trigger', 'Broken PTP', 'Acknowledgement Pending');--> statement-breakpoint
-CREATE TYPE "public"."user_role" AS ENUM('TENANT_ADMIN', 'USER', 'MANAGER', 'SUPERVISOR');--> statement-breakpoint
 CREATE TABLE "auto_notice_schedule_rule" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"schedule_id" text,
@@ -273,6 +272,7 @@ CREATE TABLE "field_validation_format" (
 --> statement-breakpoint
 CREATE TABLE "language_master" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"language_id" text NOT NULL,
 	"language_code" text NOT NULL,
 	"language_name" text NOT NULL,
 	"script_support" text NOT NULL,
@@ -282,6 +282,7 @@ CREATE TABLE "language_master" (
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
 	"updated_by" text,
+	CONSTRAINT "language_master_language_id_unique" UNIQUE("language_id"),
 	CONSTRAINT "language_master_language_code_unique" UNIQUE("language_code")
 );
 --> statement-breakpoint
@@ -587,8 +588,6 @@ CREATE TABLE "template_master" (
 	"language_id" uuid NOT NULL,
 	"sms_template_id" integer,
 	"dlt_template_id" text,
-	"is_approved" boolean DEFAULT false,
-	"is_active" boolean DEFAULT false,
 	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -612,7 +611,7 @@ CREATE TABLE "users" (
 	"full_name" text NOT NULL,
 	"email" text NOT NULL,
 	"mobile" text NOT NULL,
-	"role" "user_role" DEFAULT 'USER' NOT NULL,
+	"role" text,
 	"address" text,
 	"keycloak_id" text,
 	"created_at" timestamp DEFAULT now(),

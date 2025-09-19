@@ -27,7 +27,6 @@ export const statusEnum = pgEnum('status', [
 ]);
 
 // User Management Enums
-export const userRoleEnum = pgEnum('user_role', ['TENANT_ADMIN', 'USER', 'MANAGER', 'SUPERVISOR']);
 
 export const templateStatusEnum = pgEnum('template_status', ['Active', 'Inactive']);
 
@@ -221,7 +220,7 @@ export const users = pgTable('users', {
   fullName: text('full_name').notNull(),
   email: text('email').notNull().unique(),
   mobile: text('mobile').notNull(),
-  role: userRoleEnum('role').notNull().default('USER'),
+  role: text('role'),
   address: text('address'),
   keycloakId: text('keycloak_id'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -284,6 +283,7 @@ export const channelMaster = pgTable('channel_master', {
 // 4. Language Master
 export const languageMaster = pgTable('language_master', {
   id: uuid('id').primaryKey().defaultRandom(),
+  languageId: text('language_id').notNull().unique(),
   languageCode: text('language_code').notNull().unique(),
   languageName: text('language_name').notNull(),
   scriptSupport: text('script_support').notNull(), // Latin, Devanagari, etc.
@@ -313,8 +313,6 @@ export const templateMaster = pgTable('template_master', {
   // SMS API integration fields
   smsTemplateId: integer('sms_template_id'),
   dltTemplateId: text('dlt_template_id'),
-  isApproved: boolean('is_approved').default(false),
-  isActive: boolean('is_active').default(false),
 
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),

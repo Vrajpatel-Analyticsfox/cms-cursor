@@ -1,13 +1,62 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { db } from '../db/drizzle.config';
-import { channelMaster } from '../db/schema';
+import { channelMaster, users } from '../db/schema';
 import { CreateChannelDto, UpdateChannelDto } from './dto/channel';
-import { eq } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ChannelService {
   constructor(private eventEmitter: EventEmitter2) {}
+
+  /**
+   * Get user information by ID or return 'system' if not found
+   */
+  private async getUserInfo(userId: string): Promise<string> {
+    try {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(userId)) {
+        return 'system'; // Assuming UUIDs are external system IDs not in our users table
+      }
+      const numericId = parseInt(userId);
+      if (!isNaN(numericId)) {
+        const user = await db
+          .select({ fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, numericId))
+          .limit(1);
+        return user.length > 0 ? user[0].fullName : 'system';
+      }
+      return userId; // Return as-is if not UUID or numeric
+    } catch (error) {
+      return 'system';
+    }
+  }
+
+  /**
+   * Generate next numeric channelId
+   */
+  private async generateNextChannelId(): Promise<string> {
+    try {
+      // Get the highest numeric channelId
+      const result = await db
+        .select({ channelId: channelMaster.channelId })
+        .from(channelMaster)
+        .where(sql`${channelMaster.channelId} ~ '^[0-9]+$'`)
+        .orderBy(desc(sql`CAST(${channelMaster.channelId} AS INTEGER)`))
+        .limit(1);
+
+      if (result.length === 0) {
+        return '1'; // First channel
+      }
+
+      const lastId = parseInt(result[0].channelId);
+      return (lastId + 1).toString();
+    } catch (error) {
+      // Fallback to timestamp-based ID
+      return Date.now().toString();
+    }
+  }
 
   async create(createChannelDto: CreateChannelDto) {
     // Validate channel type
@@ -26,29 +75,34 @@ export class ChannelService {
     //   );
     // }
 
+    // Generate channelId if not provided
+    let channelId = createChannelDto.channelId;
+    if (!channelId) {
+      channelId = await this.generateNextChannelId();
+    }
+
     // Check for duplicate channel ID
     const existingChannelId = await db
       .select()
       .from(channelMaster)
-      .where(eq(channelMaster.channelId, createChannelDto.channelId))
+      .where(eq(channelMaster.channelId, channelId))
       .limit(1);
 
     if (existingChannelId.length > 0) {
       throw new ConflictException('Channel ID already exists');
     }
 
-    // Check for duplicate channel name within the same type
-    // const existingChannelName = await db
-    //   .select()
-    //   .from(channelMaster)
-    //   .where(eq(channelMaster.channelName, createChannelDto.channelName))
-    //   .limit(1);
+    // Get user information
+    const userInfo = await this.getUserInfo(createChannelDto.createdBy);
 
-    // if (existingChannelName.length > 0) {
-    //   throw new ConflictException('Channel name already exists');
-    // }
+    // Create channel with generated ID and resolved user
+    const channelData = {
+      ...createChannelDto,
+      channelId: channelId,
+      createdBy: userInfo,
+    };
 
-    const [created] = await db.insert(channelMaster).values(createChannelDto).returning();
+    const [created] = await db.insert(channelMaster).values(channelData).returning();
 
     // Emit event for downstream propagation
     this.eventEmitter.emit('masterData.updated', {
@@ -135,10 +189,17 @@ export class ChannelService {
     //   }
     // }
 
+    // Get user information for updatedBy
+    let updatedBy = updateChannelDto.updatedBy;
+    if (updatedBy) {
+      updatedBy = await this.getUserInfo(updatedBy);
+    }
+
     const [updated] = await db
       .update(channelMaster)
       .set({
         ...updateChannelDto,
+        updatedBy: updatedBy,
         updatedAt: new Date(),
       })
       .where(eq(channelMaster.id, id))

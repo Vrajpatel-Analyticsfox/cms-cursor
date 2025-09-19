@@ -6,6 +6,7 @@ import { SmsApiService } from './sms-api.service';
 import { TemplateFormatService } from './template-format.service';
 import { CreateSmsTemplateRequest, SmsTemplate } from '../dto/sms/sms-api.dto';
 import { CreateTemplateDto } from '../dto/template/create-template.dto';
+const striptags = require('striptags');
 
 @Injectable()
 export class SmsTemplateService {
@@ -15,6 +16,18 @@ export class SmsTemplateService {
     private readonly smsApiService: SmsApiService,
     private readonly templateFormatService: TemplateFormatService,
   ) {}
+
+  /**
+   * Strip HTML tags from content for SMS portal compatibility
+   */
+  private stripHtml(content: string): string {
+    if (!content) {
+      return '';
+    }
+
+    const cleaned = striptags(content);
+    return cleaned.replace(/\s+/g, ' ').trim();
+  }
 
   /**
    * Check if a channel is SMS channel
@@ -57,30 +70,38 @@ export class SmsTemplateService {
         return null;
       }
 
-      // Generate a temporary template ID for SMS API
-      const tempTemplateId = `temp_${Date.now()}`;
+      // Use the templateId from the request body for SMS API
+      const templateId = createTemplateDto.templateId;
 
-      // Convert template format for SMS API
+      // Convert template format for SMS API ({{var}} to {#var#})
       const smsFormattedMessage = this.templateFormatService.convertToSmsFormat(
         createTemplateDto.messageBody,
       );
 
+      // Strip HTML tags after variable conversion for SMS portal compatibility
+      const cleanedMessage = this.stripHtml(smsFormattedMessage);
+
+      this.logger.log(`[SmsTemplateService] Template processing for SMS API:`);
+      this.logger.log(`  Original: ${createTemplateDto.messageBody}`);
+      this.logger.log(`  After variable conversion: ${smsFormattedMessage}`);
+      this.logger.log(`  After HTML stripping: ${cleanedMessage}`);
+
       // Create template in SMS API
       const smsTemplateData: Omit<CreateSmsTemplateRequest, 'apiKey' | 'clientId'> = {
         templateName: createTemplateDto.templateName,
-        messageTemplate: smsFormattedMessage,
-        templateId: tempTemplateId,
+        messageTemplate: cleanedMessage,
+        templateId: templateId,
       };
 
       const smsResponse = await this.smsApiService.createTemplate(smsTemplateData);
 
       if (smsResponse.ErrorCode === 0) {
-        this.logger.log(`SMS template created successfully with temp ID: ${tempTemplateId}`);
+        this.logger.log(`SMS template created successfully with template ID: ${templateId}`);
 
         // Wait a bit and then fetch the created template to get the actual DLT Template ID
         await this.delay(2000); // Wait 2 seconds
 
-        const createdTemplate = await this.smsApiService.findTemplateByDltId(tempTemplateId);
+        const createdTemplate = await this.smsApiService.findTemplateByDltId(templateId);
 
         if (createdTemplate) {
           this.logger.log(
@@ -89,8 +110,6 @@ export class SmsTemplateService {
           return {
             smsTemplateId: createdTemplate.TemplateId,
             dltTemplateId: createdTemplate.DltTemplateId,
-            isApproved: createdTemplate.IsApproved,
-            isActive: createdTemplate.IsActive,
             // Note: We don't generate templateId here anymore - let the main service handle numeric generation
           };
         }
@@ -142,11 +161,19 @@ export class SmsTemplateService {
       const messageToUpdate = updateData.messageBody || template[0].messageBody;
       const smsFormattedMessage = this.templateFormatService.convertToSmsFormat(messageToUpdate);
 
-      // Update template in SMS API
+      // Strip HTML tags after variable conversion for SMS portal compatibility
+      const cleanedMessage = this.stripHtml(smsFormattedMessage);
+
+      this.logger.log(`[SmsTemplateService] Template update processing for SMS API:`);
+      this.logger.log(`  Original: ${messageToUpdate}`);
+      this.logger.log(`  After variable conversion: ${smsFormattedMessage}`);
+      this.logger.log(`  After HTML stripping: ${cleanedMessage}`);
+
+      // Update template in SMS API using the templateId from our database
       const smsUpdateData = {
         templateName: updateData.templateName || template[0].templateName,
-        messageTemplate: smsFormattedMessage,
-        templateId: template[0].dltTemplateId || `temp_${Date.now()}`,
+        messageTemplate: cleanedMessage,
+        templateId: template[0].templateId, // Use the templateId from our database
       };
 
       const smsResponse = await this.smsApiService.updateTemplate(
@@ -266,8 +293,6 @@ export class SmsTemplateService {
           .update(templateMaster)
           .set({
             smsTemplateId: smsTemplate.TemplateId,
-            isApproved: smsTemplate.IsApproved,
-            isActive: smsTemplate.IsActive,
             updatedAt: new Date(),
           })
           .where(eq(templateMaster.id, templateId));
@@ -275,8 +300,6 @@ export class SmsTemplateService {
         this.logger.log(`SMS template status synced for template ID: ${templateId}`);
         return {
           success: true,
-          isApproved: smsTemplate.IsApproved,
-          isActive: smsTemplate.IsActive,
           message: 'SMS template status synced successfully',
         };
       }

@@ -27,17 +27,17 @@ export enum TemplateStatus {
 }
 
 export class CreateTemplateDto {
-  @ApiPropertyOptional({
-    description: 'Unique template identifier (auto-generated if not provided)',
+  @ApiProperty({
+    description: 'Unique template identifier',
     example: 'TEMP001',
     minLength: 3,
     maxLength: 50,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   @MinLength(3)
   @MaxLength(50)
-  templateId?: string;
+  templateId: string;
 
   @ApiProperty({
     description: 'Channel ID for the template',

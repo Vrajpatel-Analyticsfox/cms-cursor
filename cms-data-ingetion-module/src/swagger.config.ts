@@ -102,7 +102,7 @@ export const swaggerCustomOptions = {
 export function setupSwagger(app: INestApplication) {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
 
-  SwaggerModule.setup('api', app, document, swaggerCustomOptions);
+  SwaggerModule.setup('api-docs', app, document, swaggerCustomOptions);
 
   console.log('🚀 Swagger documentation available at: http://localhost:3000/api');
   console.log('📚 API specification available at: http://localhost:3000/api-json');

@@ -5,14 +5,63 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { db } from '../db/drizzle.config';
-import { productSubtypeMaster, productTypeMaster } from '../db/schema';
+import { productSubtypeMaster, productTypeMaster, users } from '../db/schema';
 import { CreateProductSubtypeDto, UpdateProductSubtypeDto } from './dto/product-subtype';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProductSubtypeService {
   constructor(private eventEmitter: EventEmitter2) {}
+
+  /**
+   * Get user information by ID or return 'system' if not found
+   */
+  private async getUserInfo(userId: string): Promise<string> {
+    try {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(userId)) {
+        return 'system'; // Assuming UUIDs are external system IDs not in our users table
+      }
+      const numericId = parseInt(userId);
+      if (!isNaN(numericId)) {
+        const user = await db
+          .select({ fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, numericId))
+          .limit(1);
+        return user.length > 0 ? user[0].fullName : 'system';
+      }
+      return userId; // Return as-is if not UUID or numeric
+    } catch (error) {
+      return 'system';
+    }
+  }
+
+  /**
+   * Generate next numeric subtypeId
+   */
+  private async generateNextSubtypeId(): Promise<string> {
+    try {
+      // Get the highest numeric subtypeId
+      const result = await db
+        .select({ subtypeId: productSubtypeMaster.subtypeId })
+        .from(productSubtypeMaster)
+        .where(sql`${productSubtypeMaster.subtypeId} ~ '^[0-9]+$'`)
+        .orderBy(desc(sql`CAST(${productSubtypeMaster.subtypeId} AS INTEGER)`))
+        .limit(1);
+
+      if (result.length === 0) {
+        return '1'; // First subtype
+      }
+
+      const lastId = parseInt(result[0].subtypeId);
+      return (lastId + 1).toString();
+    } catch (error) {
+      // Fallback to timestamp-based ID
+      return Date.now().toString();
+    }
+  }
 
   async create(createProductSubtypeDto: CreateProductSubtypeDto) {
     // Validate product type exists
@@ -26,11 +75,17 @@ export class ProductSubtypeService {
       throw new BadRequestException('Product Type not found');
     }
 
+    // Generate subtypeId if not provided
+    let subtypeId = createProductSubtypeDto.subtypeId;
+    if (!subtypeId) {
+      subtypeId = await this.generateNextSubtypeId();
+    }
+
     // Check for duplicate subtype ID
     const existingSubtypeId = await db
       .select()
       .from(productSubtypeMaster)
-      .where(eq(productSubtypeMaster.subtypeId, createProductSubtypeDto.subtypeId))
+      .where(eq(productSubtypeMaster.subtypeId, subtypeId))
       .limit(1);
 
     if (existingSubtypeId.length > 0) {
@@ -53,10 +108,17 @@ export class ProductSubtypeService {
       throw new ConflictException('Product Subtype name already exists in this type');
     }
 
-    const [created] = await db
-      .insert(productSubtypeMaster)
-      .values(createProductSubtypeDto)
-      .returning();
+    // Get user information
+    const userInfo = await this.getUserInfo(createProductSubtypeDto.createdBy);
+
+    // Create subtype with generated ID and resolved user
+    const subtypeData = {
+      ...createProductSubtypeDto,
+      subtypeId: subtypeId,
+      createdBy: userInfo,
+    };
+
+    const [created] = await db.insert(productSubtypeMaster).values(subtypeData).returning();
 
     // Emit event for downstream propagation
     this.eventEmitter.emit('masterData.updated', {
@@ -150,10 +212,17 @@ export class ProductSubtypeService {
       }
     }
 
+    // Get user information for updatedBy
+    let updatedBy = updateProductSubtypeDto.updatedBy;
+    if (updatedBy) {
+      updatedBy = await this.getUserInfo(updatedBy);
+    }
+
     const [updated] = await db
       .update(productSubtypeMaster)
       .set({
         ...updateProductSubtypeDto,
+        updatedBy: updatedBy,
         updatedAt: new Date(),
       })
       .where(eq(productSubtypeMaster.id, id))

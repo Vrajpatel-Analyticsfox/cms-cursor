@@ -1,9 +1,14 @@
 import { IsNotEmpty, IsString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductTypeDto {
-  @IsNotEmpty()
+  @ApiPropertyOptional({
+    description: 'Unique type identifier (auto-generated if not provided)',
+    example: 'TYPE_001',
+  })
   @IsString()
-  typeId: string;
+  @IsOptional()
+  typeId?: string;
 
   @IsNotEmpty()
   @IsUUID()

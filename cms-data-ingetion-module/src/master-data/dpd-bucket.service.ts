@@ -5,14 +5,63 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { db } from '../db/drizzle.config';
-import { dpdBucketMaster } from '../db/schema';
+import { dpdBucketMaster, users } from '../db/schema';
 import { CreateDpdBucketDto, UpdateDpdBucketDto } from './dto/dpd-bucket';
-import { eq, and, or, gte, lte, ne } from 'drizzle-orm';
+import { eq, and, or, gte, lte, ne, desc, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class DpdBucketService {
   constructor(private eventEmitter: EventEmitter2) {}
+
+  /**
+   * Get user information by ID or return 'system' if not found
+   */
+  private async getUserInfo(userId: string): Promise<string> {
+    try {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(userId)) {
+        return 'system'; // Assuming UUIDs are external system IDs not in our users table
+      }
+      const numericId = parseInt(userId);
+      if (!isNaN(numericId)) {
+        const user = await db
+          .select({ fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, numericId))
+          .limit(1);
+        return user.length > 0 ? user[0].fullName : 'system';
+      }
+      return userId; // Return as-is if not UUID or numeric
+    } catch (error) {
+      return 'system';
+    }
+  }
+
+  /**
+   * Generate next numeric bucketId
+   */
+  private async generateNextBucketId(): Promise<string> {
+    try {
+      // Get the highest numeric bucketId
+      const result = await db
+        .select({ bucketId: dpdBucketMaster.bucketId })
+        .from(dpdBucketMaster)
+        .where(sql`${dpdBucketMaster.bucketId} ~ '^[0-9]+$'`)
+        .orderBy(desc(sql`CAST(${dpdBucketMaster.bucketId} AS INTEGER)`))
+        .limit(1);
+
+      if (result.length === 0) {
+        return '1'; // First bucket
+      }
+
+      const lastId = parseInt(result[0].bucketId);
+      return (lastId + 1).toString();
+    } catch (error) {
+      // Fallback to timestamp-based ID
+      return Date.now().toString();
+    }
+  }
 
   async create(createDpdBucketDto: CreateDpdBucketDto) {
     // Validate range (start <= end)
@@ -32,20 +81,29 @@ export class DpdBucketService {
       throw new ConflictException('DPD bucket ranges cannot overlap within the same module');
     }
 
+    // Generate bucketId if not provided
+    let bucketId = createDpdBucketDto.bucketId;
+    if (!bucketId) {
+      bucketId = await this.generateNextBucketId();
+    }
+
     // Check for duplicate bucket ID
     const existingBucketId = await db
       .select()
       .from(dpdBucketMaster)
-      .where(eq(dpdBucketMaster.bucketId, createDpdBucketDto.bucketId))
+      .where(eq(dpdBucketMaster.bucketId, bucketId))
       .limit(1);
 
     if (existingBucketId.length > 0) {
       throw new ConflictException('Bucket ID already exists');
     }
 
+    // Get user information
+    const userInfo = await this.getUserInfo(createDpdBucketDto.createdBy);
+
     // Transform DTO to match database schema field names
     const insertData = {
-      bucketId: createDpdBucketDto.bucketId,
+      bucketId: bucketId,
       bucketName: createDpdBucketDto.bucketName,
       rangeStart: createDpdBucketDto.rangeStart,
       rangeEnd: createDpdBucketDto.rangeEnd,
@@ -54,7 +112,7 @@ export class DpdBucketService {
       module: createDpdBucketDto.module,
       status: createDpdBucketDto.status || 'Active',
       description: createDpdBucketDto.description,
-      createdBy: createDpdBucketDto.createdBy,
+      createdBy: userInfo,
     };
 
     const [created] = await db.insert(dpdBucketMaster).values(insertData).returning();
@@ -152,8 +210,10 @@ export class DpdBucketService {
     if (updateDpdBucketDto.status !== undefined) updateData.status = updateDpdBucketDto.status;
     if (updateDpdBucketDto.description !== undefined)
       updateData.description = updateDpdBucketDto.description;
-    if (updateDpdBucketDto.updatedBy !== undefined)
-      updateData.updatedBy = updateDpdBucketDto.updatedBy;
+    // Get user information for updatedBy
+    if (updateDpdBucketDto.updatedBy !== undefined) {
+      updateData.updatedBy = await this.getUserInfo(updateDpdBucketDto.updatedBy);
+    }
 
     const [updated] = await db
       .update(dpdBucketMaster)

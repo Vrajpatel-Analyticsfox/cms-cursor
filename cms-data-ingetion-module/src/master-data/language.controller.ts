@@ -11,7 +11,8 @@ export class LanguageController {
   @Post()
   @ApiOperation({
     summary: 'Create a new language',
-    description: 'Creates a new language configuration with script support',
+    description:
+      'Creates a new language configuration with script support. Language ID and language code are auto-generated if not provided. Language name duplicate check is case-insensitive.',
   })
   @ApiResponse({
     status: 201,
@@ -23,6 +24,10 @@ export class LanguageController {
           type: 'string',
           format: 'uuid',
           example: '123e4567-e89b-12d3-a456-426614174000',
+        },
+        languageId: {
+          type: 'string',
+          example: '1',
         },
         languageCode: {
           type: 'string',
@@ -38,8 +43,8 @@ export class LanguageController {
         },
         status: {
           type: 'string',
-          enum: ['active', 'inactive'],
-          example: 'active',
+          enum: ['Active', 'Inactive'],
+          example: 'Active',
         },
         createdAt: {
           type: 'string',
@@ -50,6 +55,18 @@ export class LanguageController {
           type: 'string',
           example: 'admin',
         },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Language name already exists (case-insensitive check)',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 409 },
+        message: { type: 'string', example: 'Language name already exists' },
+        error: { type: 'string', example: 'Conflict' },
       },
     },
   })
@@ -191,7 +208,8 @@ export class LanguageController {
   @Put(':id')
   @ApiOperation({
     summary: 'Update language',
-    description: 'Updates an existing language with new information',
+    description:
+      'Updates an existing language with new information. Language name duplicate check is case-insensitive.',
   })
   @ApiParam({
     name: 'id',

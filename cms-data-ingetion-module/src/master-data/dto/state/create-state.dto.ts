@@ -26,20 +26,20 @@ export class CreateStateDto {
   @Length(2, 100)
   stateName: string;
 
-  @ApiProperty({
-    description: 'Unique state identifier',
+  @ApiPropertyOptional({
+    description: 'Unique state identifier (auto-generated if not provided)',
     example: 'STATE_001',
     minLength: 3,
     maxLength: 50,
     pattern: '^[A-Z0-9_]+$',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Length(3, 50)
   @Matches(/^[A-Z0-9_]+$/, {
     message: 'State ID must contain only uppercase letters, numbers, and underscores',
   })
-  stateId: string;
+  stateId?: string;
 
   @ApiProperty({
     description: 'State status',

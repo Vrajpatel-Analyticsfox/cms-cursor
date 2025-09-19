@@ -30,6 +30,7 @@ import { SchemaConfigurationService } from './schema-configuration.service';
 import { SmsApiService } from './services/sms-api.service';
 import { SmsTemplateService } from './services/sms-template.service';
 import { TemplateFormatService } from './services/template-format.service';
+import { StripHtmlService } from './services/strip-html.service';
 
 // Event Listeners
 import { MasterDataUpdatedListener } from './master-data-updated.listener';
@@ -70,6 +71,7 @@ import { MasterDataUpdatedListener } from './master-data-updated.listener';
     SmsApiService,
     SmsTemplateService,
     TemplateFormatService,
+    StripHtmlService,
     MasterDataUpdatedListener,
   ],
   exports: [
@@ -86,6 +88,7 @@ import { MasterDataUpdatedListener } from './master-data-updated.listener';
     SmsApiService,
     SmsTemplateService,
     TemplateFormatService,
+    StripHtmlService,
   ],
 })
 export class MasterDataModule {}

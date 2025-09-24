@@ -28,21 +28,21 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { DocumentManagementService } from '../services/document-management.service';
-import { CreateDocumentDto } from '../dto/create-document.dto';
-import { UpdateDocumentDto } from '../dto/update-document.dto';
+import { DocumentRepositoryService } from './document-repository.service';
+import { CreateDocumentDto } from './dto/create-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 import {
   DocumentResponseDto,
   DocumentListResponseDto,
   DocumentDownloadResponseDto,
-} from '../dto/document-response.dto';
+} from './dto/document-response.dto';
 import * as fs from 'fs';
 
 @ApiTags('Document Management')
 @ApiBearerAuth()
-@Controller('documents')
+@Controller('legal/documents')
 export class DocumentManagementController {
-  constructor(private readonly documentManagementService: DocumentManagementService) {}
+  constructor(private readonly documentRepositoryService: DocumentRepositoryService) {}
 
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
@@ -161,7 +161,7 @@ export class DocumentManagementController {
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
     const uploadedBy = req.user?.username || 'system';
-    return this.documentManagementService.uploadDocument(file, createDto, uploadedBy);
+    return this.documentRepositoryService.uploadDocument(file, createDto, uploadedBy);
   }
 
   @Get()
@@ -225,7 +225,7 @@ export class DocumentManagementController {
       Object.entries(filters).filter(([_, value]) => value !== undefined),
     );
 
-    return this.documentManagementService.getDocumentsByEntity(
+    return this.documentRepositoryService.getDocumentsByEntity(
       entityType,
       entityId,
       requestedBy,
@@ -256,7 +256,7 @@ export class DocumentManagementController {
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
     const requestedBy = req.user?.username || 'system';
-    return this.documentManagementService.getDocumentById(id, requestedBy);
+    return this.documentRepositoryService.getDocumentById(id, requestedBy);
   }
 
   @Get(':id/download')
@@ -288,7 +288,7 @@ export class DocumentManagementController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const requestedBy = req.user?.username || 'system';
-    const downloadInfo = await this.documentManagementService.downloadDocument(id, requestedBy);
+    const downloadInfo = await this.documentRepositoryService.downloadDocument(id, requestedBy);
 
     // Set response headers
     res.set({
@@ -322,7 +322,7 @@ export class DocumentManagementController {
     @Request() req: any,
   ): Promise<DocumentResponseDto[]> {
     const requestedBy = req.user?.username || 'system';
-    return this.documentManagementService.getDocumentVersions(id, requestedBy);
+    return this.documentRepositoryService.getDocumentVersions(id, requestedBy);
   }
 
   @Put(':id')
@@ -351,7 +351,7 @@ export class DocumentManagementController {
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
     const updatedBy = req.user?.username || 'system';
-    return this.documentManagementService.updateDocument(id, updateDto, updatedBy);
+    return this.documentRepositoryService.updateDocument(id, updateDto, updatedBy);
   }
 
   @Delete(':id')
@@ -382,7 +382,7 @@ export class DocumentManagementController {
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
     const deletedBy = req.user?.username || 'system';
-    return this.documentManagementService.deleteDocument(id, deletedBy);
+    return this.documentRepositoryService.deleteDocument(id, deletedBy);
   }
 
   // Legal Case specific endpoints
@@ -429,7 +429,7 @@ export class DocumentManagementController {
       Object.entries(filters).filter(([_, value]) => value !== undefined),
     );
 
-    return this.documentManagementService.getDocumentsByEntity(
+    return this.documentRepositoryService.getDocumentsByEntity(
       'Legal Case',
       caseId,
       requestedBy,
@@ -533,7 +533,7 @@ export class DocumentManagementController {
     const uploadedBy = req.user?.username || 'system';
 
     const createDto: CreateDocumentDto = {
-      linkedEntityType: 'Legal Case',
+      linkedEntityType: 'Case ID',
       linkedEntityId: caseId,
       documentName: body.documentName,
       documentTypeId: body.documentTypeId,
@@ -544,6 +544,6 @@ export class DocumentManagementController {
       remarksTags: body.remarksTags ? JSON.parse(body.remarksTags) : undefined,
     };
 
-    return this.documentManagementService.uploadDocument(file, createDto, uploadedBy);
+    return this.documentRepositoryService.uploadDocument(file, createDto, uploadedBy);
   }
 }

@@ -1,4 +1,4 @@
-CREATE TYPE "public"."acknowledgement_status" AS ENUM('Acknowledged', 'Rejected', 'Pending', 'Pending Verification');--> statement-breakpoint
+CREATE TYPE "public"."acknowledgement_status" AS ENUM('Acknowledged', 'Refused', 'Pending', 'Pending Verification');--> statement-breakpoint
 CREATE TYPE "public"."allocation_status" AS ENUM('Active', 'Completed', 'Cancelled', 'Reassigned');--> statement-breakpoint
 CREATE TYPE "public"."case_document_type" AS ENUM('Affidavit', 'Summons', 'Court Order', 'Evidence', 'Witness Statement', 'Expert Report', 'Medical Report', 'Financial Statement', 'Property Document', 'Legal Notice', 'Reply Notice', 'Counter Affidavit', 'Interim Order', 'Final Order', 'Judgment', 'Settlement Agreement', 'Compromise Deed', 'Power of Attorney', 'Authorization Letter', 'Identity Proof', 'Address Proof', 'Income Proof', 'Bank Statement', 'Loan Agreement', 'Security Document', 'Other');--> statement-breakpoint
 CREATE TYPE "public"."case_status" AS ENUM('Filed', 'Under Trial', 'Stayed', 'Dismissed', 'Resolved', 'Closed');--> statement-breakpoint
@@ -6,12 +6,13 @@ CREATE TYPE "public"."case_type" AS ENUM('Civil', 'Criminal', 'Arbitration', '13
 CREATE TYPE "public"."status" AS ENUM('Active', 'Inactive', 'Draft', 'Pending', 'Completed', 'Cancelled');--> statement-breakpoint
 CREATE TYPE "public"."document_category" AS ENUM('Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Contract', 'Identity Proof', 'Address Proof', 'Other');--> statement-breakpoint
 CREATE TYPE "public"."document_status" AS ENUM('Active', 'Archived', 'Deleted', 'Pending_approval', 'Rejected');--> statement-breakpoint
+CREATE TYPE "public"."error_severity" AS ENUM('Info', 'Warning', 'Error', 'Critical');--> statement-breakpoint
+CREATE TYPE "public"."error_type" AS ENUM('Validation', 'System', 'Network', 'API', 'Mapping', 'Authorization');--> statement-breakpoint
 CREATE TYPE "public"."hearing_status" AS ENUM('Scheduled', 'Attended', 'Hearing Missed', 'Rescheduled', 'Adjourned', 'Completed', 'Cancelled');--> statement-breakpoint
 CREATE TYPE "public"."hearing_type" AS ENUM('Appearance', 'Filing', 'Evidence', 'Cross-Examination', 'Judgment');--> statement-breakpoint
 CREATE TYPE "public"."lawyer_type" AS ENUM('Internal', 'External', 'Senior', 'Junior', 'Associate');--> statement-breakpoint
 CREATE TYPE "public"."legal_case_system_status" AS ENUM('Active', 'Inactive', 'Deleted');--> statement-breakpoint
-CREATE TYPE "public"."notice_status" AS ENUM('Draft', 'Generated', 'Sent', 'Failed', 'Acknowledged', 'Inactive');--> statement-breakpoint
-CREATE TYPE "public"."recovery_action" AS ENUM('Repossession', 'Settlement', 'Warrant Issued', 'None');--> statement-breakpoint
+CREATE TYPE "public"."recovery_action" AS ENUM('Repossession', 'Settlement', 'Warrant Issued', 'Auction', 'None');--> statement-breakpoint
 CREATE TYPE "public"."template_status" AS ENUM('Active', 'Inactive');--> statement-breakpoint
 CREATE TYPE "public"."template_type" AS ENUM('Pre-Legal', 'Legal', 'Final Warning', 'Arbitration', 'Court Summon');--> statement-breakpoint
 CREATE TYPE "public"."trigger_severity" AS ENUM('Low', 'Medium', 'High', 'Critical');--> statement-breakpoint
@@ -256,6 +257,29 @@ CREATE TABLE "dpd_bucket_master" (
 	CONSTRAINT "dpd_bucket_master_bucket_id_unique" UNIQUE("bucket_id")
 );
 --> statement-breakpoint
+CREATE TABLE "error_logs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"error_id" text NOT NULL,
+	"source" text NOT NULL,
+	"error_type" "error_type" NOT NULL,
+	"error_code" text NOT NULL,
+	"error_message" text NOT NULL,
+	"root_cause_summary" text,
+	"stack_trace" text,
+	"entity_affected" text,
+	"severity" "error_severity" NOT NULL,
+	"retriable" boolean DEFAULT false NOT NULL,
+	"timestamp" timestamp DEFAULT now() NOT NULL,
+	"created_by" text NOT NULL,
+	"resolved" boolean DEFAULT false NOT NULL,
+	"resolution_notes" text,
+	"resolved_by" text,
+	"resolved_at" timestamp,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "error_logs_error_id_unique" UNIQUE("error_id")
+);
+--> statement-breakpoint
 CREATE TABLE "field_validation_format" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"category" text,
@@ -365,7 +389,7 @@ CREATE TABLE "legal_notices" (
 	"loan_account_number" text NOT NULL,
 	"dpd_days" integer NOT NULL,
 	"trigger_type" "trigger_type" NOT NULL,
-	"template_id" uuid NOT NULL,
+	"template_id" text NOT NULL,
 	"communication_mode" text NOT NULL,
 	"state_id" uuid NOT NULL,
 	"language_id" uuid NOT NULL,
@@ -374,8 +398,10 @@ CREATE TABLE "legal_notices" (
 	"legal_entity_name" text NOT NULL,
 	"issued_by" text NOT NULL,
 	"acknowledgement_required" boolean DEFAULT false,
-	"notice_status" "notice_status" DEFAULT 'Draft' NOT NULL,
+	"notice_status" text NOT NULL,
 	"document_path" text,
+	"data_status" text,
+	"job_status" text,
 	"remarks" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -401,22 +427,25 @@ CREATE TABLE "logs_ingestion" (
 --> statement-breakpoint
 CREATE TABLE "notice_acknowledgements" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"acknowledgement_code" text NOT NULL,
+	"acknowledgement_id" text NOT NULL,
 	"notice_id" uuid NOT NULL,
+	"loan_account_number" text NOT NULL,
+	"borrower_name" text NOT NULL,
+	"notice_type" text NOT NULL,
 	"acknowledged_by" text NOT NULL,
 	"relationship_to_borrower" text,
 	"acknowledgement_date" timestamp NOT NULL,
 	"acknowledgement_mode" text NOT NULL,
 	"proof_of_acknowledgement" text,
 	"remarks" text,
-	"captured_by" integer NOT NULL,
+	"captured_by" text NOT NULL,
 	"geo_location" text,
 	"acknowledgement_status" "acknowledgement_status" DEFAULT 'Acknowledged' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
 	"updated_by" text,
-	CONSTRAINT "notice_acknowledgements_acknowledgement_code_unique" UNIQUE("acknowledgement_code")
+	CONSTRAINT "notice_acknowledgements_acknowledgement_id_unique" UNIQUE("acknowledgement_id")
 );
 --> statement-breakpoint
 CREATE TABLE "notifications" (
@@ -632,11 +661,9 @@ ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_case_id_lega
 ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_lawyer_id_lawyers_id_fk" FOREIGN KEY ("lawyer_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_allocated_by_users_id_fk" FOREIGN KEY ("allocated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_cases" ADD CONSTRAINT "legal_cases_lawyer_assigned_id_lawyers_id_fk" FOREIGN KEY ("lawyer_assigned_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_template_id_template_master_id_fk" FOREIGN KEY ("template_id") REFERENCES "public"."template_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_state_id_state_master_id_fk" FOREIGN KEY ("state_id") REFERENCES "public"."state_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_language_id_language_master_id_fk" FOREIGN KEY ("language_id") REFERENCES "public"."language_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notice_acknowledgements" ADD CONSTRAINT "notice_acknowledgements_notice_id_legal_notices_id_fk" FOREIGN KEY ("notice_id") REFERENCES "public"."legal_notices"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "notice_acknowledgements" ADD CONSTRAINT "notice_acknowledgements_captured_by_users_id_fk" FOREIGN KEY ("captured_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_subtype_master" ADD CONSTRAINT "product_subtype_master_type_id_product_type_master_id_fk" FOREIGN KEY ("type_id") REFERENCES "public"."product_type_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_type_master" ADD CONSTRAINT "product_type_master_group_id_product_group_master_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."product_group_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_variant_master" ADD CONSTRAINT "product_variant_master_subtype_id_product_subtype_master_id_fk" FOREIGN KEY ("subtype_id") REFERENCES "public"."product_subtype_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

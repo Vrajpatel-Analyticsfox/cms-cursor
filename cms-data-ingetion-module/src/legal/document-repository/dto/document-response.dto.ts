@@ -8,16 +8,17 @@ export class DocumentResponseDto {
   id: string;
 
   @ApiProperty({
-    description: 'Auto-generated document code',
-    example: 'LC-20250721-0001',
+    description: 'Auto-generated document ID (BRD Format: LDR-YYYYMMDD-Sequence)',
+    example: 'LDR-20250721-0001',
   })
-  documentCode: string;
+  documentId: string;
 
   @ApiProperty({
-    description: 'Type of entity this document is linked to',
-    example: 'Legal Case',
+    description: 'Type of entity this document is linked to (BRD-specified)',
+    example: 'Case ID',
+    enum: ['Borrower', 'Loan Account', 'Case ID'],
   })
-  linkedEntityType: string;
+  linkedEntityType: 'Borrower' | 'Loan Account' | 'Case ID';
 
   @ApiProperty({
     description: 'ID of the entity this document is linked to',
@@ -88,11 +89,12 @@ export class DocumentResponseDto {
   storageProvider: string;
 
   @ApiProperty({
-    description: 'Access permissions for the document',
-    example: ['legal-team', 'admin'],
+    description: 'Access permissions for the document (BRD-specified)',
+    example: ['Legal Officer', 'Admin'],
     type: [String],
+    enum: ['Legal Officer', 'Admin', 'Compliance', 'Lawyer'],
   })
-  accessPermissions: string[];
+  accessPermissions: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
 
   @ApiProperty({
     description: 'Whether the document is confidential',

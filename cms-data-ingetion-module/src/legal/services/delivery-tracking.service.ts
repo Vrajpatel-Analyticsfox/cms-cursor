@@ -1,5 +1,5 @@
 import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
-import { eq, and, gte, lte, desc, count, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, count, sql, inArray } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 
 export interface DeliveryStatus {
@@ -196,7 +196,7 @@ export class DeliveryTrackingService {
       const deliveries = await this.db
         .select()
         .from(schema.communicationTracking)
-        .where(sql`${schema.communicationTracking.messageId} = ANY(${messageIds})`);
+        .where(inArray(schema.communicationTracking.messageId, messageIds));
 
       return deliveries.map((delivery) => this.mapToDeliveryStatus(delivery));
     } catch (error) {

@@ -63,16 +63,150 @@ export class StateService {
     }
   }
 
-  async create(createStateDto: CreateStateDto) {
-    // Check for duplicate state code
-    const existingStateCode = await db
-      .select()
-      .from(stateMaster)
-      .where(eq(stateMaster.stateCode, createStateDto.stateCode))
-      .limit(1);
+  /**
+   * Generate state code from state name
+   * @param stateName - The full state name
+   * @returns Generated state code (2-3 uppercase letters)
+   */
+  private generateStateCode(stateName: string): string {
+    // Common state name to code mappings
+    const stateMappings: Record<string, string> = {
+      Maharashtra: 'MH',
+      Karnataka: 'KA',
+      'Tamil Nadu': 'TN',
+      Kerala: 'KL',
+      'Andhra Pradesh': 'AP',
+      Telangana: 'TG',
+      Gujarat: 'GJ',
+      Rajasthan: 'RJ',
+      'Madhya Pradesh': 'MP',
+      'Uttar Pradesh': 'UP',
+      'West Bengal': 'WB',
+      Odisha: 'OR',
+      Bihar: 'BR',
+      Jharkhand: 'JH',
+      Assam: 'AS',
+      Punjab: 'PB',
+      Haryana: 'HR',
+      'Himachal Pradesh': 'HP',
+      Uttarakhand: 'UK',
+      Delhi: 'DL',
+      Goa: 'GA',
+      Chhattisgarh: 'CG',
+      'Jammu and Kashmir': 'JK',
+      Ladakh: 'LA',
+      Manipur: 'MN',
+      Meghalaya: 'ML',
+      Mizoram: 'MZ',
+      Nagaland: 'NL',
+      Sikkim: 'SK',
+      Tripura: 'TR',
+      'Arunachal Pradesh': 'AR',
+      'Andaman and Nicobar Islands': 'AN',
+      Chandigarh: 'CH',
+      'Dadra and Nagar Haveli': 'DN',
+      'Daman and Diu': 'DD',
+      Lakshadweep: 'LD',
+      Puducherry: 'PY',
+    };
 
-    if (existingStateCode.length > 0) {
-      throw new ConflictException('State code already exists');
+    // Check if exact match exists
+    const exactMatch = stateMappings[stateName];
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    // Check for case-insensitive match
+    const normalizedStateName = stateName.toLowerCase();
+    for (const [key, value] of Object.entries(stateMappings)) {
+      if (key.toLowerCase() === normalizedStateName) {
+        return value;
+      }
+    }
+
+    // Generate code from state name
+    const words = stateName.trim().split(/\s+/);
+
+    if (words.length === 1) {
+      // Single word state name
+      const word = words[0];
+      if (word.length >= 2) {
+        return word.substring(0, 2).toUpperCase();
+      } else {
+        return word.toUpperCase() + 'X'; // Add X if single character
+      }
+    } else {
+      // Multi-word state name
+      const firstLetters = words.map((word) => word.charAt(0)).join('');
+      if (firstLetters.length <= 3) {
+        return firstLetters.toUpperCase();
+      } else {
+        return firstLetters.substring(0, 3).toUpperCase();
+      }
+    }
+  }
+
+  /**
+   * Generate unique state code by checking for duplicates
+   * @param stateName - The full state name
+   * @param existingCode - Optional existing code to avoid
+   * @returns Unique state code
+   */
+  private async generateUniqueStateCode(stateName: string, existingCode?: string): Promise<string> {
+    let baseCode = this.generateStateCode(stateName);
+    let stateCode = baseCode;
+    let counter = 1;
+
+    // Keep generating until we find a unique code
+    while (true) {
+      // Check if this code already exists (excluding the existing code if provided)
+      const existing = await db
+        .select()
+        .from(stateMaster)
+        .where(eq(stateMaster.stateCode, stateCode))
+        .limit(1);
+
+      if (existing.length === 0) {
+        return stateCode; // Found unique code
+      }
+
+      // If we're checking against the same existing code, it's allowed
+      if (existingCode && existing[0].stateCode === existingCode) {
+        return stateCode;
+      }
+
+      // Generate next variation
+      if (baseCode.length === 2) {
+        stateCode = (baseCode + counter.toString()).substring(0, 3);
+      } else {
+        stateCode = baseCode + counter.toString();
+      }
+
+      counter++;
+
+      // Safety check to avoid infinite loop
+      if (counter > 999) {
+        throw new Error('Unable to generate unique state code');
+      }
+    }
+  }
+
+  async create(createStateDto: CreateStateDto) {
+    // Generate stateCode if not provided
+    let stateCode = createStateDto.stateCode;
+    if (!stateCode) {
+      stateCode = await this.generateUniqueStateCode(createStateDto.stateName);
+    } else {
+      // Check for duplicate state code if provided
+      const existingStateCode = await db
+        .select()
+        .from(stateMaster)
+        .where(eq(stateMaster.stateCode, stateCode))
+        .limit(1);
+
+      if (existingStateCode.length > 0) {
+        throw new ConflictException('State code already exists');
+      }
     }
 
     // Generate stateId if not provided
@@ -109,6 +243,7 @@ export class StateService {
     // Create state with generated ID and resolved user
     const stateData = {
       ...createStateDto,
+      stateCode: stateCode,
       stateId: stateId,
       createdBy: userInfo,
     };
@@ -151,12 +286,23 @@ export class StateService {
     // Check if state exists
     const existingState = await this.findOne(id);
 
-    // If updating state code, check for duplicates
-    if (updateStateDto.stateCode && updateStateDto.stateCode !== existingState.stateCode) {
+    // Handle stateCode updates
+    let stateCode = updateStateDto.stateCode;
+
+    // If stateName is being updated and stateCode is not provided, auto-generate it
+    if (updateStateDto.stateName && !stateCode) {
+      const newStateName = updateStateDto.stateName;
+      if (newStateName.toLowerCase() !== existingState.stateName.toLowerCase()) {
+        stateCode = await this.generateUniqueStateCode(newStateName, existingState.stateCode);
+      }
+    }
+
+    // If stateCode is being updated, check for duplicates
+    if (stateCode && stateCode !== existingState.stateCode) {
       const duplicateStateCode = await db
         .select()
         .from(stateMaster)
-        .where(eq(stateMaster.stateCode, updateStateDto.stateCode))
+        .where(eq(stateMaster.stateCode, stateCode))
         .limit(1);
 
       if (duplicateStateCode.length > 0 && duplicateStateCode[0].id !== id) {
@@ -203,6 +349,7 @@ export class StateService {
       .update(stateMaster)
       .set({
         ...updateStateDto,
+        stateCode: stateCode,
         updatedBy: updatedBy,
         updatedAt: new Date(),
       })

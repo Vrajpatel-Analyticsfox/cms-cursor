@@ -82,15 +82,6 @@ export const templateTypeEnum = pgEnum('template_type', [
   'Court Summon',
 ]);
 
-export const noticeStatusEnum = pgEnum('notice_status', [
-  'Draft',
-  'Generated',
-  'Sent',
-  'Failed',
-  'Acknowledged',
-  'Inactive',
-]);
-
 export const triggerTypeEnum = pgEnum('trigger_type', [
   'DPD Threshold',
   'Payment Failure',
@@ -141,7 +132,7 @@ export const allocationStatusEnum = pgEnum('allocation_status', [
 
 export const acknowledgementStatusEnum = pgEnum('acknowledgement_status', [
   'Acknowledged',
-  'Rejected',
+  'Refused',
   'Pending',
   'Pending Verification',
 ]);
@@ -187,6 +178,21 @@ export const caseDocumentTypeEnum = pgEnum('case_document_type', [
   'Other',
 ]);
 
+// BRD-specified linked entity types for Legal Document Repository
+export const linkedEntityTypeEnum = pgEnum('linked_entity_type', [
+  'Borrower',
+  'Loan Account',
+  'Case ID',
+]);
+
+// BRD-specified access permissions for Legal Document Repository
+export const accessPermissionEnum = pgEnum('access_permission', [
+  'Legal Officer',
+  'Admin',
+  'Compliance',
+  'Lawyer',
+]);
+
 export const documentStatusEnum = pgEnum('document_status', [
   'Active',
   'Archived',
@@ -199,6 +205,7 @@ export const recoveryActionEnum = pgEnum('recovery_action', [
   'Repossession',
   'Settlement',
   'Warrant Issued',
+  'Auction',
   'None',
 ]);
 
@@ -309,11 +316,9 @@ export const templateMaster = pgTable('template_master', {
   languageId: uuid('language_id')
     .notNull()
     .references(() => languageMaster.id),
-
   // SMS API integration fields
   smsTemplateId: integer('sms_template_id'),
   dltTemplateId: text('dlt_template_id'),
-
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -595,9 +600,7 @@ export const legalNotices = pgTable('legal_notices', {
   loanAccountNumber: text('loan_account_number').notNull(),
   dpdDays: integer('dpd_days').notNull(),
   triggerType: triggerTypeEnum('trigger_type').notNull(),
-  templateId: uuid('template_id')
-    .notNull()
-    .references(() => templateMaster.id),
+  templateId: text('template_id').notNull(), // JSON array of template IDs
   communicationMode: text('communication_mode').notNull(),
   stateId: uuid('state_id')
     .notNull()
@@ -610,8 +613,10 @@ export const legalNotices = pgTable('legal_notices', {
   legalEntityName: text('legal_entity_name').notNull(),
   issuedBy: text('issued_by').notNull(),
   acknowledgementRequired: boolean('acknowledgement_required').default(false),
-  noticeStatus: noticeStatusEnum('notice_status').notNull().default('Draft'),
+  noticeStatus: text('notice_status').notNull(),
   documentPath: text('document_path'), // Path to generated PDF document
+  dataStatus: text('data_status'),
+  jobStatus: text('job_status'),
   remarks: text('remarks'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -647,25 +652,38 @@ export const courtHearings = pgTable('court_hearings', {
   updatedBy: text('updated_by'),
 });
 
-// Lawyer Allocations
+// Lawyer Allocations - BRD UC008 Schema
 export const lawyerAllocations = pgTable('lawyer_allocations', {
   id: uuid('id').primaryKey().defaultRandom(),
-  allocationCode: text('allocation_code').notNull().unique(),
+  // Allocation ID - Format: LAW-YYYYMMDD-Sequence
+  allocationId: text('allocation_id').notNull().unique(),
+  // Case ID - Must exist in Case Master
   caseId: uuid('case_id')
     .notNull()
     .references(() => legalCases.id),
+  // Assigned Lawyer - Name of the lawyer being assigned
   lawyerId: uuid('lawyer_id')
     .notNull()
     .references(() => lawyers.id),
+  // Jurisdiction - Location/Court where the case will be heard
+  jurisdiction: text('jurisdiction').notNull(),
+  // Lawyer Type - Internal / External
+  lawyerType: text('lawyer_type').notNull(),
+  // Allocation Date - Date of assignment (Cannot be a future date)
   allocationDate: date('allocation_date').notNull(),
-  allocatedBy: integer('allocated_by')
-    .notNull()
-    .references(() => users.id),
+  // Allocated By - Username or role who assigned the lawyer
+  allocatedBy: text('allocated_by').notNull(),
+  // Reassignment Flag - If true, indicates reassignment (Defaults to false)
   reassignmentFlag: boolean('reassignment_flag').default(false),
+  // Reassignment Reason - Mandatory only if reassignment is true (Max 500 characters)
   reassignmentReason: text('reassignment_reason'),
+  // Status - Active / Reassigned / Inactive (Updates dynamically)
   status: allocationStatusEnum('status').notNull().default('Active'),
+  // Lawyer Acknowledgement - Checkbox/flag indicating lawyer has accepted the assignment
   lawyerAcknowledgement: boolean('lawyer_acknowledgement').default(false),
+  // Remarks - Additional notes or context (Max 500 characters)
   remarks: text('remarks'),
+  // Audit fields
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   createdBy: text('created_by').notNull(),
@@ -675,23 +693,24 @@ export const lawyerAllocations = pgTable('lawyer_allocations', {
 // Notice Acknowledgements
 export const noticeAcknowledgements = pgTable('notice_acknowledgements', {
   id: uuid('id').primaryKey().defaultRandom(),
-  acknowledgementCode: text('acknowledgement_code').notNull().unique(),
+  acknowledgementId: text('acknowledgement_id').notNull().unique(), // Format: ACKN-YYYYMMDD-[Sequence]
   noticeId: uuid('notice_id')
     .notNull()
     .references(() => legalNotices.id),
-  acknowledgedBy: text('acknowledged_by').notNull(),
-  relationshipToBorrower: text('relationship_to_borrower'),
+  loanAccountNumber: text('loan_account_number').notNull(), // Auto-populated from notice
+  borrowerName: text('borrower_name').notNull(), // Auto-populated from notice
+  noticeType: text('notice_type').notNull(), // Auto-populated from notice (Pre-Legal/Legal)
+  acknowledgedBy: text('acknowledged_by').notNull(), // Borrower, Family Member, Lawyer, Security Guard, Refused
+  relationshipToBorrower: text('relationship_to_borrower'), // E.g., Spouse, Son, Clerk
   acknowledgementDate: timestamp('acknowledgement_date').notNull(),
-  acknowledgementMode: text('acknowledgement_mode').notNull(),
-  proofOfAcknowledgement: text('proof_of_acknowledgement'),
-  remarks: text('remarks'),
-  capturedBy: integer('captured_by')
-    .notNull()
-    .references(() => users.id),
-  geoLocation: text('geo_location'),
+  acknowledgementMode: text('acknowledgement_mode').notNull(), // In Person, Courier Receipt, Email, SMS, Phone Call
+  proofOfAcknowledgement: text('proof_of_acknowledgement'), // File path for uploaded proof
+  remarks: text('remarks'), // Max 500 characters
+  capturedBy: text('captured_by').notNull(), // Legal Officer/Field Executive/System
+  geoLocation: text('geo_location'), // Location coordinates if field-collected
   acknowledgementStatus: acknowledgementStatusEnum('acknowledgement_status')
     .notNull()
-    .default('Acknowledged'),
+    .default('Acknowledged'), // Acknowledged/Refused/Pending Verification
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   createdBy: text('created_by').notNull(),
@@ -751,10 +770,10 @@ export const recoveryTriggers = pgTable('recovery_triggers', {
 // Document Repository - Enhanced for Legal Case Management
 export const documentRepository = pgTable('document_repository', {
   id: uuid('id').primaryKey().defaultRandom(),
-  // Document Code - Auto-generated unique identifier
-  documentCode: text('document_code').notNull().unique(),
-  // Linked Entity - What this document belongs to
-  linkedEntityType: text('linked_entity_type').notNull(), // 'Legal Case', 'Legal Notice', 'Loan Account', 'Court Hearing'
+  // Document ID - Auto-generated unique identifier (BRD Format: LDR-YYYYMMDD-Sequence)
+  documentId: text('document_id').notNull().unique(),
+  // Linked Entity - What this document belongs to (BRD: Borrower, Loan Account, Case ID)
+  linkedEntityType: linkedEntityTypeEnum('linked_entity_type').notNull(),
   linkedEntityId: uuid('linked_entity_id').notNull(),
   // Document Details
   documentName: text('document_name').notNull(),
@@ -771,13 +790,13 @@ export const documentRepository = pgTable('document_repository', {
   storageProvider: text('storage_provider').default('local'), // local, aws-s3, azure-blob, etc.
   storageBucket: text('storage_bucket'), // For cloud storage
   storageKey: text('storage_key'), // For cloud storage
-  // Access Control
-  accessPermissions: text('access_permissions').notNull(), // JSON array of roles/users
+  // Access Control - BRD specified permissions
+  accessPermissions: text('access_permissions').notNull(), // JSON array of BRD-specified roles: Legal Officer, Admin, Compliance, Lawyer
   confidentialFlag: boolean('confidential_flag').default(false),
   isPublic: boolean('is_public').default(false),
   // Version Control
   versionNumber: integer('version_number').default(1),
-  parentDocumentId: uuid('parent_document_id').references(() => documentRepository.id), // For versioning
+  parentDocumentId: uuid('parent_document_id'), // For versioning - self-reference
   isLatestVersion: boolean('is_latest_version').default(true),
   // Document Status
   documentStatusEnum: text('document_status').default('Active'), // active, archived, deleted
@@ -977,10 +996,7 @@ export const legalRelations = {
   },
 
   // Legal Notices relationships - now uses loan account number directly
-  noticeToTemplate: {
-    fields: [legalNotices.templateId],
-    references: [templateMaster.id],
-  },
+  // Note: templateIds is now stored as JSON array, no direct foreign key relationship
   noticeToUser: {
     fields: [legalNotices.issuedBy],
     references: [users.id],
@@ -1035,10 +1051,6 @@ export const legalRelations = {
     fields: [documentRepository.documentTypeId],
     references: [documentTypes.id],
   },
-  documentToUser: {
-    fields: [documentRepository.uploadedBy],
-    references: [users.id],
-  },
 
   // Courts relationships
   courtToState: {
@@ -1056,3 +1068,38 @@ export const legalRelations = {
     references: [ridSchema.id],
   },
 };
+
+// Error Handling Enums
+export const errorTypeEnum = pgEnum('error_type', [
+  'Validation',
+  'System',
+  'Network',
+  'API',
+  'Mapping',
+  'Authorization',
+]);
+
+export const errorSeverityEnum = pgEnum('error_severity', ['Info', 'Warning', 'Error', 'Critical']);
+
+// Error Logs Table
+export const errorLogs = pgTable('error_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  errorId: text('error_id').notNull().unique(), // Auto-generated unique identifier
+  source: text('source').notNull(), // Must match predefined list of CMS modules
+  errorType: errorTypeEnum('error_type').notNull(),
+  errorCode: text('error_code').notNull(), // Defined per module (e.g., AGT_001, DI_404)
+  errorMessage: text('error_message').notNull(), // User-readable message
+  rootCauseSummary: text('root_cause_summary'), // System-diagnosed reason (optional)
+  stackTrace: text('stack_trace'), // Debug information (optional)
+  entityAffected: text('entity_affected'), // Entity identifier (optional)
+  severity: errorSeverityEnum('severity').notNull(),
+  retriable: boolean('retriable').notNull().default(false),
+  timestamp: timestamp('timestamp').notNull().defaultNow(),
+  createdBy: text('created_by').notNull(), // System actor or user ID
+  resolved: boolean('resolved').notNull().default(false),
+  resolutionNotes: text('resolution_notes'), // Optional remarks from admin
+  resolvedBy: text('resolved_by'),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

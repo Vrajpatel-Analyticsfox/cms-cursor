@@ -1,0 +1,921 @@
+{
+  "info": {
+    "name": "UC003 - Notice Acknowledgement Management (Complete)",
+    "description": "Complete API collection for Notice Acknowledgement management with all CRUD operations, file management, and statistics",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Notice Acknowledgements",
+      "item": [
+        {
+          "name": "1. Create Acknowledgement (Without Document)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"noticeId\": \"{{notice_id}}\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "notice-acknowledgements"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n  \"acknowledgementId\": \"ACKN-20250121-0001\",\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"loanAccountNumber\": \"LN4567890\",\n  \"borrowerName\": \"Rajiv Menon\",\n  \"noticeType\": \"Pre-Legal\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"proofOfAcknowledgement\": null,\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"createdAt\": \"2025-01-21T10:00:00Z\",\n  \"updatedAt\": \"2025-01-21T10:00:00Z\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "2. Create Acknowledgement (With Document)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "noticeId",
+                  "value": "{{notice_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "acknowledgedBy",
+                  "value": "Family Member",
+                  "type": "text"
+                },
+                {
+                  "key": "relationshipToBorrower",
+                  "value": "Spouse",
+                  "type": "text"
+                },
+                {
+                  "key": "acknowledgementDate",
+                  "value": "2025-01-21T16:30:00Z",
+                  "type": "text"
+                },
+                {
+                  "key": "acknowledgementMode",
+                  "value": "In Person",
+                  "type": "text"
+                },
+                {
+                  "key": "remarks",
+                  "value": "Notice acknowledged by spouse with proof document",
+                  "type": "text"
+                },
+                {
+                  "key": "capturedBy",
+                  "value": "Field Executive - Mumbai Team",
+                  "type": "text"
+                },
+                {
+                  "key": "geoLocation",
+                  "value": "19.0760,72.8777",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{proof_document_path}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/with-document",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "with-document"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response with Document",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "noticeId",
+                      "value": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+                      "type": "text"
+                    },
+                    {
+                      "key": "acknowledgedBy",
+                      "value": "Family Member",
+                      "type": "text"
+                    },
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "sample_proof.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/with-document",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "notice-acknowledgements", "with-document"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n  \"acknowledgementId\": \"ACKN-20250121-0002\",\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"loanAccountNumber\": \"LN4567890\",\n  \"borrowerName\": \"Rajiv Menon\",\n  \"noticeType\": \"Pre-Legal\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"proofOfAcknowledgement\": \"/uploads/acknowledgements/2025/01/21/ACKN-20250121-0002_1641234567890_a1b2c3d4.pdf\",\n  \"remarks\": \"Notice acknowledged by spouse with proof document\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"createdAt\": \"2025-01-21T10:00:00Z\",\n  \"updatedAt\": \"2025-01-21T10:00:00Z\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "3. Get All Acknowledgements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements?page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "notice-acknowledgements"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n      \"acknowledgementId\": \"ACKN-20250121-0001\",\n      \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n      \"loanAccountNumber\": \"LN4567890\",\n      \"borrowerName\": \"Rajiv Menon\",\n      \"noticeType\": \"Pre-Legal\",\n      \"acknowledgedBy\": \"Family Member\",\n      \"relationshipToBorrower\": \"Spouse\",\n      \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n      \"acknowledgementMode\": \"In Person\",\n      \"proofOfAcknowledgement\": null,\n      \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n      \"capturedBy\": \"Field Executive - Mumbai Team\",\n      \"geoLocation\": \"19.0760,72.8777\",\n      \"acknowledgementStatus\": \"Acknowledged\",\n      \"createdAt\": \"2025-01-21T10:00:00Z\",\n      \"updatedAt\": \"2025-01-21T10:00:00Z\",\n      \"createdBy\": \"system\",\n      \"updatedBy\": null\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"total\": 1,\n    \"totalPages\": 1,\n    \"hasNext\": false,\n    \"hasPrev\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "4. Get Acknowledgement by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/b1c2d3e4-f5a6-7890-1234-567890abcdef",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "notice-acknowledgements",
+                    "b1c2d3e4-f5a6-7890-1234-567890abcdef"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n  \"acknowledgementId\": \"ACKN-20250121-0001\",\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"loanAccountNumber\": \"LN4567890\",\n  \"borrowerName\": \"Rajiv Menon\",\n  \"noticeType\": \"Pre-Legal\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"proofOfAcknowledgement\": null,\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"createdAt\": \"2025-01-21T10:00:00Z\",\n  \"updatedAt\": \"2025-01-21T10:00:00Z\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "5. Update Acknowledgement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"acknowledgedBy\": \"Borrower\",\n  \"relationshipToBorrower\": \"Self\",\n  \"acknowledgementDate\": \"2025-01-21T17:00:00Z\",\n  \"acknowledgementMode\": \"Courier Receipt\",\n  \"remarks\": \"Updated: Borrower personally acknowledged the notice\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"acknowledgedBy\": \"Borrower\",\n  \"relationshipToBorrower\": \"Self\",\n  \"acknowledgementDate\": \"2025-01-21T17:00:00Z\",\n  \"acknowledgementMode\": \"Courier Receipt\",\n  \"remarks\": \"Updated: Borrower personally acknowledged the notice\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/b1c2d3e4-f5a6-7890-1234-567890abcdef",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "notice-acknowledgements",
+                    "b1c2d3e4-f5a6-7890-1234-567890abcdef"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n  \"acknowledgementId\": \"ACKN-20250121-0001\",\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"loanAccountNumber\": \"LN4567890\",\n  \"borrowerName\": \"Rajiv Menon\",\n  \"noticeType\": \"Pre-Legal\",\n  \"acknowledgedBy\": \"Borrower\",\n  \"relationshipToBorrower\": \"Self\",\n  \"acknowledgementDate\": \"2025-01-21T17:00:00Z\",\n  \"acknowledgementMode\": \"Courier Receipt\",\n  \"proofOfAcknowledgement\": null,\n  \"remarks\": \"Updated: Borrower personally acknowledged the notice\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"createdAt\": \"2025-01-21T10:00:00Z\",\n  \"updatedAt\": \"2025-01-21T11:00:00Z\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": \"system\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "6. Delete Acknowledgement",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/b1c2d3e4-f5a6-7890-1234-567890abcdef",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "notice-acknowledgements",
+                    "b1c2d3e4-f5a6-7890-1234-567890abcdef"
+                  ]
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "File Management",
+      "item": [
+        {
+          "name": "7. Upload Proof Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{proof_document_path}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}/upload-proof",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}", "upload-proof"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "sample_proof.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/b1c2d3e4-f5a6-7890-1234-567890abcdef/upload-proof",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "notice-acknowledgements",
+                    "b1c2d3e4-f5a6-7890-1234-567890abcdef",
+                    "upload-proof"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"filePath\": \"/uploads/acknowledgements/2025/01/21/ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf\",\n  \"fileName\": \"ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf\",\n  \"fileSize\": 1024000\n}"
+            }
+          ]
+        },
+        {
+          "name": "8. Download Proof Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}/proof",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}", "proof"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response (Binary)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/b1c2d3e4-f5a6-7890-1234-567890abcdef/proof",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "notice-acknowledgements",
+                    "b1c2d3e4-f5a6-7890-1234-567890abcdef",
+                    "proof"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/pdf"
+                },
+                {
+                  "key": "Content-Disposition",
+                  "value": "attachment; filename=\"ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf\""
+                }
+              ],
+              "cookie": [],
+              "body": "[Binary PDF content]"
+            }
+          ]
+        },
+        {
+          "name": "9. Delete Proof Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}/proof",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}", "proof"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/b1c2d3e4-f5a6-7890-1234-567890abcdef/proof",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "notice-acknowledgements",
+                    "b1c2d3e4-f5a6-7890-1234-567890abcdef",
+                    "proof"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Proof file deleted successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Statistics & Reports",
+      "item": [
+        {
+          "name": "10. Get Acknowledgement Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "statistics"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/statistics",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "notice-acknowledgements", "statistics"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"totalAcknowledgements\": 150,\n  \"byStatus\": [\n    {\n      \"status\": \"Acknowledged\",\n      \"count\": 120\n    },\n    {\n      \"status\": \"Refused\",\n      \"count\": 20\n    },\n    {\n      \"status\": \"Pending Verification\",\n      \"count\": 10\n    }\n  ],\n  \"byMode\": [\n    {\n      \"mode\": \"In Person\",\n      \"count\": 80\n    },\n    {\n      \"mode\": \"Courier Receipt\",\n      \"count\": 40\n    },\n    {\n      \"mode\": \"Email\",\n      \"count\": 20\n    },\n    {\n      \"mode\": \"SMS\",\n      \"count\": 10\n    }\n  ],\n  \"byAcknowledgedBy\": [\n    {\n      \"acknowledgedBy\": \"Borrower\",\n      \"count\": 90\n    },\n    {\n      \"acknowledgedBy\": \"Family Member\",\n      \"count\": 45\n    },\n    {\n      \"acknowledgedBy\": \"Lawyer\",\n      \"count\": 15\n    }\n  ],\n  \"generatedAt\": \"2025-01-21T12:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "11. Get File Upload Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/file-upload/statistics?documentType=acknowledgements",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "file-upload", "statistics"],
+              "query": [
+                {
+                  "key": "documentType",
+                  "value": "acknowledgements"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/notice-acknowledgements/file-upload/statistics?documentType=acknowledgements",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "notice-acknowledgements", "file-upload", "statistics"],
+                  "query": [
+                    {
+                      "key": "documentType",
+                      "value": "acknowledgements"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"totalFiles\": 75,\n  \"totalSize\": 52428800,\n  \"fileTypeDistribution\": {\n    \"PDF\": 50,\n    \"JPG\": 15,\n    \"PNG\": 10\n  },\n  \"folderStructure\": {\n    \"acknowledgements/2025/01/21\": 25,\n    \"acknowledgements/2025/01/20\": 30,\n    \"acknowledgements/2025/01/19\": 20\n  },\n  \"oldestFile\": \"2025-01-15T10:30:00Z\",\n  \"newestFile\": \"2025-01-21T16:45:00Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "General File Management",
+      "item": [
+        {
+          "name": "12. Generic File Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{generic_document_path}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/files/upload/{{document_type}}/{{entity_id}}?subFolder={{sub_folder}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "files", "upload", "{{document_type}}", "{{entity_id}}"],
+              "query": [
+                {
+                  "key": "subFolder",
+                  "value": "{{sub_folder}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "sample_document.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/files/upload/legal-cases/case123?subFolder=contracts",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "files", "upload", "legal-cases", "case123"],
+                  "query": [
+                    {
+                      "key": "subFolder",
+                      "value": "contracts"
+                    }
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"filePath\": \"/uploads/legal-cases/2025/01/21/contracts/case123_1641234567890_a1b2c3d4.pdf\",\n  \"fileName\": \"case123_1641234567890_a1b2c3d4.pdf\",\n  \"fileSize\": 2048000\n}"
+            }
+          ]
+        },
+        {
+          "name": "13. Download File by Path",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/files/download/{{file_path}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "files", "download", "{{file_path}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response (Binary)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/files/download/acknowledgements/2025/01/21/ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "legal",
+                    "files",
+                    "download",
+                    "acknowledgements/2025/01/21/ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/pdf"
+                },
+                {
+                  "key": "Content-Disposition",
+                  "value": "attachment; filename=\"ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf\""
+                }
+              ],
+              "cookie": [],
+              "body": "[Binary PDF content]"
+            }
+          ]
+        },
+        {
+          "name": "14. Get File Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/files/statistics?documentType=acknowledgements",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "files", "statistics"],
+              "query": [
+                {
+                  "key": "documentType",
+                  "value": "acknowledgements"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/files/statistics?documentType=acknowledgements",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "files", "statistics"],
+                  "query": [
+                    {
+                      "key": "documentType",
+                      "value": "acknowledgements"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"totalFiles\": 150,\n  \"totalSize\": 104857600,\n  \"fileTypeDistribution\": {\n    \"PDF\": 100,\n    \"JPG\": 30,\n    \"PNG\": 20\n  },\n  \"folderStructure\": {\n    \"acknowledgements/2025/01/21\": 50,\n    \"acknowledgements/2025/01/20\": 60,\n    \"acknowledgements/2025/01/19\": 40\n  },\n  \"oldestFile\": \"2025-01-15T10:30:00Z\",\n  \"newestFile\": \"2025-01-21T16:45:00Z\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-generate acknowledgement ID if not set",
+          "if (!pm.environment.get('acknowledgement_id')) {",
+          "    const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');",
+          "    const randomId = Math.random().toString(36).substring(2, 15);",
+          "    pm.environment.set('acknowledgement_id', `ACKN-${timestamp}-${randomId}`);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "notice_id",
+      "value": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "type": "string"
+    },
+    {
+      "key": "acknowledgement_id",
+      "value": "b1c2d3e4-f5a6-7890-1234-567890abcdef",
+      "type": "string"
+    },
+    {
+      "key": "proof_document_path",
+      "value": "sample_proof.pdf",
+      "type": "string"
+    },
+    {
+      "key": "generic_document_path",
+      "value": "sample_document.pdf",
+      "type": "string"
+    },
+    {
+      "key": "document_type",
+      "value": "legal-cases",
+      "type": "string"
+    },
+    {
+      "key": "entity_id",
+      "value": "case123",
+      "type": "string"
+    },
+    {
+      "key": "sub_folder",
+      "value": "contracts",
+      "type": "string"
+    },
+    {
+      "key": "file_path",
+      "value": "acknowledgements/2025/01/21/ACKN-20250121-0001_1641234567890_a1b2c3d4.pdf",
+      "type": "string"
+    }
+  ]
+}

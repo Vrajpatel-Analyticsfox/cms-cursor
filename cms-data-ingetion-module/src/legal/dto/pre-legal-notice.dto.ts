@@ -61,12 +61,15 @@ export class CreatePreLegalNoticeDto {
   triggerType: TriggerType;
 
   @ApiProperty({
-    description: 'Template ID to be used for generating the notice',
-    example: 'uuid-template-id',
+    description: 'Template IDs to be used for generating the notice',
+    type: [String],
+    example: ['uuid-template-id-1', 'uuid-template-id-2'],
   })
-  @IsUUID()
-  @IsNotEmpty()
-  templateId: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID(4, { each: true })
+  @ArrayMinSize(1)
+  templateId: string[];
 
   @ApiProperty({
     description: 'Modes used to send the notice (e.g., Email, SMS, WhatsApp, Courier, Post)',
@@ -128,11 +131,11 @@ export class CreatePreLegalNoticeDto {
 
   @ApiProperty({
     description: 'Current status of the notice',
-    enum: NoticeStatus,
-    example: NoticeStatus.DRAFT,
+    example: 'Generated',
   })
-  @IsEnum(NoticeStatus)
-  noticeStatus: NoticeStatus;
+  @IsString()
+  @IsNotEmpty()
+  noticeStatus: string;
 
   @ApiPropertyOptional({
     description: 'Any internal remarks or notes',
@@ -149,11 +152,11 @@ export class CreatePreLegalNoticeDto {
 export class UpdateNoticeStatusDto {
   @ApiProperty({
     description: 'Current state of the notice',
-    enum: NoticeStatus,
-    example: NoticeStatus.SENT,
+    example: 'Generated',
   })
-  @IsEnum(NoticeStatus)
-  noticeStatus: NoticeStatus;
+  @IsString()
+  @IsNotEmpty()
+  noticeStatus: string;
 
   @ApiPropertyOptional({
     description: 'Path to generated PDF document',
@@ -219,16 +222,18 @@ export class PreLegalNoticeResponseDto {
   triggerType: TriggerType;
 
   @ApiProperty({
-    description: 'Template ID used',
-    example: 'uuid-template-id',
+    description: 'Template IDs used',
+    type: [String],
+    example: ['uuid-template-id-1', 'uuid-template-id-2'],
   })
-  templateId: string;
+  templateId: string[];
 
   @ApiProperty({
-    description: 'Template name',
-    example: 'Template-60DPD-Standard',
+    description: 'Template names',
+    type: [String],
+    example: ['Template-60DPD-Standard', 'Template-60DPD-Urgent'],
   })
-  templateName: string;
+  templateNames: string[];
 
   @ApiProperty({
     description: 'Communication modes',
@@ -335,6 +340,20 @@ export class PreLegalNoticeResponseDto {
     example: 'system',
   })
   createdBy: string;
+
+  @ApiProperty({
+    description: 'Data processing status',
+    example: 'pending',
+    required: false,
+  })
+  dataStatus?: string;
+
+  @ApiProperty({
+    description: 'Job processing status',
+    example: 'queued',
+    required: false,
+  })
+  jobStatus?: string;
 }
 
 // Response DTO for notice list
@@ -367,12 +386,15 @@ export class PreLegalNoticeListResponseDto {
 // DTO for generating notice preview
 export class GenerateNoticePreviewDto {
   @ApiProperty({
-    description: 'Template ID to use for preview',
-    example: 'uuid-template-id',
+    description: 'Template IDs to use for preview',
+    type: [String],
+    example: ['uuid-template-id-1', 'uuid-template-id-2'],
   })
-  @IsUUID()
-  @IsNotEmpty()
-  templateId: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID(4, { each: true })
+  @ArrayMinSize(1)
+  templateId: string[];
 
   @ApiProperty({
     description: 'Loan account number for data merge',

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, count, sql } from 'drizzle-orm';
-import * as schema from '../../db/schema';
+import * as schema from '../../../db/schema';
 import * as path from 'path';
 
 @Injectable()
@@ -94,7 +94,7 @@ export class EnhancedFileNamingService {
         .where(
           and(
             eq(schema.documentRepository.linkedEntityId, entityId),
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.caseDocumentType, caseDocumentType as any),
             sql`${schema.documentRepository.uploadDate} >= ${startOfDay}`,
             sql`${schema.documentRepository.uploadDate} <= ${endOfDay}`,
@@ -154,7 +154,7 @@ export class EnhancedFileNamingService {
         .where(
           and(
             eq(schema.documentRepository.linkedEntityId, entityId),
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.caseDocumentType, caseDocumentType as any),
             sql`${schema.documentRepository.uploadDate} >= ${startOfDay}`,
             sql`${schema.documentRepository.uploadDate} <= ${endOfDay}`,
@@ -211,7 +211,7 @@ export class EnhancedFileNamingService {
         .where(
           and(
             eq(schema.documentRepository.linkedEntityId, entityId),
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.caseDocumentType, caseDocumentType as any),
             sql`${schema.documentRepository.uploadDate} >= ${startOfDay}`,
             sql`${schema.documentRepository.uploadDate} <= ${endOfDay}`,
@@ -224,6 +224,7 @@ export class EnhancedFileNamingService {
       return documents.map((doc, index) => ({
         ...doc,
         sequenceNumber: index + 1,
+        uploadDate: doc.uploadDate || new Date(), // Handle null uploadDate
       }));
     } catch (error) {
       this.logger.error('Error getting same-day documents:', error);

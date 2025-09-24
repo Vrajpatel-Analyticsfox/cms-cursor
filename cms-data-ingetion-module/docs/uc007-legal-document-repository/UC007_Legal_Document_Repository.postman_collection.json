@@ -1,0 +1,862 @@
+{
+  "info": {
+    "name": "UC007 - Legal Document Repository",
+    "description": "Complete API collection for Legal Document Repository (UC007) - Document Management System with version control, access control, and entity linkage",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Document Upload",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "linkedEntityType",
+                  "value": "Case ID",
+                  "type": "text"
+                },
+                {
+                  "key": "linkedEntityId",
+                  "value": "{{case_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "documentName",
+                  "value": "Affidavit of Service",
+                  "type": "text"
+                },
+                {
+                  "key": "documentTypeId",
+                  "value": "{{document_type_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "accessPermissions",
+                  "value": "[\"Legal Officer\", \"Admin\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "confidentialFlag",
+                  "value": "false",
+                  "type": "text"
+                },
+                {
+                  "key": "isPublic",
+                  "value": "false",
+                  "type": "text"
+                },
+                {
+                  "key": "caseDocumentType",
+                  "value": "Affidavit",
+                  "type": "text"
+                },
+                {
+                  "key": "hearingDate",
+                  "value": "2025-08-15",
+                  "type": "text"
+                },
+                {
+                  "key": "documentDate",
+                  "value": "2025-07-21",
+                  "type": "text"
+                },
+                {
+                  "key": "remarksTags",
+                  "value": "[\"urgent\", \"confidential\", \"evidence\"]",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "legal", "documents", "upload"]
+            },
+            "description": "Upload a new document to the repository with metadata"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/upload",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "upload"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Document uploaded successfully\",\n  \"data\": {\n    \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n    \"documentId\": \"LDR-20250721-0001\",\n    \"linkedEntityType\": \"Case ID\",\n    \"linkedEntityId\": \"case-uuid-123\",\n    \"documentName\": \"Affidavit of Service\",\n    \"documentTypeId\": \"type-uuid-456\",\n    \"documentTypeName\": \"Legal Document\",\n    \"documentCategory\": \"Legal Notice\",\n    \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0001_affidavit.pdf\",\n    \"fileName\": \"affidavit.pdf\",\n    \"fileSize\": 1024000,\n    \"mimeType\": \"application/pdf\",\n    \"storageProvider\": \"local\",\n    \"confidentialFlag\": false,\n    \"isPublic\": false,\n    \"versionNumber\": 1,\n    \"parentDocumentId\": null,\n    \"documentStatus\": \"Active\",\n    \"documentHash\": \"sha256:abc123def456\",\n    \"caseDocumentType\": \"Affidavit\",\n    \"hearingDate\": \"2025-08-15\",\n    \"documentDate\": \"2025-07-21\",\n    \"accessPermissions\": [\"Legal Officer\", \"Admin\"],\n    \"lastAccessedAt\": null,\n    \"lastAccessedBy\": null,\n    \"remarksTags\": [\"urgent\", \"confidential\", \"evidence\"],\n    \"createdAt\": \"2025-07-21T10:00:00Z\",\n    \"updatedAt\": \"2025-07-21T10:00:00Z\",\n    \"createdBy\": \"Legal Officer\",\n    \"updatedBy\": null,\n    \"uploadDate\": \"2025-07-21T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Error Response - File Required",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": []
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/upload",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "upload"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"File is required\",\n  \"error\": \"Bad Request\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Upload Document for Legal Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "documentName",
+                  "value": "Court Order - Interim Relief",
+                  "type": "text"
+                },
+                {
+                  "key": "documentTypeId",
+                  "value": "{{document_type_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "accessPermissions",
+                  "value": "[\"Legal Officer\", \"Lawyer\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "confidentialFlag",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "caseDocumentType",
+                  "value": "Court Order",
+                  "type": "text"
+                },
+                {
+                  "key": "hearingDate",
+                  "value": "2025-08-20",
+                  "type": "text"
+                },
+                {
+                  "key": "documentDate",
+                  "value": "2025-07-21",
+                  "type": "text"
+                },
+                {
+                  "key": "remarksTags",
+                  "value": "[\"interim\", \"relief\", \"urgent\"]",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/legal-case/{{case_id}}/upload",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "{{api_version}}",
+                "legal",
+                "documents",
+                "legal-case",
+                "{{case_id}}",
+                "upload"
+              ]
+            },
+            "description": "Upload a document specifically for a legal case"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/legal-case/{{case_id}}/upload",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "api",
+                    "{{api_version}}",
+                    "legal",
+                    "documents",
+                    "legal-case",
+                    "{{case_id}}",
+                    "upload"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Document uploaded successfully for legal case\",\n  \"data\": {\n    \"id\": \"b2c3d4e5-f6g7-8901-2345-678901234567\",\n    \"documentId\": \"LDR-20250721-0002\",\n    \"linkedEntityType\": \"Case ID\",\n    \"linkedEntityId\": \"{{case_id}}\",\n    \"documentName\": \"Court Order - Interim Relief\",\n    \"documentTypeId\": \"type-uuid-456\",\n    \"documentTypeName\": \"Legal Document\",\n    \"documentCategory\": \"Court Order\",\n    \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0002_court_order.pdf\",\n    \"fileName\": \"court_order.pdf\",\n    \"fileSize\": 2048000,\n    \"mimeType\": \"application/pdf\",\n    \"storageProvider\": \"local\",\n    \"confidentialFlag\": true,\n    \"isPublic\": false,\n    \"versionNumber\": 1,\n    \"parentDocumentId\": null,\n    \"documentStatus\": \"Active\",\n    \"documentHash\": \"sha256:def456ghi789\",\n    \"caseDocumentType\": \"Court Order\",\n    \"hearingDate\": \"2025-08-20\",\n    \"documentDate\": \"2025-07-21\",\n    \"accessPermissions\": [\"Legal Officer\", \"Lawyer\"],\n    \"lastAccessedAt\": null,\n    \"lastAccessedBy\": null,\n    \"remarksTags\": [\"interim\", \"relief\", \"urgent\"],\n    \"createdAt\": \"2025-07-21T10:30:00Z\",\n    \"updatedAt\": \"2025-07-21T10:30:00Z\",\n    \"createdBy\": \"Legal Officer\",\n    \"updatedBy\": null,\n    \"uploadDate\": \"2025-07-21T10:30:00Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Document Retrieval",
+      "item": [
+        {
+          "name": "Get Documents by Entity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents?entityType=Case ID&entityId={{case_id}}&page=1&limit=10&documentType=Affidavit&confidentialOnly=false&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "legal", "documents"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "Case ID",
+                  "description": "Type of entity (Borrower, Loan Account, Case ID)"
+                },
+                {
+                  "key": "entityId",
+                  "value": "{{case_id}}",
+                  "description": "ID of the entity"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of documents per page"
+                },
+                {
+                  "key": "documentType",
+                  "value": "Affidavit",
+                  "description": "Filter by document type",
+                  "disabled": true
+                },
+                {
+                  "key": "confidentialOnly",
+                  "value": "false",
+                  "description": "Filter confidential documents only",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order (asc/desc)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get documents linked to a specific entity with pagination and filters"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents?entityType=Case ID&entityId={{case_id}}&page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents"],
+                  "query": [
+                    {
+                      "key": "entityType",
+                      "value": "Case ID"
+                    },
+                    {
+                      "key": "entityId",
+                      "value": "{{case_id}}"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n      \"documentId\": \"LDR-20250721-0001\",\n      \"linkedEntityType\": \"Case ID\",\n      \"linkedEntityId\": \"{{case_id}}\",\n      \"documentName\": \"Affidavit of Service\",\n      \"documentTypeId\": \"type-uuid-456\",\n      \"documentTypeName\": \"Legal Document\",\n      \"documentCategory\": \"Legal Notice\",\n      \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0001_affidavit.pdf\",\n      \"fileName\": \"affidavit.pdf\",\n      \"fileSize\": 1024000,\n      \"mimeType\": \"application/pdf\",\n      \"storageProvider\": \"local\",\n      \"confidentialFlag\": false,\n      \"isPublic\": false,\n      \"versionNumber\": 1,\n      \"parentDocumentId\": null,\n      \"documentStatus\": \"Active\",\n      \"documentHash\": \"sha256:abc123def456\",\n      \"caseDocumentType\": \"Affidavit\",\n      \"hearingDate\": \"2025-08-15\",\n      \"documentDate\": \"2025-07-21\",\n      \"accessPermissions\": [\"Legal Officer\", \"Admin\"],\n      \"lastAccessedAt\": \"2025-07-21T11:00:00Z\",\n      \"lastAccessedBy\": \"Legal Officer\",\n      \"remarksTags\": [\"urgent\", \"confidential\", \"evidence\"],\n      \"createdAt\": \"2025-07-21T10:00:00Z\",\n      \"updatedAt\": \"2025-07-21T10:00:00Z\",\n      \"createdBy\": \"Legal Officer\",\n      \"updatedBy\": null,\n      \"uploadDate\": \"2025-07-21T10:00:00Z\"\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"total\": 1,\n    \"totalPages\": 1,\n    \"hasNext\": false,\n    \"hasPrev\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+            },
+            "description": "Get detailed information about a specific document"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n    \"documentId\": \"LDR-20250721-0001\",\n    \"linkedEntityType\": \"Case ID\",\n    \"linkedEntityId\": \"case-uuid-123\",\n    \"documentName\": \"Affidavit of Service\",\n    \"documentTypeId\": \"type-uuid-456\",\n    \"documentTypeName\": \"Legal Document\",\n    \"documentCategory\": \"Legal Notice\",\n    \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0001_affidavit.pdf\",\n    \"fileName\": \"affidavit.pdf\",\n    \"fileSize\": 1024000,\n    \"mimeType\": \"application/pdf\",\n    \"storageProvider\": \"local\",\n    \"confidentialFlag\": false,\n    \"isPublic\": false,\n    \"versionNumber\": 1,\n    \"parentDocumentId\": null,\n    \"documentStatus\": \"Active\",\n    \"documentHash\": \"sha256:abc123def456\",\n    \"caseDocumentType\": \"Affidavit\",\n    \"hearingDate\": \"2025-08-15\",\n    \"documentDate\": \"2025-07-21\",\n    \"accessPermissions\": [\"Legal Officer\", \"Admin\"],\n    \"lastAccessedAt\": \"2025-07-21T11:00:00Z\",\n    \"lastAccessedBy\": \"Legal Officer\",\n    \"remarksTags\": [\"urgent\", \"confidential\", \"evidence\"],\n    \"createdAt\": \"2025-07-21T10:00:00Z\",\n    \"updatedAt\": \"2025-07-21T10:00:00Z\",\n    \"createdBy\": \"Legal Officer\",\n    \"updatedBy\": null,\n    \"uploadDate\": \"2025-07-21T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Not Found Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/invalid-id",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "invalid-id"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Document not found\",\n  \"error\": \"Not Found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Documents for Legal Case",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/legal-case/{{case_id}}?page=1&limit=10&documentType=Affidavit&confidentialOnly=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "legal", "documents", "legal-case", "{{case_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of documents per page"
+                },
+                {
+                  "key": "documentType",
+                  "value": "Affidavit",
+                  "description": "Filter by document type",
+                  "disabled": true
+                },
+                {
+                  "key": "confidentialOnly",
+                  "value": "false",
+                  "description": "Filter confidential documents only",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all documents associated with a specific legal case"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/legal-case/{{case_id}}?page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "api",
+                    "{{api_version}}",
+                    "legal",
+                    "documents",
+                    "legal-case",
+                    "{{case_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n      \"documentId\": \"LDR-20250721-0001\",\n      \"linkedEntityType\": \"Case ID\",\n      \"linkedEntityId\": \"{{case_id}}\",\n      \"documentName\": \"Affidavit of Service\",\n      \"documentTypeId\": \"type-uuid-456\",\n      \"documentTypeName\": \"Legal Document\",\n      \"documentCategory\": \"Legal Notice\",\n      \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0001_affidavit.pdf\",\n      \"fileName\": \"affidavit.pdf\",\n      \"fileSize\": 1024000,\n      \"mimeType\": \"application/pdf\",\n      \"storageProvider\": \"local\",\n      \"confidentialFlag\": false,\n      \"isPublic\": false,\n      \"versionNumber\": 1,\n      \"parentDocumentId\": null,\n      \"documentStatus\": \"Active\",\n      \"documentHash\": \"sha256:abc123def456\",\n      \"caseDocumentType\": \"Affidavit\",\n      \"hearingDate\": \"2025-08-15\",\n      \"documentDate\": \"2025-07-21\",\n      \"accessPermissions\": [\"Legal Officer\", \"Admin\"],\n      \"lastAccessedAt\": \"2025-07-21T11:00:00Z\",\n      \"lastAccessedBy\": \"Legal Officer\",\n      \"remarksTags\": [\"urgent\", \"confidential\", \"evidence\"],\n      \"createdAt\": \"2025-07-21T10:00:00Z\",\n      \"updatedAt\": \"2025-07-21T10:00:00Z\",\n      \"createdBy\": \"Legal Officer\",\n      \"updatedBy\": null,\n      \"uploadDate\": \"2025-07-21T10:00:00Z\"\n    },\n    {\n      \"id\": \"b2c3d4e5-f6g7-8901-2345-678901234567\",\n      \"documentId\": \"LDR-20250721-0002\",\n      \"linkedEntityType\": \"Case ID\",\n      \"linkedEntityId\": \"{{case_id}}\",\n      \"documentName\": \"Court Order - Interim Relief\",\n      \"documentTypeId\": \"type-uuid-456\",\n      \"documentTypeName\": \"Legal Document\",\n      \"documentCategory\": \"Court Order\",\n      \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0002_court_order.pdf\",\n      \"fileName\": \"court_order.pdf\",\n      \"fileSize\": 2048000,\n      \"mimeType\": \"application/pdf\",\n      \"storageProvider\": \"local\",\n      \"confidentialFlag\": true,\n      \"isPublic\": false,\n      \"versionNumber\": 1,\n      \"parentDocumentId\": null,\n      \"documentStatus\": \"Active\",\n      \"documentHash\": \"sha256:def456ghi789\",\n      \"caseDocumentType\": \"Court Order\",\n      \"hearingDate\": \"2025-08-20\",\n      \"documentDate\": \"2025-07-21\",\n      \"accessPermissions\": [\"Legal Officer\", \"Lawyer\"],\n      \"lastAccessedAt\": null,\n      \"lastAccessedBy\": null,\n      \"remarksTags\": [\"interim\", \"relief\", \"urgent\"],\n      \"createdAt\": \"2025-07-21T10:30:00Z\",\n      \"updatedAt\": \"2025-07-21T10:30:00Z\",\n      \"createdBy\": \"Legal Officer\",\n      \"updatedBy\": null,\n      \"uploadDate\": \"2025-07-21T10:30:00Z\"\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"total\": 2,\n    \"totalPages\": 1,\n    \"hasNext\": false,\n    \"hasPrev\": false\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Document Download",
+      "item": [
+        {
+          "name": "Download Document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}/download",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "{{api_version}}",
+                "legal",
+                "documents",
+                "{{document_id}}",
+                "download"
+              ]
+            },
+            "description": "Download the actual document file"
+          },
+          "response": [
+            {
+              "name": "Success Response - File Download",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}/download",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "api",
+                    "{{api_version}}",
+                    "legal",
+                    "documents",
+                    "{{document_id}}",
+                    "download"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/pdf"
+                },
+                {
+                  "key": "Content-Disposition",
+                  "value": "attachment; filename=\"affidavit.pdf\""
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1024000"
+                }
+              ],
+              "cookie": [],
+              "body": "Binary file content (PDF, DOCX, etc.)"
+            },
+            {
+              "name": "Not Found Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/invalid-id/download",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "invalid-id", "download"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Document not found\",\n  \"error\": \"Not Found\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Document Version Control",
+      "item": [
+        {
+          "name": "Get Document Versions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}/versions",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "{{api_version}}",
+                "legal",
+                "documents",
+                "{{document_id}}",
+                "versions"
+              ]
+            },
+            "description": "Get all versions of a document"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}/versions",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "api",
+                    "{{api_version}}",
+                    "legal",
+                    "documents",
+                    "{{document_id}}",
+                    "versions"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n      \"documentId\": \"LDR-20250721-0001\",\n      \"versionNumber\": 2,\n      \"fileName\": \"affidavit_v2.pdf\",\n      \"fileSize\": 1150000,\n      \"mimeType\": \"application/pdf\",\n      \"documentHash\": \"sha256:xyz789abc123\",\n      \"createdAt\": \"2025-07-21T15:00:00Z\",\n      \"createdBy\": \"Legal Officer\",\n      \"remarks\": \"Updated with additional witness statements\"\n    },\n    {\n      \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n      \"documentId\": \"LDR-20250721-0001\",\n      \"versionNumber\": 1,\n      \"fileName\": \"affidavit.pdf\",\n      \"fileSize\": 1024000,\n      \"mimeType\": \"application/pdf\",\n      \"documentHash\": \"sha256:abc123def456\",\n      \"createdAt\": \"2025-07-21T10:00:00Z\",\n      \"createdBy\": \"Legal Officer\",\n      \"remarks\": \"Initial version\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Document Management",
+      "item": [
+        {
+          "name": "Update Document Metadata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentName\": \"Updated Affidavit of Service\",\n  \"accessPermissions\": [\"Legal Officer\", \"Admin\", \"Compliance\"],\n  \"confidentialFlag\": true,\n  \"caseDocumentType\": \"Affidavit\",\n  \"hearingDate\": \"2025-08-20\",\n  \"documentDate\": \"2025-07-22\",\n  \"remarksTags\": [\"updated\", \"urgent\", \"confidential\", \"evidence\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+            },
+            "description": "Update document metadata without changing the file"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"documentName\": \"Updated Affidavit of Service\",\n  \"accessPermissions\": [\"Legal Officer\", \"Admin\", \"Compliance\"],\n  \"confidentialFlag\": true,\n  \"caseDocumentType\": \"Affidavit\",\n  \"hearingDate\": \"2025-08-20\",\n  \"documentDate\": \"2025-07-22\",\n  \"remarksTags\": [\"updated\", \"urgent\", \"confidential\", \"evidence\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Document updated successfully\",\n  \"data\": {\n    \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n    \"documentId\": \"LDR-20250721-0001\",\n    \"linkedEntityType\": \"Case ID\",\n    \"linkedEntityId\": \"case-uuid-123\",\n    \"documentName\": \"Updated Affidavit of Service\",\n    \"documentTypeId\": \"type-uuid-456\",\n    \"documentTypeName\": \"Legal Document\",\n    \"documentCategory\": \"Legal Notice\",\n    \"filePath\": \"/uploads/documents/2025/07/21/LDR-20250721-0001_affidavit.pdf\",\n    \"fileName\": \"affidavit.pdf\",\n    \"fileSize\": 1024000,\n    \"mimeType\": \"application/pdf\",\n    \"storageProvider\": \"local\",\n    \"confidentialFlag\": true,\n    \"isPublic\": false,\n    \"versionNumber\": 1,\n    \"parentDocumentId\": null,\n    \"documentStatus\": \"Active\",\n    \"documentHash\": \"sha256:abc123def456\",\n    \"caseDocumentType\": \"Affidavit\",\n    \"hearingDate\": \"2025-08-20\",\n    \"documentDate\": \"2025-07-22\",\n    \"accessPermissions\": [\"Legal Officer\", \"Admin\", \"Compliance\"],\n    \"lastAccessedAt\": \"2025-07-21T11:00:00Z\",\n    \"lastAccessedBy\": \"Legal Officer\",\n    \"remarksTags\": [\"updated\", \"urgent\", \"confidential\", \"evidence\"],\n    \"createdAt\": \"2025-07-21T10:00:00Z\",\n    \"updatedAt\": \"2025-07-21T16:00:00Z\",\n    \"createdBy\": \"Legal Officer\",\n    \"updatedBy\": \"Legal Officer\",\n    \"uploadDate\": \"2025-07-21T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Validation Error Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"documentName\": \"\",\n  \"accessPermissions\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": [\n    \"documentName should not be empty\",\n    \"accessPermissions must contain at least 1 elements\"\n  ],\n  \"error\": \"Bad Request\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+            },
+            "description": "Delete a document from the repository"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/{{document_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "{{document_id}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Document deleted successfully\",\n  \"data\": {\n    \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n    \"documentId\": \"LDR-20250721-0001\",\n    \"deletedAt\": \"2025-07-21T17:00:00Z\",\n    \"deletedBy\": \"Legal Officer\"\n  }\n}"
+            },
+            {
+              "name": "Not Found Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{api_version}}/legal/documents/invalid-id",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "{{api_version}}", "legal", "documents", "invalid-id"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Document not found\",\n  \"error\": \"Not Found\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

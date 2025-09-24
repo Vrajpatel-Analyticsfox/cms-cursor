@@ -2,18 +2,19 @@ import { IsString, IsNotEmpty, IsEnum, IsOptional, Length, Matches } from 'class
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateStateDto {
-  @ApiProperty({
-    description: 'Unique state code (2-3 characters)',
+  @ApiPropertyOptional({
+    description:
+      'Unique state code (2-3 characters). Auto-generated from state name if not provided.',
     example: 'MH',
     minLength: 2,
     maxLength: 3,
     pattern: '^[A-Z]{2,3}$',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Length(2, 3)
   @Matches(/^[A-Z]{2,3}$/, { message: 'State code must be 2-3 uppercase letters' })
-  stateCode: string;
+  stateCode?: string;
 
   @ApiProperty({
     description: 'Full state name',

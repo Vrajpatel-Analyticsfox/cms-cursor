@@ -26,7 +26,7 @@ import {
 } from '@nestjs/swagger';
 import { LegalCaseDocumentService } from '../services/legal-case-document.service';
 import { DocumentResponseDto, DocumentListResponseDto } from '../dto/document-response.dto';
-import { LegalCaseResponseDto } from '../dto/legal-case-response.dto';
+import { LegalCaseResponseDto } from '../../dto/legal-case-response.dto';
 
 @ApiTags('Legal Case Document Management')
 @ApiBearerAuth()

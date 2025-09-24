@@ -6,22 +6,56 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, desc, asc, like, count, sql, SQL, isNull, or } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import { CreateDocumentDto } from '../dto/create-document.dto';
-import { UpdateDocumentDto } from '../dto/update-document.dto';
-import { DocumentResponseDto, DocumentListResponseDto } from '../dto/document-response.dto';
+import { CreateDocumentDto } from './dto/create-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
+import { DocumentResponseDto, DocumentListResponseDto } from './dto/document-response.dto';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
-export class DocumentManagementService {
-  private readonly logger = new Logger(DocumentManagementService.name);
-  private readonly uploadPath = process.env.UPLOAD_PATH || './uploads';
+export class DocumentRepositoryService {
+  private readonly logger = new Logger(DocumentRepositoryService.name);
+  private readonly uploadPath: string;
+  private readonly defaultStorageProvider: string;
+  private readonly defaultDocumentStatus: string;
+  private readonly defaultAccessPermissions: string;
+  private readonly defaultVersionNumber: number;
+  private readonly defaultIsLatestVersion: boolean;
+  private readonly defaultConfidentialFlag: boolean;
+  private readonly defaultIsPublic: boolean;
 
-  constructor(@Inject('DRIZZLE') private readonly db: NodePgDatabase<typeof schema>) {
+  constructor(
+    @Inject('DRIZZLE') private readonly db: NodePgDatabase<typeof schema>,
+    private readonly configService: ConfigService,
+  ) {
+    this.uploadPath = this.configService.get<string>('UPLOAD_PATH', './uploads');
+    this.defaultStorageProvider = this.configService.get<string>(
+      'DEFAULT_STORAGE_PROVIDER',
+      'local',
+    );
+    this.defaultDocumentStatus = this.configService.get<string>(
+      'DEFAULT_DOCUMENT_STATUS',
+      'Active',
+    );
+    this.defaultAccessPermissions = this.configService.get<string>(
+      'DEFAULT_ACCESS_PERMISSIONS',
+      'Legal Officer',
+    );
+    this.defaultVersionNumber = this.configService.get<number>('DEFAULT_VERSION_NUMBER', 1);
+    this.defaultIsLatestVersion = this.configService.get<boolean>(
+      'DEFAULT_IS_LATEST_VERSION',
+      true,
+    );
+    this.defaultConfidentialFlag = this.configService.get<boolean>(
+      'DEFAULT_CONFIDENTIAL_FLAG',
+      false,
+    );
+    this.defaultIsPublic = this.configService.get<boolean>('DEFAULT_IS_PUBLIC', false);
     // Ensure upload directory exists
     this.ensureUploadDirectory();
   }
@@ -44,8 +78,8 @@ export class DocumentManagementService {
       // Validate document type
       const documentType = await this.validateDocumentType(createDto.documentTypeId);
 
-      // Generate document code
-      const documentCode = await this.generateDocumentCode(createDto.linkedEntityType);
+      // Generate document ID (BRD Format: LDR-YYYYMMDD-Sequence)
+      const documentId = await this.generateDocumentId(createDto.linkedEntityType);
 
       // Calculate file hash for integrity
       const fileHash = this.calculateFileHash(file.buffer);
@@ -67,7 +101,7 @@ export class DocumentManagementService {
       const newDocument = await this.db
         .insert(schema.documentRepository)
         .values({
-          documentCode,
+          documentId,
           linkedEntityType: createDto.linkedEntityType,
           linkedEntityId: createDto.linkedEntityId,
           documentName: createDto.documentName,
@@ -77,16 +111,18 @@ export class DocumentManagementService {
           fileSizeBytes: file.size.toString(),
           fileSizeMb,
           filePath: storagePath,
-          storageProvider: 'local',
-          accessPermissions: JSON.stringify(createDto.accessPermissions || ['legal-team']),
-          confidentialFlag: createDto.confidentialFlag || false,
-          isPublic: createDto.isPublic || false,
-          versionNumber: 1,
-          isLatestVersion: true,
-          documentStatus: 'active',
+          storageProvider: this.defaultStorageProvider,
+          accessPermissions: JSON.stringify(
+            createDto.accessPermissions || [this.defaultAccessPermissions],
+          ),
+          confidentialFlag: createDto.confidentialFlag ?? this.defaultConfidentialFlag,
+          isPublic: createDto.isPublic ?? this.defaultIsPublic,
+          versionNumber: this.defaultVersionNumber,
+          isLatestVersion: this.defaultIsLatestVersion,
+          documentStatusEnum: this.defaultDocumentStatus as any,
           documentHash: fileHash,
           mimeType: file.mimetype,
-          caseDocumentType: createDto.caseDocumentType,
+          caseDocumentType: createDto.caseDocumentType as any,
           hearingDate: createDto.hearingDate,
           documentDate: createDto.documentDate,
           uploadedBy,
@@ -96,7 +132,7 @@ export class DocumentManagementService {
         .returning();
 
       this.logger.log(
-        `Document uploaded successfully: ${documentCode} for ${createDto.linkedEntityType}:${createDto.linkedEntityId}`,
+        `Document uploaded successfully: ${documentId} for ${createDto.linkedEntityType}:${createDto.linkedEntityId}`,
       );
 
       return this.mapToResponseDto(newDocument[0]);
@@ -114,7 +150,7 @@ export class DocumentManagementService {
       const document = await this.db
         .select({
           id: schema.documentRepository.id,
-          documentCode: schema.documentRepository.documentCode,
+          documentId: schema.documentRepository.documentId,
           linkedEntityType: schema.documentRepository.linkedEntityType,
           linkedEntityId: schema.documentRepository.linkedEntityId,
           documentName: schema.documentRepository.documentName,
@@ -192,7 +228,10 @@ export class DocumentManagementService {
     try {
       const offset = (page - 1) * limit;
       let whereConditions: SQL[] = [
-        eq(schema.documentRepository.linkedEntityType, entityType),
+        eq(
+          schema.documentRepository.linkedEntityType,
+          entityType as 'Borrower' | 'Loan Account' | 'Case ID',
+        ),
         eq(schema.documentRepository.linkedEntityId, entityId),
       ];
 
@@ -227,7 +266,7 @@ export class DocumentManagementService {
       const documents = await this.db
         .select({
           id: schema.documentRepository.id,
-          documentCode: schema.documentRepository.documentCode,
+          documentId: schema.documentRepository.documentId,
           linkedEntityType: schema.documentRepository.linkedEntityType,
           linkedEntityId: schema.documentRepository.linkedEntityId,
           documentName: schema.documentRepository.documentName,
@@ -330,7 +369,7 @@ export class DocumentManagementService {
             : undefined,
           confidentialFlag: updateDto.confidentialFlag,
           isPublic: updateDto.isPublic,
-          caseDocumentType: updateDto.caseDocumentType,
+          caseDocumentType: updateDto.caseDocumentType as any,
           hearingDate: updateDto.hearingDate,
           documentDate: updateDto.documentDate,
           remarksTags: updateDto.remarksTags ? JSON.stringify(updateDto.remarksTags) : undefined,
@@ -340,7 +379,7 @@ export class DocumentManagementService {
         .where(eq(schema.documentRepository.id, id))
         .returning();
 
-      this.logger.log(`Document updated successfully: ${updatedDocument[0].documentCode}`);
+      this.logger.log(`Document updated successfully: ${updatedDocument[0].documentId}`);
 
       return this.mapToResponseDto(updatedDocument[0]);
     } catch (error) {
@@ -374,17 +413,17 @@ export class DocumentManagementService {
       await this.db
         .update(schema.documentRepository)
         .set({
-          documentStatus: 'deleted',
+          documentStatusEnum: 'Deleted',
           updatedAt: new Date(),
           updatedBy: `${deletedBy}-DELETED`,
         })
         .where(eq(schema.documentRepository.id, id));
 
-      this.logger.log(`Document deleted successfully: ${existingDocument[0].documentCode}`);
+      this.logger.log(`Document deleted successfully: ${existingDocument[0].documentId}`);
 
       return {
         success: true,
-        message: `Document ${existingDocument[0].documentCode} has been deleted successfully`,
+        message: `Document ${existingDocument[0].documentId} has been deleted successfully`,
       };
     } catch (error) {
       this.logger.error(`Error deleting document ${id}:`, error);
@@ -548,8 +587,9 @@ export class DocumentManagementService {
     return documentType[0];
   }
 
-  private async generateDocumentCode(entityType: string): Promise<string> {
-    const prefix = entityType === 'Legal Case' ? 'LC' : 'DOC';
+  private async generateDocumentId(entityType: string): Promise<string> {
+    // BRD Format: LDR-YYYYMMDD-Sequence
+    const prefix = 'LDR';
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
 
@@ -557,14 +597,14 @@ export class DocumentManagementService {
     const existing = await this.db
       .select()
       .from(schema.documentRepository)
-      .where(like(schema.documentRepository.documentCode, `${prefix}-${dateStr}-%`))
-      .orderBy(desc(schema.documentRepository.documentCode))
+      .where(like(schema.documentRepository.documentId, `${prefix}-${dateStr}-%`))
+      .orderBy(desc(schema.documentRepository.documentId))
       .limit(1);
 
     let sequenceNumber = 1;
     if (existing.length > 0) {
-      const lastCode = existing[0].documentCode;
-      const lastSequence = parseInt(lastCode.split('-')[2]);
+      const lastId = existing[0].documentId;
+      const lastSequence = parseInt(lastId.split('-')[2]);
       sequenceNumber = lastSequence + 1;
     }
 
@@ -614,7 +654,7 @@ export class DocumentManagementService {
 
     // Check if user has access permissions
     const permissions = JSON.parse(document.accessPermissions || '[]');
-    if (permissions.includes('all') || permissions.includes(requestedBy)) {
+    if (permissions.includes(requestedBy)) {
       return;
     }
 
@@ -639,7 +679,7 @@ export class DocumentManagementService {
 
     // Check if user has access permissions
     const permissions = JSON.parse(document.accessPermissions || '[]');
-    if (permissions.includes('all') || permissions.includes(requestedBy)) {
+    if (permissions.includes(requestedBy)) {
       return;
     }
 
@@ -669,7 +709,7 @@ export class DocumentManagementService {
   private mapToResponseDto(document: any): DocumentResponseDto {
     return {
       id: document.id,
-      documentCode: document.documentCode,
+      documentId: document.documentId,
       linkedEntityType: document.linkedEntityType,
       linkedEntityId: document.linkedEntityId,
       documentName: document.documentName,

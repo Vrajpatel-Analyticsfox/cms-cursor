@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { db } from '../../db/drizzle.config';
+import { db } from '../../../db/drizzle.config';
 import { eq, and, desc, like, count, sql, asc } from 'drizzle-orm';
-import { lawyers } from '../../db/schema';
-import { CreateLawyerDto } from '../dto/create-lawyer.dto';
-import { UpdateLawyerDto } from '../dto/update-lawyer.dto';
-import { LawyerResponseDto, LawyerListResponseDto } from '../dto/lawyer-response.dto';
+import { lawyers } from '../../../db/schema';
+import { CreateLawyerDto } from './dto/create-lawyer.dto';
+import { UpdateLawyerDto } from './dto/update-lawyer.dto';
+import { LawyerResponseDto, LawyerListResponseDto } from './dto/lawyer-response.dto';
 
 @Injectable()
 export class LawyerService {

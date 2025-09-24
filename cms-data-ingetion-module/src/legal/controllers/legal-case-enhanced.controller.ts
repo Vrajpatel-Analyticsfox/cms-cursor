@@ -31,7 +31,7 @@ import { LegalCaseEnhancedService } from '../services/legal-case-enhanced.servic
 import { CreateLegalCaseWithDocumentsDto } from '../dto/create-legal-case-with-documents.dto';
 import { UpdateLegalCaseWithDocumentsDto } from '../dto/update-legal-case-with-documents.dto';
 import { LegalCaseResponseDto } from '../dto/legal-case-response.dto';
-import { DocumentResponseDto } from '../dto/document-response.dto';
+import { DocumentResponseDto } from '../document-repository/dto/document-response.dto';
 
 @ApiTags('Legal Case Management with Documents')
 @ApiBearerAuth()

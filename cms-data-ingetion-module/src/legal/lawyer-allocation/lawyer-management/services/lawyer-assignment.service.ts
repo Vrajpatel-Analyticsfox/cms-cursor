@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { db } from '../../db/drizzle.config';
+import { db } from '../../../../db/drizzle.config';
 import { eq, and, sql, desc, count } from 'drizzle-orm';
-import { lawyers, caseAssignments, legalCases } from '../../db/schema';
+import { lawyers, caseAssignments, legalCases } from '../../../../db/schema';
 
 export interface LawyerWorkload {
   lawyerId: string;

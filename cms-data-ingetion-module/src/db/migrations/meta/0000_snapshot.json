@@ -1,5 +1,5 @@
 {
-  "id": "6ab53e5d-ea43-4ab2-be88-df3edff03d4b",
+  "id": "4090aa49-be34-45ee-abd8-146bcba28200",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1578,6 +1578,149 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.error_logs": {
+      "name": "error_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "error_id": {
+          "name": "error_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "error_type": {
+          "name": "error_type",
+          "type": "error_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "error_code": {
+          "name": "error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "root_cause_summary": {
+          "name": "root_cause_summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stack_trace": {
+          "name": "stack_trace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entity_affected": {
+          "name": "entity_affected",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "error_severity",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retriable": {
+          "name": "retriable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resolved": {
+          "name": "resolved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "resolution_notes": {
+          "name": "resolution_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolved_by": {
+          "name": "resolved_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "error_logs_error_id_unique": {
+          "name": "error_logs_error_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "error_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.field_validation_format": {
       "name": "field_validation_format",
       "schema": "",
@@ -2307,7 +2450,7 @@
         },
         "template_id": {
           "name": "template_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -2363,14 +2506,24 @@
         },
         "notice_status": {
           "name": "notice_status",
-          "type": "notice_status",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'Draft'"
+          "notNull": true
         },
         "document_path": {
           "name": "document_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_status": {
+          "name": "data_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_status": {
+          "name": "job_status",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -2410,19 +2563,6 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "legal_notices_template_id_template_master_id_fk": {
-          "name": "legal_notices_template_id_template_master_id_fk",
-          "tableFrom": "legal_notices",
-          "tableTo": "template_master",
-          "columnsFrom": [
-            "template_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
         "legal_notices_state_id_state_master_id_fk": {
           "name": "legal_notices_state_id_state_master_id_fk",
           "tableFrom": "legal_notices",
@@ -2561,8 +2701,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "acknowledgement_code": {
-          "name": "acknowledgement_code",
+        "acknowledgement_id": {
+          "name": "acknowledgement_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -2570,6 +2710,24 @@
         "notice_id": {
           "name": "notice_id",
           "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "loan_account_number": {
+          "name": "loan_account_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrower_name": {
+          "name": "borrower_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notice_type": {
+          "name": "notice_type",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -2611,7 +2769,7 @@
         },
         "captured_by": {
           "name": "captured_by",
-          "type": "integer",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -2670,28 +2828,15 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "notice_acknowledgements_captured_by_users_id_fk": {
-          "name": "notice_acknowledgements_captured_by_users_id_fk",
-          "tableFrom": "notice_acknowledgements",
-          "tableTo": "users",
-          "columnsFrom": [
-            "captured_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "notice_acknowledgements_acknowledgement_code_unique": {
-          "name": "notice_acknowledgements_acknowledgement_code_unique",
+        "notice_acknowledgements_acknowledgement_id_unique": {
+          "name": "notice_acknowledgements_acknowledgement_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "acknowledgement_code"
+            "acknowledgement_id"
           ]
         }
       },
@@ -4009,7 +4154,7 @@
       "schema": "public",
       "values": [
         "Acknowledged",
-        "Rejected",
+        "Refused",
         "Pending",
         "Pending Verification"
       ]
@@ -4117,6 +4262,28 @@
         "Rejected"
       ]
     },
+    "public.error_severity": {
+      "name": "error_severity",
+      "schema": "public",
+      "values": [
+        "Info",
+        "Warning",
+        "Error",
+        "Critical"
+      ]
+    },
+    "public.error_type": {
+      "name": "error_type",
+      "schema": "public",
+      "values": [
+        "Validation",
+        "System",
+        "Network",
+        "API",
+        "Mapping",
+        "Authorization"
+      ]
+    },
     "public.hearing_status": {
       "name": "hearing_status",
       "schema": "public",
@@ -4161,18 +4328,6 @@
         "Deleted"
       ]
     },
-    "public.notice_status": {
-      "name": "notice_status",
-      "schema": "public",
-      "values": [
-        "Draft",
-        "Generated",
-        "Sent",
-        "Failed",
-        "Acknowledged",
-        "Inactive"
-      ]
-    },
     "public.recovery_action": {
       "name": "recovery_action",
       "schema": "public",
@@ -4180,6 +4335,7 @@
         "Repossession",
         "Settlement",
         "Warrant Issued",
+        "Auction",
         "None"
       ]
     },

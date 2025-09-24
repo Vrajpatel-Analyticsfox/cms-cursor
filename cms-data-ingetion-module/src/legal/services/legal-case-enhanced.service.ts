@@ -4,15 +4,15 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, desc, like, count, sql } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { LegalCaseService } from './legal-case.service';
-import { LegalCaseDocumentService } from './legal-case-document.service';
-import { HybridStorageService } from './hybrid-storage.service';
+import { LegalCaseDocumentService } from '../document-repository/services/legal-case-document.service';
+import { HybridStorageService } from '../document-repository/services/hybrid-storage.service';
 import {
   CreateLegalCaseWithDocumentsDto,
   DocumentUploadDto,
 } from '../dto/create-legal-case-with-documents.dto';
 import { UpdateLegalCaseWithDocumentsDto } from '../dto/update-legal-case-with-documents.dto';
 import { LegalCaseResponseDto } from '../dto/legal-case-response.dto';
-import { DocumentResponseDto } from '../dto/document-response.dto';
+import { DocumentResponseDto } from '../document-repository/dto/document-response.dto';
 
 @Injectable()
 export class LegalCaseEnhancedService {
@@ -375,7 +375,7 @@ export class LegalCaseEnhancedService {
         .from(schema.documentRepository)
         .where(
           and(
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
             eq(schema.documentRepository.documentStatusEnum, 'active'),
           ),

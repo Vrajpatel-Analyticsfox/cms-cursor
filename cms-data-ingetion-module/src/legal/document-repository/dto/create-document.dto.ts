@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
+  IsNotEmpty,
+  IsUUID,
   IsOptional,
   IsEnum,
   IsBoolean,
@@ -10,39 +12,63 @@ import {
   ArrayMinSize,
   ValidateIf,
 } from 'class-validator';
-import { IsFutureOrToday } from '../validators/date-validators';
+import { IsFutureOrToday } from '../../validators/date-validators';
 
-export class UpdateDocumentDto {
+export class CreateDocumentDto {
+  @ApiProperty({
+    description: 'Type of entity this document is linked to (BRD-specified)',
+    enum: ['Borrower', 'Loan Account', 'Case ID'],
+    example: 'Case ID',
+  })
+  @IsEnum(['Borrower', 'Loan Account', 'Case ID'])
+  @IsNotEmpty()
+  linkedEntityType: 'Borrower' | 'Loan Account' | 'Case ID';
+
+  @ApiProperty({
+    description: 'ID of the entity this document is linked to',
+    example: 'uuid-entity-id',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  linkedEntityId: string;
+
   @ApiProperty({
     description: 'Name/title of the document',
-    example: 'Updated Affidavit of Service',
+    example: 'Affidavit of Service',
     maxLength: 200,
-    required: false,
   })
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(200)
-  documentName?: string;
+  documentName: string;
 
   @ApiProperty({
-    description: 'Access permissions for the document',
-    example: ['legal-team', 'admin', 'lawyer'],
-    type: [String],
-    required: false,
+    description: 'ID of the document type',
+    example: 'uuid-document-type-id',
   })
-  @IsOptional()
+  @IsUUID()
+  @IsNotEmpty()
+  documentTypeId: string;
+
+  @ApiProperty({
+    description: 'Access permissions for the document (BRD-specified)',
+    example: ['Legal Officer', 'Admin'],
+    type: [String],
+    enum: ['Legal Officer', 'Admin', 'Compliance', 'Lawyer'],
+  })
   @IsArray()
   @ArrayMinSize(1)
-  @IsString({ each: true })
-  accessPermissions?: string[];
+  @IsEnum(['Legal Officer', 'Admin', 'Compliance', 'Lawyer'], { each: true })
+  @IsOptional()
+  accessPermissions?: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
 
   @ApiProperty({
     description: 'Whether the document is confidential',
-    example: true,
+    example: false,
     required: false,
   })
-  @IsOptional()
   @IsBoolean()
+  @IsOptional()
   confidentialFlag?: boolean;
 
   @ApiProperty({
@@ -50,8 +76,8 @@ export class UpdateDocumentDto {
     example: false,
     required: false,
   })
-  @IsOptional()
   @IsBoolean()
+  @IsOptional()
   isPublic?: boolean;
 
   @ApiProperty({
@@ -84,7 +110,7 @@ export class UpdateDocumentDto {
       'Security Document',
       'Other',
     ],
-    example: 'Court Order',
+    example: 'Affidavit',
     required: false,
   })
   @IsOptional()
@@ -120,7 +146,7 @@ export class UpdateDocumentDto {
 
   @ApiProperty({
     description: 'Date of the hearing this document is related to',
-    example: '2025-09-15',
+    example: '2025-08-15',
     type: 'string',
     format: 'date',
     required: false,
@@ -129,27 +155,27 @@ export class UpdateDocumentDto {
   @ValidateIf((o) => o.hearingDate !== undefined && o.hearingDate !== null && o.hearingDate !== '')
   @IsDateString()
   @IsFutureOrToday({ message: 'Hearing date must be today or later' })
-  hearingDate?: string;
+  hearingDate?: string | null;
 
   @ApiProperty({
     description: 'Date when the document was created/issued',
-    example: '2025-08-01',
+    example: '2025-07-21',
     type: 'string',
     format: 'date',
     required: false,
   })
   @IsOptional()
   @IsDateString()
-  documentDate?: string;
+  documentDate?: string | null;
 
   @ApiProperty({
     description: 'Tags or remarks for the document',
-    example: ['updated', 'reviewed', 'approved'],
+    example: ['urgent', 'confidential', 'evidence'],
     type: [String],
     required: false,
   })
-  @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
   remarksTags?: string[];
 }

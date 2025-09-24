@@ -21,16 +21,16 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
-import { LawyerAssignmentService } from '../services/lawyer-assignment.service';
-import { LawyerService } from '../services/lawyer.service';
-import { NotificationService } from '../services/notification.service';
-import { StatusManagementService } from '../services/status-management.service';
-import { TimelineTrackingService } from '../services/timeline-tracking.service';
-import { CreateLawyerDto } from '../dto/create-lawyer.dto';
-import { UpdateLawyerDto } from '../dto/update-lawyer.dto';
-import { LawyerResponseDto, LawyerListResponseDto } from '../dto/lawyer-response.dto';
-import { AssignmentRequestDto } from '../dto/assignment-request.dto';
-import { StatusUpdateDto } from '../dto/status-update.dto';
+import { LawyerAssignmentService } from './services/lawyer-assignment.service';
+import { LawyerService } from './lawyer.service';
+import { NotificationService } from '../../services/notification.service';
+import { StatusManagementService } from '../../services/status-management.service';
+import { TimelineTrackingService } from '../../services/timeline-tracking.service';
+import { CreateLawyerDto } from './dto/create-lawyer.dto';
+import { UpdateLawyerDto } from './dto/update-lawyer.dto';
+import { LawyerResponseDto, LawyerListResponseDto } from './dto/lawyer-response.dto';
+import { AssignmentRequestDto } from './dto/assignment-request.dto';
+import { StatusUpdateDto } from '../../dto/status-update.dto';
 
 @ApiTags('Lawyer Management & Case Assignment')
 @ApiBearerAuth()

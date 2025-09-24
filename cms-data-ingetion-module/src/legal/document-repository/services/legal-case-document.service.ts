@@ -2,9 +2,9 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { Inject } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, desc, like, count, SQL, sql } from 'drizzle-orm';
-import * as schema from '../../db/schema';
-import { DocumentManagementService } from './document-management.service';
-import { LegalCaseResponseDto } from '../dto/legal-case-response.dto';
+import * as schema from '../../../db/schema';
+import { DocumentRepositoryService } from '../document-repository.service';
+import { LegalCaseResponseDto } from '../../dto/legal-case-response.dto';
 import { DocumentResponseDto, DocumentListResponseDto } from '../dto/document-response.dto';
 import { CreateDocumentDto } from '../dto/create-document.dto';
 
@@ -14,7 +14,7 @@ export class LegalCaseDocumentService {
 
   constructor(
     @Inject('DRIZZLE') private readonly db: NodePgDatabase<typeof schema>,
-    private readonly documentManagementService: DocumentManagementService,
+    private readonly documentRepositoryService: DocumentRepositoryService,
   ) {}
 
   /**
@@ -45,7 +45,7 @@ export class LegalCaseDocumentService {
 
       // Create document DTO
       const createDocumentDto: CreateDocumentDto = {
-        linkedEntityType: 'Legal Case',
+        linkedEntityType: 'Case ID', // BRD-specified entity type
         linkedEntityId: caseId,
         documentName: documentData.documentName,
         documentTypeId: documentType.id,
@@ -54,12 +54,12 @@ export class LegalCaseDocumentService {
         documentDate: documentData.documentDate,
         confidentialFlag: documentData.confidentialFlag || false,
         remarksTags: documentData.remarks ? [documentData.remarks] : [],
-        accessPermissions: ['lawyer', 'admin'], // Default permissions
+        accessPermissions: ['Lawyer', 'Admin'], // BRD-specified permissions
         isPublic: false,
       };
 
       // Upload document using existing service
-      const uploadedDocument = await this.documentManagementService.uploadDocument(
+      const uploadedDocument = await this.documentRepositoryService.uploadDocument(
         file,
         createDocumentDto,
         uploadedBy,
@@ -96,7 +96,7 @@ export class LegalCaseDocumentService {
       }
 
       // Get documents using existing service
-      return await this.documentManagementService.getDocumentsByEntity(
+      return await this.documentRepositoryService.getDocumentsByEntity(
         'Legal Case',
         caseId,
         'system', // requestedBy
@@ -167,7 +167,7 @@ export class LegalCaseDocumentService {
       }
 
       // Delete document using existing service
-      const result = await this.documentManagementService.deleteDocument(documentId, deletedBy);
+      const result = await this.documentRepositoryService.deleteDocument(documentId, deletedBy);
 
       this.logger.log(`Document ${documentId} deleted from case ${caseId} by ${deletedBy}`);
 
@@ -198,7 +198,7 @@ export class LegalCaseDocumentService {
         .from(schema.documentRepository)
         .where(
           and(
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
             eq(schema.documentRepository.documentStatusEnum, 'active'),
           ),
@@ -212,7 +212,7 @@ export class LegalCaseDocumentService {
         .from(schema.documentRepository)
         .where(
           and(
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
             eq(schema.documentRepository.documentStatusEnum, 'active'),
           ),
@@ -226,7 +226,7 @@ export class LegalCaseDocumentService {
         .from(schema.documentRepository)
         .where(
           and(
-            eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+            eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
             eq(schema.documentRepository.documentStatusEnum, 'active'),
           ),
@@ -281,7 +281,7 @@ export class LegalCaseDocumentService {
       .where(
         and(
           eq(schema.documentRepository.id, documentId),
-          eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+          eq(schema.documentRepository.linkedEntityType, 'Case ID'),
         ),
       )
       .limit(1);
@@ -339,9 +339,9 @@ export class LegalCaseDocumentService {
       .from(schema.documentRepository)
       .where(
         and(
-          eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+          eq(schema.documentRepository.linkedEntityType, 'Case ID'),
           eq(schema.documentRepository.linkedEntityId, caseId),
-          eq(schema.documentRepository.documentStatus, 'active'),
+          eq(schema.documentRepository.documentStatusEnum, 'Active'),
         ),
       );
 
@@ -353,9 +353,9 @@ export class LegalCaseDocumentService {
       .from(schema.documentRepository)
       .where(
         and(
-          eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+          eq(schema.documentRepository.linkedEntityType, 'Case ID'),
           eq(schema.documentRepository.linkedEntityId, caseId),
-          eq(schema.documentRepository.documentStatus, 'active'),
+          eq(schema.documentRepository.documentStatusEnum, 'Active'),
         ),
       )
       .groupBy(schema.documentRepository.caseDocumentType);
@@ -378,9 +378,9 @@ export class LegalCaseDocumentService {
       .from(schema.documentRepository)
       .where(
         and(
-          eq(schema.documentRepository.linkedEntityType, 'Legal Case'),
+          eq(schema.documentRepository.linkedEntityType, 'Case ID'),
           eq(schema.documentRepository.linkedEntityId, caseId),
-          eq(schema.documentRepository.documentStatus, 'active'),
+          eq(schema.documentRepository.documentStatusEnum, 'Active'),
         ),
       )
       .orderBy(desc(schema.documentRepository.uploadDate))
@@ -389,40 +389,45 @@ export class LegalCaseDocumentService {
     // Convert to response DTOs
     return documents.map((doc) => ({
       id: doc.id,
-      documentCode: doc.documentCode,
+      documentId: doc.documentId,
       linkedEntityType: doc.linkedEntityType,
       linkedEntityId: doc.linkedEntityId,
       documentName: doc.documentName,
       documentTypeId: doc.documentTypeId,
-      documentTypeName: doc.documentTypeName,
-      documentCategory: doc.documentCategory,
+      // documentTypeName and documentCategory are not available in the query result
       originalFileName: doc.originalFileName,
       fileFormat: doc.fileFormat,
       fileSizeBytes: doc.fileSizeBytes,
       fileSizeMb: doc.fileSizeMb,
       filePath: doc.filePath,
-      storageProvider: doc.storageProvider,
-      accessPermissions: doc.accessPermissions,
-      confidentialFlag: doc.confidentialFlag,
-      isPublic: doc.isPublic,
-      versionNumber: doc.versionNumber,
-      parentDocumentId: doc.parentDocumentId,
-      isLatestVersion: doc.isLatestVersion,
-      documentStatus: doc.documentStatus,
-      documentHash: doc.documentHash,
-      mimeType: doc.mimeType,
-      caseDocumentType: doc.caseDocumentType,
-      hearingDate: doc.hearingDate,
-      documentDate: doc.documentDate,
-      uploadDate: doc.uploadDate,
+      storageProvider: doc.storageProvider || 'local',
+      accessPermissions: JSON.parse(doc.accessPermissions || '[]'),
+      confidentialFlag: doc.confidentialFlag || false,
+      isPublic: doc.isPublic || false,
+      versionNumber: doc.versionNumber || 1,
+      parentDocumentId: doc.parentDocumentId || undefined,
+      isLatestVersion: doc.isLatestVersion || true,
+      documentStatus:
+        (doc.documentStatusEnum as
+          | 'Active'
+          | 'Archived'
+          | 'Deleted'
+          | 'Pending_approval'
+          | 'Rejected') || 'Active',
+      documentHash: doc.documentHash || undefined,
+      mimeType: doc.mimeType || undefined,
+      caseDocumentType: doc.caseDocumentType || undefined,
+      hearingDate: doc.hearingDate || undefined,
+      documentDate: doc.documentDate || undefined,
+      uploadDate: doc.uploadDate?.toISOString() || new Date().toISOString(),
       uploadedBy: doc.uploadedBy,
-      lastAccessedAt: doc.lastAccessedAt,
-      lastAccessedBy: doc.lastAccessedBy,
-      remarksTags: doc.remarksTags,
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
+      lastAccessedAt: doc.lastAccessedAt?.toISOString(),
+      lastAccessedBy: doc.lastAccessedBy || undefined,
+      remarksTags: doc.remarksTags ? JSON.parse(doc.remarksTags) : [],
+      createdAt: doc.createdAt?.toISOString() || new Date().toISOString(),
+      updatedAt: doc.updatedAt?.toISOString() || new Date().toISOString(),
       createdBy: doc.createdBy,
-      updatedBy: doc.updatedBy,
+      updatedBy: doc.updatedBy || undefined,
     }));
   }
 }

@@ -104,7 +104,7 @@ export class PreLegalNoticeController {
     @Body() createDto: CreatePreLegalNoticeDto,
     @Request() req: any,
   ): Promise<PreLegalNoticeResponseDto> {
-    const createdBy = req.user?.username || 'system';
+    const createdBy = req.user?.username || 'Manual';
     return this.preLegalNoticeService.createPreLegalNotice(createDto, createdBy);
   }
 

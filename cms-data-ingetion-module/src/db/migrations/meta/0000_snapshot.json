@@ -1,5 +1,5 @@
 {
-  "id": "4090aa49-be34-45ee-abd8-146bcba28200",
+  "id": "59777bb8-5a84-4af4-b0e7-20667abb046c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1096,15 +1096,16 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "document_code": {
-          "name": "document_code",
+        "document_id": {
+          "name": "document_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "linked_entity_type": {
           "name": "linked_entity_type",
-          "type": "text",
+          "type": "linked_entity_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -1325,28 +1326,15 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "document_repository_parent_document_id_document_repository_id_fk": {
-          "name": "document_repository_parent_document_id_document_repository_id_fk",
-          "tableFrom": "document_repository",
-          "tableTo": "document_repository",
-          "columnsFrom": [
-            "parent_document_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "document_repository_document_code_unique": {
-          "name": "document_repository_document_code_unique",
+        "document_repository_document_id_unique": {
+          "name": "document_repository_document_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "document_code"
+            "document_id"
           ]
         }
       },
@@ -1911,8 +1899,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "allocation_code": {
-          "name": "allocation_code",
+        "allocation_id": {
+          "name": "allocation_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1929,15 +1917,21 @@
           "primaryKey": false,
           "notNull": true
         },
-        "allocation_date": {
-          "name": "allocation_date",
-          "type": "date",
+        "jurisdiction": {
+          "name": "jurisdiction",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "allocated_by": {
-          "name": "allocated_by",
-          "type": "integer",
+        "lawyer_type": {
+          "name": "lawyer_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "allocation_date": {
+          "name": "allocation_date",
+          "type": "date",
           "primaryKey": false,
           "notNull": true
         },
@@ -1991,13 +1985,13 @@
         },
         "created_by": {
           "name": "created_by",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "updated_by": {
           "name": "updated_by",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         }
@@ -2030,12 +2024,25 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "lawyer_allocations_allocated_by_users_id_fk": {
-          "name": "lawyer_allocations_allocated_by_users_id_fk",
+        "lawyer_allocations_created_by_users_id_fk": {
+          "name": "lawyer_allocations_created_by_users_id_fk",
           "tableFrom": "lawyer_allocations",
           "tableTo": "users",
           "columnsFrom": [
-            "allocated_by"
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "lawyer_allocations_updated_by_users_id_fk": {
+          "name": "lawyer_allocations_updated_by_users_id_fk",
+          "tableFrom": "lawyer_allocations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "updated_by"
           ],
           "columnsTo": [
             "id"
@@ -2046,11 +2053,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "lawyer_allocations_allocation_code_unique": {
-          "name": "lawyer_allocations_allocation_code_unique",
+        "lawyer_allocations_allocation_id_unique": {
+          "name": "lawyer_allocations_allocation_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "allocation_code"
+            "allocation_id"
           ]
         }
       },
@@ -3388,7 +3395,7 @@
         },
         "assigned_to": {
           "name": "assigned_to",
-          "type": "integer",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -4003,9 +4010,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "username": {
           "name": "username",
@@ -4056,13 +4064,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "tenant_id": {
           "name": "tenant_id",
-          "type": "integer",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -4149,6 +4158,16 @@
     }
   },
   "enums": {
+    "public.access_permission": {
+      "name": "access_permission",
+      "schema": "public",
+      "values": [
+        "Legal Officer",
+        "Admin",
+        "Compliance",
+        "Lawyer"
+      ]
+    },
     "public.acknowledgement_status": {
       "name": "acknowledgement_status",
       "schema": "public",
@@ -4326,6 +4345,15 @@
         "Active",
         "Inactive",
         "Deleted"
+      ]
+    },
+    "public.linked_entity_type": {
+      "name": "linked_entity_type",
+      "schema": "public",
+      "values": [
+        "Borrower",
+        "Loan Account",
+        "Case ID"
       ]
     },
     "public.recovery_action": {

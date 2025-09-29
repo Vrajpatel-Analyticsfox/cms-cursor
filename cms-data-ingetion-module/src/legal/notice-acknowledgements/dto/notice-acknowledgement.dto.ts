@@ -303,6 +303,16 @@ export class UpdateNoticeAcknowledgementDto {
   @IsOptional()
   @IsEnum(AcknowledgementStatusEnum)
   acknowledgementStatus?: string;
+
+  @ApiProperty({
+    description: 'User who updated the acknowledgement',
+    example: 'Legal Officer - John Smith',
+    maxLength: 100,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  updatedBy: string;
 }
 
 // Response DTO

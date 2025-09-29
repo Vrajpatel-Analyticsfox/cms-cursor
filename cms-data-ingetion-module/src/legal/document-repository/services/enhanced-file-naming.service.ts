@@ -18,7 +18,7 @@ export class EnhancedFileNamingService {
     entityType: string,
     entityId: string,
     originalFileName: string,
-    caseDocumentType: string,
+    documentType: string,
   ): Promise<{
     fileName: string;
     filePath: string;
@@ -31,7 +31,7 @@ export class EnhancedFileNamingService {
       const day = today.getDate().toString().padStart(2, '0');
 
       // Get sequence number for same-day documents of same type
-      const sequenceNumber = await this.getNextSequenceNumber(entityId, caseDocumentType, today);
+      const sequenceNumber = await this.getNextSequenceNumber(entityId, documentType, today);
 
       // Extract file extension and base name
       const fileExtension = originalFileName.split('.').pop() || '';
@@ -41,7 +41,7 @@ export class EnhancedFileNamingService {
       // Generate enhanced file name
       const enhancedFileName = this.generateFileName(
         sanitizedBaseName,
-        caseDocumentType,
+        documentType,
         sequenceNumber,
         fileExtension,
       );
@@ -77,7 +77,7 @@ export class EnhancedFileNamingService {
    */
   private async getNextSequenceNumber(
     entityId: string,
-    caseDocumentType: string,
+    documentType: string,
     date: Date,
   ): Promise<number> {
     try {
@@ -95,10 +95,10 @@ export class EnhancedFileNamingService {
           and(
             eq(schema.documentRepository.linkedEntityId, entityId),
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
-            eq(schema.documentRepository.caseDocumentType, caseDocumentType as any),
+            eq(schema.documentRepository.documentType, documentType as any),
             sql`${schema.documentRepository.uploadDate} >= ${startOfDay}`,
             sql`${schema.documentRepository.uploadDate} <= ${endOfDay}`,
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         );
 
@@ -116,7 +116,7 @@ export class EnhancedFileNamingService {
    */
   private generateFileName(
     baseName: string,
-    caseDocumentType: string,
+    documentType: string,
     sequenceNumber: number,
     fileExtension: string,
   ): string {
@@ -126,7 +126,7 @@ export class EnhancedFileNamingService {
     const formattedSequence = sequenceNumber.toString().padStart(3, '0');
 
     // Generate file name: YYYYMMDD_HHMMSS_Type_Sequence_OriginalName.ext
-    return `${timestamp}_${caseDocumentType}_${formattedSequence}_${baseName}.${fileExtension}`;
+    return `${timestamp}_${documentType}_${formattedSequence}_${baseName}.${fileExtension}`;
   }
 
   /**
@@ -134,7 +134,7 @@ export class EnhancedFileNamingService {
    */
   async getDocumentSequenceInfo(
     entityId: string,
-    caseDocumentType: string,
+    documentType: string,
     date: Date,
   ): Promise<{
     totalDocuments: number;
@@ -155,10 +155,10 @@ export class EnhancedFileNamingService {
           and(
             eq(schema.documentRepository.linkedEntityId, entityId),
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
-            eq(schema.documentRepository.caseDocumentType, caseDocumentType as any),
+            eq(schema.documentRepository.documentType, documentType as any),
             sql`${schema.documentRepository.uploadDate} >= ${startOfDay}`,
             sql`${schema.documentRepository.uploadDate} <= ${endOfDay}`,
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         );
 
@@ -182,7 +182,7 @@ export class EnhancedFileNamingService {
    */
   async getSameDayDocuments(
     entityId: string,
-    caseDocumentType: string,
+    documentType: string,
     date: Date,
   ): Promise<
     Array<{
@@ -212,10 +212,10 @@ export class EnhancedFileNamingService {
           and(
             eq(schema.documentRepository.linkedEntityId, entityId),
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
-            eq(schema.documentRepository.caseDocumentType, caseDocumentType as any),
+            eq(schema.documentRepository.documentType, documentType as any),
             sql`${schema.documentRepository.uploadDate} >= ${startOfDay}`,
             sql`${schema.documentRepository.uploadDate} <= ${endOfDay}`,
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         )
         .orderBy(schema.documentRepository.uploadDate);

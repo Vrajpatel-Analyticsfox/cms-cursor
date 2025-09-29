@@ -21,8 +21,8 @@ export class TenantController {
       type: 'object',
       properties: {
         id: {
-          type: 'number',
-          example: 1,
+          type: 'string',
+          example: '550e8400-e29b-41d4-a716-446655440000',
         },
         tenantName: {
           type: 'string',
@@ -90,7 +90,7 @@ export class TenantController {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'number' },
+          id: { type: 'string' },
           tenantName: { type: 'string' },
           tenantCode: { type: 'string' },
           status: { type: 'string', enum: ['active', 'inactive'] },
@@ -112,7 +112,7 @@ export class TenantController {
   @ApiParam({
     name: 'id',
     description: 'Tenant ID',
-    example: 1,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
@@ -141,7 +141,7 @@ export class TenantController {
       },
     },
   })
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id') id: string) {
     return this.tenantService.findOne(id);
   }
 
@@ -153,7 +153,7 @@ export class TenantController {
   @ApiParam({
     name: 'id',
     description: 'Tenant ID',
-    example: 1,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
@@ -194,7 +194,7 @@ export class TenantController {
       },
     },
   })
-  async update(@Param('id') id: number, @Body() updateTenantDto: UpdateTenantDto) {
+  async update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
     return this.tenantService.update(id, updateTenantDto);
   }
 
@@ -206,7 +206,7 @@ export class TenantController {
   @ApiParam({
     name: 'id',
     description: 'Tenant ID',
-    example: 1,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
@@ -231,7 +231,7 @@ export class TenantController {
       },
     },
   })
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id') id: string) {
     return this.tenantService.remove(id);
   }
 }

@@ -60,8 +60,7 @@ export class LawyerAllocationController {
     @Body() createDto: CreateLawyerAllocationDto,
     @Request() req: any,
   ): Promise<LawyerAllocationResponseDto> {
-    const createdBy = req.user?.username || 'system';
-    return await this.lawyerAllocationService.createAllocation(createDto, createdBy);
+    return await this.lawyerAllocationService.createAllocation(createDto);
   }
 
   @Get()
@@ -146,8 +145,7 @@ export class LawyerAllocationController {
     @Body() updateDto: UpdateLawyerAllocationDto,
     @Request() req: any,
   ): Promise<LawyerAllocationResponseDto> {
-    const updatedBy = req.user?.username || 'system';
-    return await this.lawyerAllocationService.updateAllocation(id, updateDto, updatedBy);
+    return await this.lawyerAllocationService.updateAllocation(id, updateDto);
   }
 
   @Delete(':id')
@@ -180,8 +178,7 @@ export class LawyerAllocationController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
-    const deletedBy = req.user?.username || 'system';
-    return await this.lawyerAllocationService.deleteAllocation(id, deletedBy);
+    return await this.lawyerAllocationService.deleteAllocation(id);
   }
 
   @Get('case/:caseId')

@@ -369,7 +369,7 @@ export class LegalCaseEnhancedService {
     try {
       const stats = await this.db
         .select({
-          caseDocumentType: schema.documentRepository.caseDocumentType,
+          documentType: schema.documentRepository.documentType,
           count: count(schema.documentRepository.id),
         })
         .from(schema.documentRepository)
@@ -377,15 +377,15 @@ export class LegalCaseEnhancedService {
           and(
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         )
-        .groupBy(schema.documentRepository.caseDocumentType);
+        .groupBy(schema.documentRepository.documentType);
 
       const totalDocuments = stats.reduce((sum, stat) => sum + stat.count, 0);
       const documentsByType = stats.reduce(
         (acc, stat) => {
-          acc[stat.caseDocumentType || 'Unknown'] = stat.count;
+          acc[stat.documentType || 'Unknown'] = stat.count;
           return acc;
         },
         {} as Record<string, number>,
@@ -529,15 +529,11 @@ export class LegalCaseEnhancedService {
           try {
             const deleteResult = await this.hybridStorageService.deleteFile(
               document.filePath,
-              document.storageProvider,
+              'local', // Default to local storage since storageProvider field was removed for BRD compliance
             );
 
-            if (document.storageProvider === 'local' || document.storageProvider === 'hybrid') {
-              storageCleanup.localFilesDeleted++;
-            }
-            if (document.storageProvider === 'aws-s3' || document.storageProvider === 'hybrid') {
-              storageCleanup.awsFilesDeleted++;
-            }
+            // Assume local storage since storageProvider field was removed for BRD compliance
+            storageCleanup.localFilesDeleted++;
           } catch (fileError) {
             this.logger.warn(`Failed to delete file for document ${document.id}:`, fileError);
             storageCleanup.errors.push(`Document ${document.id}: ${fileError.message}`);

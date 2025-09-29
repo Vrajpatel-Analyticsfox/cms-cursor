@@ -74,12 +74,6 @@ export class LawyerAllocationResponseDto {
   allocationDate: string;
 
   @ApiProperty({
-    description: 'Username or role who assigned the lawyer',
-    example: 'Legal Officer',
-  })
-  allocatedBy: string;
-
-  @ApiProperty({
     description: 'If true, indicates reassignment',
     example: false,
   })

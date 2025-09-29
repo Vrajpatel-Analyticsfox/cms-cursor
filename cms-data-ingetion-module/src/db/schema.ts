@@ -125,8 +125,7 @@ export const hearingStatusEnum = pgEnum('hearing_status', [
 
 export const allocationStatusEnum = pgEnum('allocation_status', [
   'Active',
-  'Completed',
-  'Cancelled',
+  'Inactive',
   'Reassigned',
 ]);
 
@@ -135,54 +134,6 @@ export const acknowledgementStatusEnum = pgEnum('acknowledgement_status', [
   'Refused',
   'Pending',
   'Pending Verification',
-]);
-
-export const documentCategoryEnum = pgEnum('document_category', [
-  'Legal Notice',
-  'Court Order',
-  'Affidavit',
-  'Case Summary',
-  'Proof',
-  'Contract',
-  'Identity Proof',
-  'Address Proof',
-  'Other',
-]);
-
-export const caseDocumentTypeEnum = pgEnum('case_document_type', [
-  'Affidavit',
-  'Summons',
-  'Court Order',
-  'Evidence',
-  'Witness Statement',
-  'Expert Report',
-  'Medical Report',
-  'Financial Statement',
-  'Property Document',
-  'Legal Notice',
-  'Reply Notice',
-  'Counter Affidavit',
-  'Interim Order',
-  'Final Order',
-  'Judgment',
-  'Settlement Agreement',
-  'Compromise Deed',
-  'Power of Attorney',
-  'Authorization Letter',
-  'Identity Proof',
-  'Address Proof',
-  'Income Proof',
-  'Bank Statement',
-  'Loan Agreement',
-  'Security Document',
-  'Other',
-]);
-
-// BRD-specified linked entity types for Legal Document Repository
-export const linkedEntityTypeEnum = pgEnum('linked_entity_type', [
-  'Borrower',
-  'Loan Account',
-  'Case ID',
 ]);
 
 // BRD-specified access permissions for Legal Document Repository
@@ -214,7 +165,7 @@ export const recoveryActionEnum = pgEnum('recovery_action', [
 // ============================================================================
 
 export const tenant = pgTable('tenant', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   username: text('username').notNull().unique(),
   password: text('password').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
@@ -222,8 +173,8 @@ export const tenant = pgTable('tenant', {
 });
 
 export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  tenantId: integer('tenant_id').references(() => tenant.id),
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenant.id),
   fullName: text('full_name').notNull(),
   email: text('email').notNull().unique(),
   mobile: text('mobile').notNull(),
@@ -418,23 +369,6 @@ export const courts = pgTable('courts', {
     .references(() => stateMaster.id),
   address: text('address'),
   contactInfo: text('contact_info'),
-  status: statusEnum('status').notNull().default('Active'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  createdBy: text('created_by').notNull(),
-  updatedBy: text('updated_by'),
-});
-
-// Document Types
-export const documentTypes = pgTable('document_types', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  docTypeCode: text('doc_type_code').notNull().unique(),
-  docTypeName: text('doc_type_name').notNull(),
-  docCategory: documentCategoryEnum('doc_category').notNull(),
-  isConfidential: boolean('is_confidential').default(false),
-  maxFileSizeMb: integer('max_file_size_mb').default(10),
-  allowedFormats: text('allowed_formats'),
-  description: text('description'),
   status: statusEnum('status').notNull().default('Active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -671,8 +605,6 @@ export const lawyerAllocations = pgTable('lawyer_allocations', {
   lawyerType: text('lawyer_type').notNull(),
   // Allocation Date - Date of assignment (Cannot be a future date)
   allocationDate: date('allocation_date').notNull(),
-  // Allocated By - Username or role who assigned the lawyer
-  allocatedBy: text('allocated_by').notNull(),
   // Reassignment Flag - If true, indicates reassignment (Defaults to false)
   reassignmentFlag: boolean('reassignment_flag').default(false),
   // Reassignment Reason - Mandatory only if reassignment is true (Max 500 characters)
@@ -686,8 +618,10 @@ export const lawyerAllocations = pgTable('lawyer_allocations', {
   // Audit fields
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-  createdBy: text('created_by').notNull(),
-  updatedBy: text('updated_by'),
+  createdBy: uuid('created_by')
+    .notNull()
+    .references(() => users.id),
+  updatedBy: uuid('updated_by').references(() => users.id),
 });
 
 // Notice Acknowledgements
@@ -752,7 +686,7 @@ export const recoveryTriggers = pgTable('recovery_triggers', {
   triggeredDateOn: timestamp('triggered_date_on').notNull(),
   triggerSeverity: triggerSeverityEnum('trigger_severity').notNull(),
   actionRequired: text('action_required').notNull(),
-  assignedTo: integer('assigned_to').references(() => users.id),
+  assignedTo: uuid('assigned_to').references(() => users.id),
   triggerStatus: triggerStatusEnum('trigger_status').notNull().default('Open'),
   dpdDays: integer('dpd_days'),
   outstandingAmount: text('outstanding_amount'),
@@ -767,56 +701,85 @@ export const recoveryTriggers = pgTable('recovery_triggers', {
   updatedBy: text('updated_by'),
 });
 
-// Document Repository - Enhanced for Legal Case Management
+// Document Repository - BRD Compliant Schema (UC007)
 export const documentRepository = pgTable('document_repository', {
   id: uuid('id').primaryKey().defaultRandom(),
-  // Document ID - Auto-generated unique identifier (BRD Format: LDR-YYYYMMDD-Sequence)
+  // BRD Field: Document ID - Auto-generated unique identifier (Format: LDR-YYYYMMDD-Sequence)
   documentId: text('document_id').notNull().unique(),
-  // Linked Entity - What this document belongs to (BRD: Borrower, Loan Account, Case ID)
-  linkedEntityType: linkedEntityTypeEnum('linked_entity_type').notNull(),
-  linkedEntityId: uuid('linked_entity_id').notNull(),
-  // Document Details
+  // BRD Field: Linked Entity Type - Type of entity the document is linked to
+  linkedEntityType: text('linked_entity_type').notNull(), // Borrower, Loan Account, Case ID
+  // BRD Field: Linked Entity ID - ID of borrower, loan, or case
+  linkedEntityId: text('linked_entity_id').notNull(),
+  // BRD Field: Document Name - Title or description of the document
   documentName: text('document_name').notNull(),
-  documentTypeId: uuid('document_type_id')
-    .notNull()
-    .references(() => documentTypes.id),
-  // File Information
-  originalFileName: text('original_file_name').notNull(),
-  fileFormat: text('file_format').notNull(), // PDF, DOCX, JPG, PNG, etc.
-  fileSizeBytes: text('file_size_bytes').notNull(),
-  fileSizeMb: text('file_size_mb').notNull(), // Human readable size
-  // Storage Information
-  filePath: text('file_path').notNull(), // Full path to stored file
-  storageProvider: text('storage_provider').default('local'), // local, aws-s3, azure-blob, etc.
-  storageBucket: text('storage_bucket'), // For cloud storage
-  storageKey: text('storage_key'), // For cloud storage
-  // Access Control - BRD specified permissions
-  accessPermissions: text('access_permissions').notNull(), // JSON array of BRD-specified roles: Legal Officer, Admin, Compliance, Lawyer
-  confidentialFlag: boolean('confidential_flag').default(false),
-  isPublic: boolean('is_public').default(false),
-  // Version Control
-  versionNumber: integer('version_number').default(1),
-  parentDocumentId: uuid('parent_document_id'), // For versioning - self-reference
-  isLatestVersion: boolean('is_latest_version').default(true),
-  // Document Status
-  documentStatusEnum: text('document_status').default('Active'), // active, archived, deleted
-  // Metadata
-  documentHash: text('document_hash'), // SHA-256 hash for integrity
-  mimeType: text('mime_type'), // application/pdf, image/jpeg, etc.
-  // Legal Case Specific Fields
-  caseDocumentType: caseDocumentTypeEnum('case_document_type'), // Specific type for legal case documents
-  hearingDate: date('hearing_date'), // If document is related to specific hearing
-  documentDate: date('document_date'), // Date when document was created/issued
-  // Audit Fields
+  // BRD Field: Document Type - Classification of document
+  documentType: text('document_type').notNull(), // Legal Notice, Court Order, Affidavit, Case Summary, Proof, etc.
+  // BRD Field: Upload Date - Date the document was uploaded
   uploadDate: timestamp('upload_date').defaultNow(),
-  uploadedBy: text('uploaded_by').notNull(), // User who uploaded
-  lastAccessedAt: timestamp('last_accessed_at'),
-  lastAccessedBy: text('last_accessed_by'),
-  remarksTags: text('remarks_tags'), // JSON array of tags
+  // BRD Field: Uploaded By - Username or role who uploaded the document
+  uploadedBy: text('uploaded_by').notNull(),
+  // BRD Field: File Format - Document file type
+  fileFormat: text('file_format').notNull(), // PDF, DOCX, JPG, PNG, XLSX
+  // BRD Field: File Size (MB) - Size of uploaded file
+  fileSizeMb: text('file_size_mb').notNull(),
+  // BRD Field: Access Permissions - Who can view the document
+  accessPermissions: text('access_permissions').notNull(), // Legal Officer, Admin, Compliance, Lawyer
+  // BRD Field: Confidential Flag - Marks document as confidential
+  confidentialFlag: boolean('confidential_flag').default(false),
+  // BRD Field: Version Number - Supports versioning of uploaded documents
+  versionNumber: integer('version_number').default(1),
+  // BRD Field: Remarks/Tags - Free-text notes or searchable tags
+  remarksTags: text('remarks_tags'), // Max 250 characters
+  // BRD Field: Last Updated - Timestamp of latest upload or modification
+  lastUpdated: timestamp('last_updated').defaultNow(),
+  // Additional fields for system functionality (not in BRD but required for system operation)
+  filePath: text('file_path').notNull(), // Required for file storage/retrieval
+  originalFileName: text('original_file_name').notNull(), // Required for downloads
+  fileHash: text('file_hash'), // SHA-256 hash for integrity
+  encryptedFilePath: text('encrypted_file_path'), // Path to encrypted file
+  encryptionKeyId: text('encryption_key_id'), // Reference to encryption key
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Document Versions Table for Version Control
+export const documentVersions = pgTable('document_versions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  documentId: uuid('document_id')
+    .notNull()
+    .references(() => documentRepository.id, { onDelete: 'cascade' }),
+  versionNumber: integer('version_number').notNull(),
+  filePath: text('file_path').notNull(),
+  encryptedFilePath: text('encrypted_file_path'),
+  fileHash: text('file_hash').notNull(),
+  fileSizeMb: text('file_size_mb').notNull(),
+  changeSummary: text('change_summary'),
   createdBy: text('created_by').notNull(),
-  updatedBy: text('updated_by'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Document Access Log Table for Audit Trail
+export const documentAccessLog = pgTable('document_access_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  documentId: uuid('document_id')
+    .notNull()
+    .references(() => documentRepository.id, { onDelete: 'cascade' }),
+  accessedBy: text('accessed_by').notNull(),
+  accessType: text('access_type').notNull(), // VIEW, DOWNLOAD, UPDATE, DELETE
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  accessedAt: timestamp('accessed_at').defaultNow(),
+});
+
+// Document Encryption Keys Table for Security
+export const documentEncryptionKeys = pgTable('document_encryption_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  keyId: text('key_id').notNull().unique(),
+  encryptedKey: text('encrypted_key').notNull(),
+  algorithm: text('algorithm').notNull().default('AES-256-GCM'),
+  createdAt: timestamp('created_at').defaultNow(),
+  expiresAt: timestamp('expires_at'),
+  isActive: boolean('is_active').default(true),
 });
 
 // Case ID Sequence Table - Specific for Legal Case ID generation
@@ -1025,10 +988,6 @@ export const legalRelations = {
     fields: [lawyerAllocations.lawyerId],
     references: [lawyers.id],
   },
-  allocationToUser: {
-    fields: [lawyerAllocations.allocatedBy],
-    references: [users.id],
-  },
 
   // Notice Acknowledgements relationships
   acknowledgementToNotice: {
@@ -1044,12 +1003,6 @@ export const legalRelations = {
   triggerToUser: {
     fields: [recoveryTriggers.assignedTo],
     references: [users.id],
-  },
-
-  // Document Repository relationships
-  documentToType: {
-    fields: [documentRepository.documentTypeId],
-    references: [documentTypes.id],
   },
 
   // Courts relationships

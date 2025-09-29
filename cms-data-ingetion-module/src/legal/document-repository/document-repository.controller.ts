@@ -9,13 +9,15 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  UseGuards,
   Request,
   UseInterceptors,
   UploadedFile,
   Res,
   StreamableFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
 } from '@nestjs/common';
+import { Readable } from 'stream';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
@@ -61,22 +63,21 @@ export class DocumentManagementController {
         },
         linkedEntityType: {
           type: 'string',
-          enum: ['Legal Case', 'Legal Notice', 'Loan Account', 'Court Hearing'],
-          description: 'Type of entity this document is linked to',
+          enum: ['Borrower', 'Loan Account', 'Case ID'],
+          description: 'Type of entity this document is linked to (BRD-specified)',
         },
         linkedEntityId: {
           type: 'string',
-          format: 'uuid',
           description: 'ID of the entity this document is linked to',
         },
         documentName: {
           type: 'string',
-          description: 'Name/title of the document',
+          description: 'Name/title of the document (BRD: Max 100 characters)',
         },
-        documentTypeId: {
+        documentType: {
           type: 'string',
-          format: 'uuid',
-          description: 'ID of the document type',
+          enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
+          description: 'Classification of document (BRD-specified)',
         },
         accessPermissions: {
           type: 'array',
@@ -139,7 +140,7 @@ export class DocumentManagementController {
           description: 'Tags or remarks for the document',
         },
       },
-      required: ['file', 'linkedEntityType', 'linkedEntityId', 'documentName', 'documentTypeId'],
+      required: ['file', 'linkedEntityType', 'linkedEntityId', 'documentName', 'documentType'],
     },
   })
   @ApiResponse({
@@ -160,7 +161,7 @@ export class DocumentManagementController {
     @Body() createDto: CreateDocumentDto,
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
-    const uploadedBy = req.user?.username || 'system';
+    const uploadedBy = req.user?.username || 'admin';
     return this.documentRepositoryService.uploadDocument(file, createDto, uploadedBy);
   }
 
@@ -181,16 +182,10 @@ export class DocumentManagementController {
     description: 'Items per page (default: 10)',
   })
   @ApiQuery({
-    name: 'caseDocumentType',
+    name: 'documentType',
     required: false,
     type: String,
-    description: 'Filter by case document type',
-  })
-  @ApiQuery({
-    name: 'documentStatus',
-    required: false,
-    type: String,
-    description: 'Filter by document status',
+    description: 'Filter by document type',
   })
   @ApiQuery({
     name: 'confidentialFlag',
@@ -209,14 +204,12 @@ export class DocumentManagementController {
     @Request() req: any,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('caseDocumentType') caseDocumentType?: string,
-    @Query('documentStatus') documentStatus?: string,
+    @Query('documentType') documentType?: string,
     @Query('confidentialFlag') confidentialFlag?: boolean,
   ): Promise<DocumentListResponseDto> {
-    const requestedBy = req.user?.username || 'system';
+    const requestedBy = req.user?.username || 'admin';
     const filters = {
-      caseDocumentType,
-      documentStatus,
+      documentType,
       confidentialFlag,
     };
 
@@ -255,7 +248,7 @@ export class DocumentManagementController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
-    const requestedBy = req.user?.username || 'system';
+    const requestedBy = req.user?.username || 'admin';
     return this.documentRepositoryService.getDocumentById(id, requestedBy);
   }
 
@@ -287,8 +280,13 @@ export class DocumentManagementController {
     @Request() req: any,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
-    const requestedBy = req.user?.username || 'system';
-    const downloadInfo = await this.documentRepositoryService.downloadDocument(id, requestedBy);
+    const requestedBy = req.user?.username || 'admin';
+    const userRole = req.user?.role || 'Legal Officer';
+    const downloadInfo = await this.documentRepositoryService.downloadDocument(
+      id,
+      requestedBy,
+      userRole,
+    );
 
     // Set response headers
     res.set({
@@ -296,9 +294,12 @@ export class DocumentManagementController {
       'Content-Disposition': `attachment; filename="${downloadInfo.fileName}"`,
     });
 
-    // Create file stream
-    const fileStream = fs.createReadStream(downloadInfo.filePath);
-    return new StreamableFile(fileStream);
+    // Create buffer stream
+    const bufferStream = new Readable();
+    bufferStream.push(downloadInfo.buffer);
+    bufferStream.push(null);
+
+    return new StreamableFile(bufferStream);
   }
 
   @Get(':id/versions')
@@ -307,7 +308,6 @@ export class DocumentManagementController {
   @ApiResponse({
     status: 200,
     description: 'Document versions retrieved successfully',
-    type: [DocumentResponseDto],
   })
   @ApiResponse({
     status: 403,
@@ -317,12 +317,100 @@ export class DocumentManagementController {
     status: 404,
     description: 'Document not found',
   })
-  async getDocumentVersions(
+  async getDocumentVersions(@Param('id') id: string, @Request() req: any): Promise<any> {
+    const requestedBy = req.user?.username || 'admin';
+    const userRole = req.user?.role || 'Legal Officer';
+    return this.documentRepositoryService.getDocumentVersions(id, requestedBy, userRole);
+  }
+
+  @Post(':id/versions')
+  @ApiOperation({ summary: 'Create new document version' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiResponse({
+    status: 201,
+    description: 'New version created successfully',
+    type: DocumentResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Access denied - insufficient permissions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Document not found',
+  })
+  async createDocumentVersion(
     @Param('id') id: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: parseInt(process.env.MAX_FILE_SIZE_MB || '10') * 1024 * 1024,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Body('changeSummary') changeSummary: string,
     @Request() req: any,
-  ): Promise<DocumentResponseDto[]> {
-    const requestedBy = req.user?.username || 'system';
-    return this.documentRepositoryService.getDocumentVersions(id, requestedBy);
+  ): Promise<DocumentResponseDto> {
+    const createdBy = req.user?.username || 'admin';
+    const userRole = req.user?.role || 'Legal Officer';
+    return this.documentRepositoryService.createDocumentVersion(
+      id,
+      file,
+      changeSummary,
+      createdBy,
+      userRole,
+    );
+  }
+
+  @Get(':id/debug')
+  @ApiOperation({ summary: 'Debug document and version info' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  async debugDocument(@Param('id') id: string): Promise<any> {
+    return this.documentRepositoryService.debugDocument(id);
+  }
+
+  @Post(':id/fix-version-1')
+  @ApiOperation({ summary: 'Fix missing version 1 for document' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  async fixVersion1(@Param('id') id: string): Promise<any> {
+    return this.documentRepositoryService.fixVersion1(id);
+  }
+
+  @Post(':id/rollback/:versionNumber')
+  @ApiOperation({ summary: 'Rollback to specific version' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  @ApiParam({ name: 'versionNumber', description: 'Version number to rollback to' })
+  @ApiResponse({
+    status: 200,
+    description: 'Document rolled back successfully',
+    type: DocumentResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Access denied - insufficient permissions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Document or version not found',
+  })
+  async rollbackToVersion(
+    @Param('id') id: string,
+    @Param('versionNumber') versionNumber: number,
+    @Request() req: any,
+  ): Promise<DocumentResponseDto> {
+    const rollbackBy = req.user?.username || 'admin';
+    const userRole = req.user?.role || 'Legal Officer';
+    return this.documentRepositoryService.rollbackToVersion(
+      id,
+      versionNumber,
+      rollbackBy,
+      userRole,
+    );
   }
 
   @Put(':id')
@@ -350,7 +438,7 @@ export class DocumentManagementController {
     @Body() updateDto: UpdateDocumentDto,
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
-    const updatedBy = req.user?.username || 'system';
+    const updatedBy = req.user?.username || 'admin';
     return this.documentRepositoryService.updateDocument(id, updateDto, updatedBy);
   }
 
@@ -381,7 +469,7 @@ export class DocumentManagementController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
-    const deletedBy = req.user?.username || 'system';
+    const deletedBy = req.user?.username || 'admin';
     return this.documentRepositoryService.deleteDocument(id, deletedBy);
   }
 
@@ -402,10 +490,10 @@ export class DocumentManagementController {
     description: 'Items per page (default: 10)',
   })
   @ApiQuery({
-    name: 'caseDocumentType',
+    name: 'documentType',
     required: false,
     type: String,
-    description: 'Filter by case document type',
+    description: 'Filter by document type',
   })
   @ApiResponse({
     status: 200,
@@ -417,11 +505,11 @@ export class DocumentManagementController {
     @Request() req: any,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('caseDocumentType') caseDocumentType?: string,
+    @Query('documentType') documentType?: string,
   ): Promise<DocumentListResponseDto> {
-    const requestedBy = req.user?.username || 'system';
+    const requestedBy = req.user?.username || 'admin';
     const filters = {
-      caseDocumentType,
+      documentType,
     };
 
     // Remove undefined filters
@@ -457,66 +545,28 @@ export class DocumentManagementController {
         },
         documentName: {
           type: 'string',
-          description: 'Name/title of the document',
+          description: 'Name/title of the document (BRD: Max 100 characters)',
         },
-        documentTypeId: {
+        documentType: {
           type: 'string',
-          format: 'uuid',
-          description: 'ID of the document type',
+          enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
+          description: 'Classification of document (BRD-specified)',
         },
-        caseDocumentType: {
-          type: 'string',
-          enum: [
-            'Affidavit',
-            'Summons',
-            'Court Order',
-            'Evidence',
-            'Witness Statement',
-            'Expert Report',
-            'Medical Report',
-            'Financial Statement',
-            'Property Document',
-            'Legal Notice',
-            'Reply Notice',
-            'Counter Affidavit',
-            'Interim Order',
-            'Final Order',
-            'Judgment',
-            'Settlement Agreement',
-            'Compromise Deed',
-            'Power of Attorney',
-            'Authorization Letter',
-            'Identity Proof',
-            'Address Proof',
-            'Income Proof',
-            'Bank Statement',
-            'Loan Agreement',
-            'Security Document',
-            'Other',
-          ],
-          description: 'Specific type of case document',
-        },
-        hearingDate: {
-          type: 'string',
-          format: 'date',
-          description: 'Date of the hearing this document is related to',
-        },
-        documentDate: {
-          type: 'string',
-          format: 'date',
-          description: 'Date when the document was created/issued',
+        accessPermissions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Access permissions for the document',
         },
         confidentialFlag: {
           type: 'boolean',
           description: 'Whether the document is confidential',
         },
         remarksTags: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Tags or remarks for the document',
+          type: 'string',
+          description: 'Tags or remarks for the document (BRD: Max 250 characters)',
         },
       },
-      required: ['file', 'documentName', 'documentTypeId'],
+      required: ['file', 'documentName', 'documentType'],
     },
   })
   @ApiResponse({
@@ -530,18 +580,18 @@ export class DocumentManagementController {
     @Body() body: any,
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
-    const uploadedBy = req.user?.username || 'system';
+    const uploadedBy = req.user?.username || 'admin';
 
     const createDto: CreateDocumentDto = {
       linkedEntityType: 'Case ID',
       linkedEntityId: caseId,
       documentName: body.documentName,
-      documentTypeId: body.documentTypeId,
-      caseDocumentType: body.caseDocumentType,
-      hearingDate: body.hearingDate,
-      documentDate: body.documentDate,
+      documentType: body.documentType,
+      accessPermissions: body.accessPermissions
+        ? JSON.parse(body.accessPermissions)
+        : ['Legal Officer'],
       confidentialFlag: body.confidentialFlag === 'true',
-      remarksTags: body.remarksTags ? JSON.parse(body.remarksTags) : undefined,
+      remarksTags: body.remarksTags,
     };
 
     return this.documentRepositoryService.uploadDocument(file, createDto, uploadedBy);

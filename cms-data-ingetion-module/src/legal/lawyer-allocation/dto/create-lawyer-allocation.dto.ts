@@ -86,4 +86,33 @@ export class CreateLawyerAllocationDto {
   @IsOptional()
   @MaxLength(500)
   remarks?: string;
+
+  @ApiProperty({
+    description: 'Status of the allocation',
+    enum: ['Active', 'Inactive', 'Reassigned'],
+    example: 'Active',
+    required: false,
+  })
+  @IsEnum(['Active', 'Inactive', 'Reassigned'])
+  @IsOptional()
+  status?: 'Active' | 'Inactive' | 'Reassigned' = 'Active';
+
+  @ApiProperty({
+    description: 'Checkbox/flag indicating lawyer has accepted the assignment',
+    example: false,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  lawyerAcknowledgement?: boolean = false;
+
+  @ApiProperty({
+    description: 'User who created the allocation',
+    example: 'Legal Officer - John Smith',
+    maxLength: 100,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  createdBy: string;
 }

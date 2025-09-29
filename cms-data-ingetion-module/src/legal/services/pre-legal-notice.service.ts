@@ -632,7 +632,7 @@ export class PreLegalNoticeService {
       noticeExpiryDate: notice.noticeExpiryDate,
       legalEntityName: notice.legalEntityName,
       issuedBy: notice.issuedBy,
-      issuedByName: user[0]?.fullName || 'System',
+      issuedByName: user[0]?.fullName || 'admin',
       acknowledgementRequired: notice.acknowledgementRequired,
       noticeStatus: notice.noticeStatus,
       documentPath: notice.documentPath,

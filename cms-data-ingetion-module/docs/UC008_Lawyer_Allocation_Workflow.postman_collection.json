@@ -1,0 +1,351 @@
+{
+  "info": {
+    "name": "UC008 - Lawyer Allocation Workflow",
+    "description": "Complete API collection for Lawyer Allocation Workflow (UC008) with all CRUD operations, filtering, and related endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Lawyer Allocation Management",
+      "item": [
+        {
+          "name": "Create Lawyer Allocation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caseId\": \"uuid-case-id-here\",\n  \"lawyerId\": \"uuid-lawyer-id-here\",\n  \"jurisdiction\": \"Mumbai Sessions Court\",\n  \"lawyerType\": \"Internal\",\n  \"allocationDate\": \"2025-09-25\",\n  \"reassignmentFlag\": false,\n  \"reassignmentReason\": \"Previous lawyer unavailable\",\n  \"remarks\": \"High priority case requiring experienced lawyer\",\n  \"status\": \"Active\",\n  \"lawyerAcknowledgement\": false,\n  \"createdBy\": \"Legal Officer - John Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"caseId\": \"uuid-case-id-here\",\n  \"lawyerId\": \"uuid-lawyer-id-here\",\n  \"jurisdiction\": \"Mumbai Sessions Court\",\n  \"lawyerType\": \"Internal\",\n  \"allocationDate\": \"2025-09-25\",\n  \"reassignmentFlag\": false,\n  \"reassignmentReason\": \"Previous lawyer unavailable\",\n  \"remarks\": \"High priority case requiring experienced lawyer\",\n  \"status\": \"Active\",\n  \"lawyerAcknowledgement\": false,\n  \"createdBy\": \"Legal Officer - John Smith\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/lawyer-allocations",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "lawyer-allocations"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"uuid-allocation-id\",\n  \"allocationId\": \"LAW-20250925-0001\",\n  \"caseId\": \"uuid-case-id-here\",\n  \"caseCode\": \"LC-20250925-0001\",\n  \"loanAccountNumber\": \"92222222145\",\n  \"borrowerName\": \"John Doe\",\n  \"caseType\": \"Recovery\",\n  \"jurisdiction\": \"Mumbai Sessions Court\",\n  \"lawyerType\": \"Internal\",\n  \"lawyerId\": \"uuid-lawyer-id-here\",\n  \"lawyerName\": \"Adv. Rajesh Kumar\",\n  \"allocationDate\": \"2025-09-25\",\n  \"reassignmentFlag\": false,\n  \"reassignmentReason\": null,\n  \"status\": \"Active\",\n  \"lawyerAcknowledgement\": false,\n  \"remarks\": \"High priority case requiring experienced lawyer\",\n  \"createdAt\": \"2025-09-25T10:30:00.000Z\",\n  \"updatedAt\": \"2025-09-25T10:30:00.000Z\",\n  \"createdBy\": \"Legal Officer\",\n  \"updatedBy\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Lawyer Allocations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations?page=1&limit=10&status=Active",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "Active" },
+                { "key": "jurisdiction", "value": "Mumbai", "disabled": true },
+                { "key": "lawyerType", "value": "Internal", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Lawyer Allocation by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations/{{allocation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations", "{{allocation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Lawyer Allocation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jurisdiction\": \"Delhi High Court\",\n  \"lawyerType\": \"External\",\n  \"allocationDate\": \"2025-09-25\",\n  \"reassignmentFlag\": true,\n  \"reassignmentReason\": \"Lawyer unavailable due to personal reasons\",\n  \"status\": \"Active\",\n  \"lawyerAcknowledgement\": true,\n  \"remarks\": \"Updated: Lawyer confirmed availability and accepted the case\",\n  \"updatedBy\": \"Legal Officer - John Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations/{{allocation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations", "{{allocation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Lawyer Allocation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations/{{allocation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations", "{{allocation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Allocations by Case ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations/case/{{case_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations", "case", "{{case_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Allocations by Lawyer ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyer-allocations/lawyer/{{lawyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyer-allocations", "lawyer", "{{lawyer_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lawyer Management",
+      "item": [
+        {
+          "name": "Create Lawyer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Rajesh\",\n  \"lastName\": \"Kumar\",\n  \"email\": \"rajesh.kumar@lawfirm.com\",\n  \"phone\": \"+91-9876543210\",\n  \"barNumber\": \"BAR123456\",\n  \"specialization\": \"Civil Law, Property Law\",\n  \"experience\": 8,\n  \"lawyerType\": \"Internal\",\n  \"maxCases\": 15,\n  \"officeLocation\": \"Mumbai\",\n  \"jurisdiction\": \"Mumbai Sessions Court\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/lawyers",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyers"]
+            }
+          }
+        },
+        {
+          "name": "Get All Lawyers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyers?page=1&limit=10&isAvailable=true",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "Rajesh", "disabled": true },
+                { "key": "specialization", "value": "Civil Law", "disabled": true },
+                { "key": "isAvailable", "value": "true" },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "lawyerType", "value": "Internal", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Available Lawyers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyers/available?specialization=Civil Law&jurisdiction=Mumbai&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyers", "available"],
+              "query": [
+                { "key": "specialization", "value": "Civil Law" },
+                { "key": "jurisdiction", "value": "Mumbai" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Lawyer by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyers/{{lawyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyers", "{{lawyer_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Lawyer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxCases\": 20,\n  \"officeLocation\": \"Delhi\",\n  \"jurisdiction\": \"Delhi High Court\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/lawyers/{{lawyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyers", "{{lawyer_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Lawyer Workload Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/legal/lawyers/{{lawyer_id}}/workload",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "lawyers", "{{lawyer_id}}", "workload"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

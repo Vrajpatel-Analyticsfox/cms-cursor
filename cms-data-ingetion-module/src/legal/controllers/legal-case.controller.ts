@@ -51,7 +51,7 @@ export class LegalCaseController {
     @Body() createDto: CreateLegalCaseDto,
     @Request() req: any,
   ): Promise<LegalCaseResponseDto> {
-    const createdBy = req.user?.username || 'system';
+    const createdBy = req.user?.username || 'admin';
     return this.legalCaseService.createLegalCase(createDto, createdBy);
   }
 
@@ -177,7 +177,7 @@ export class LegalCaseController {
     @Body() updateDto: UpdateLegalCaseDto,
     @Request() req: any,
   ): Promise<LegalCaseResponseDto> {
-    const updatedBy = req.user?.username || 'system';
+    const updatedBy = req.user?.username || 'admin';
     return this.legalCaseService.updateLegalCase(id, updateDto, updatedBy);
   }
 
@@ -207,7 +207,7 @@ export class LegalCaseController {
     },
     @Request() req: any,
   ): Promise<LegalCaseResponseDto> {
-    const updatedBy = req.user?.username || 'system';
+    const updatedBy = req.user?.username || 'admin';
     return this.legalCaseService.updateCaseStatus(
       id,
       body.status,
@@ -240,7 +240,7 @@ export class LegalCaseController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
-    const deletedBy = req.user?.username || 'system';
+    const deletedBy = req.user?.username || 'admin';
     return this.legalCaseService.deleteLegalCase(id, deletedBy);
   }
 

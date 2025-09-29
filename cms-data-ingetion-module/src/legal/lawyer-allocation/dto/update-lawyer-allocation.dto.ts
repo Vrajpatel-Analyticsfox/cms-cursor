@@ -1,23 +1,17 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateLawyerAllocationDto } from './create-lawyer-allocation.dto';
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  MaxLength,
-  ValidateIf,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, ValidateIf } from 'class-validator';
 
 export class UpdateLawyerAllocationDto extends PartialType(CreateLawyerAllocationDto) {
   @ApiProperty({
     description: 'Status of the allocation',
-    enum: ['Active', 'Completed', 'Cancelled', 'Reassigned'],
+    enum: ['Active', 'Inactive', 'Reassigned'],
     example: 'Active',
     required: false,
   })
-  @IsEnum(['Active', 'Completed', 'Cancelled', 'Reassigned'])
+  @IsEnum(['Active', 'Inactive', 'Reassigned'])
   @IsOptional()
-  status?: 'Active' | 'Completed' | 'Cancelled' | 'Reassigned';
+  status?: 'Active' | 'Inactive' | 'Reassigned';
 
   @ApiProperty({
     description: 'Checkbox/flag indicating lawyer has accepted the assignment',
@@ -37,4 +31,14 @@ export class UpdateLawyerAllocationDto extends PartialType(CreateLawyerAllocatio
   @IsOptional()
   @MaxLength(500)
   remarks?: string;
+
+  @ApiProperty({
+    description: 'User who updated the allocation',
+    example: 'Legal Officer - John Smith',
+    maxLength: 100,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  updatedBy: string;
 }

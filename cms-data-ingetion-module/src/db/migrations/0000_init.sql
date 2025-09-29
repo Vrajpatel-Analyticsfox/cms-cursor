@@ -1,3 +1,4 @@
+CREATE TYPE "public"."access_permission" AS ENUM('Legal Officer', 'Admin', 'Compliance', 'Lawyer');--> statement-breakpoint
 CREATE TYPE "public"."acknowledgement_status" AS ENUM('Acknowledged', 'Refused', 'Pending', 'Pending Verification');--> statement-breakpoint
 CREATE TYPE "public"."allocation_status" AS ENUM('Active', 'Completed', 'Cancelled', 'Reassigned');--> statement-breakpoint
 CREATE TYPE "public"."case_document_type" AS ENUM('Affidavit', 'Summons', 'Court Order', 'Evidence', 'Witness Statement', 'Expert Report', 'Medical Report', 'Financial Statement', 'Property Document', 'Legal Notice', 'Reply Notice', 'Counter Affidavit', 'Interim Order', 'Final Order', 'Judgment', 'Settlement Agreement', 'Compromise Deed', 'Power of Attorney', 'Authorization Letter', 'Identity Proof', 'Address Proof', 'Income Proof', 'Bank Statement', 'Loan Agreement', 'Security Document', 'Other');--> statement-breakpoint
@@ -12,6 +13,7 @@ CREATE TYPE "public"."hearing_status" AS ENUM('Scheduled', 'Attended', 'Hearing 
 CREATE TYPE "public"."hearing_type" AS ENUM('Appearance', 'Filing', 'Evidence', 'Cross-Examination', 'Judgment');--> statement-breakpoint
 CREATE TYPE "public"."lawyer_type" AS ENUM('Internal', 'External', 'Senior', 'Junior', 'Associate');--> statement-breakpoint
 CREATE TYPE "public"."legal_case_system_status" AS ENUM('Active', 'Inactive', 'Deleted');--> statement-breakpoint
+CREATE TYPE "public"."linked_entity_type" AS ENUM('Borrower', 'Loan Account', 'Case ID');--> statement-breakpoint
 CREATE TYPE "public"."recovery_action" AS ENUM('Repossession', 'Settlement', 'Warrant Issued', 'Auction', 'None');--> statement-breakpoint
 CREATE TYPE "public"."template_status" AS ENUM('Active', 'Inactive');--> statement-breakpoint
 CREATE TYPE "public"."template_type" AS ENUM('Pre-Legal', 'Legal', 'Final Warning', 'Arbitration', 'Court Summon');--> statement-breakpoint
@@ -184,8 +186,8 @@ CREATE TABLE "data_ingestion_validated" (
 --> statement-breakpoint
 CREATE TABLE "document_repository" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"document_code" text NOT NULL,
-	"linked_entity_type" text NOT NULL,
+	"document_id" text NOT NULL,
+	"linked_entity_type" "linked_entity_type" NOT NULL,
 	"linked_entity_id" uuid NOT NULL,
 	"document_name" text NOT NULL,
 	"document_type_id" uuid NOT NULL,
@@ -218,7 +220,7 @@ CREATE TABLE "document_repository" (
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" text NOT NULL,
 	"updated_by" text,
-	CONSTRAINT "document_repository_document_code_unique" UNIQUE("document_code")
+	CONSTRAINT "document_repository_document_id_unique" UNIQUE("document_id")
 );
 --> statement-breakpoint
 CREATE TABLE "document_types" (
@@ -312,11 +314,12 @@ CREATE TABLE "language_master" (
 --> statement-breakpoint
 CREATE TABLE "lawyer_allocations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"allocation_code" text NOT NULL,
+	"allocation_id" text NOT NULL,
 	"case_id" uuid NOT NULL,
 	"lawyer_id" uuid NOT NULL,
+	"jurisdiction" text NOT NULL,
+	"lawyer_type" text NOT NULL,
 	"allocation_date" date NOT NULL,
-	"allocated_by" integer NOT NULL,
 	"reassignment_flag" boolean DEFAULT false,
 	"reassignment_reason" text,
 	"status" "allocation_status" DEFAULT 'Active' NOT NULL,
@@ -324,9 +327,9 @@ CREATE TABLE "lawyer_allocations" (
 	"remarks" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
-	"created_by" text NOT NULL,
-	"updated_by" text,
-	CONSTRAINT "lawyer_allocations_allocation_code_unique" UNIQUE("allocation_code")
+	"created_by" uuid NOT NULL,
+	"updated_by" uuid,
+	CONSTRAINT "lawyer_allocations_allocation_id_unique" UNIQUE("allocation_id")
 );
 --> statement-breakpoint
 CREATE TABLE "lawyers" (
@@ -530,7 +533,7 @@ CREATE TABLE "recovery_triggers" (
 	"triggered_date_on" timestamp NOT NULL,
 	"trigger_severity" "trigger_severity" NOT NULL,
 	"action_required" text NOT NULL,
-	"assigned_to" integer,
+	"assigned_to" uuid,
 	"trigger_status" "trigger_status" DEFAULT 'Open' NOT NULL,
 	"dpd_days" integer,
 	"outstanding_amount" text,
@@ -626,7 +629,7 @@ CREATE TABLE "template_master" (
 );
 --> statement-breakpoint
 CREATE TABLE "tenant" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" text NOT NULL,
 	"password" text NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -635,8 +638,8 @@ CREATE TABLE "tenant" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"tenant_id" integer,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"tenant_id" uuid,
 	"full_name" text NOT NULL,
 	"email" text NOT NULL,
 	"mobile" text NOT NULL,
@@ -656,10 +659,10 @@ ALTER TABLE "court_hearings" ADD CONSTRAINT "court_hearings_court_id_courts_id_f
 ALTER TABLE "court_hearings" ADD CONSTRAINT "court_hearings_assigned_lawyer_id_lawyers_id_fk" FOREIGN KEY ("assigned_lawyer_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "courts" ADD CONSTRAINT "courts_state_id_state_master_id_fk" FOREIGN KEY ("state_id") REFERENCES "public"."state_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "document_repository" ADD CONSTRAINT "document_repository_document_type_id_document_types_id_fk" FOREIGN KEY ("document_type_id") REFERENCES "public"."document_types"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "document_repository" ADD CONSTRAINT "document_repository_parent_document_id_document_repository_id_fk" FOREIGN KEY ("parent_document_id") REFERENCES "public"."document_repository"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_case_id_legal_cases_id_fk" FOREIGN KEY ("case_id") REFERENCES "public"."legal_cases"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_lawyer_id_lawyers_id_fk" FOREIGN KEY ("lawyer_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_allocated_by_users_id_fk" FOREIGN KEY ("allocated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "lawyer_allocations" ADD CONSTRAINT "lawyer_allocations_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_cases" ADD CONSTRAINT "legal_cases_lawyer_assigned_id_lawyers_id_fk" FOREIGN KEY ("lawyer_assigned_id") REFERENCES "public"."lawyers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_state_id_state_master_id_fk" FOREIGN KEY ("state_id") REFERENCES "public"."state_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "legal_notices" ADD CONSTRAINT "legal_notices_language_id_language_master_id_fk" FOREIGN KEY ("language_id") REFERENCES "public"."language_master"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

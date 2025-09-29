@@ -378,12 +378,54 @@ export class NoticeAcknowledgementService {
   }
 
   /**
+   * Internal update method for system operations (file upload/removal)
+   */
+  async updateAcknowledgementInternal(
+    id: string,
+    updateData: Partial<UpdateNoticeAcknowledgementDto>,
+    updatedBy: string = 'system',
+  ): Promise<NoticeAcknowledgementResponseDto> {
+    try {
+      // Check if acknowledgement exists
+      const existingAcknowledgement = await this.getAcknowledgementById(id);
+      this.logger.log(`Existing acknowledgement: ${JSON.stringify(existingAcknowledgement)}`);
+
+      // Prepare update data with proper type conversions
+      const updateFields: any = {
+        ...updateData,
+        updatedBy,
+        updatedAt: new Date(),
+      };
+
+      // Convert date string to Date object if present
+      if (updateData.acknowledgementDate) {
+        updateFields.acknowledgementDate = new Date(updateData.acknowledgementDate);
+      }
+
+      // Update acknowledgement
+      const [updatedAcknowledgement] = await db
+        .update(noticeAcknowledgements)
+        .set(updateFields)
+        .where(eq(noticeAcknowledgements.id, id))
+        .returning();
+
+      this.logger.log(`Updated acknowledgement: ${JSON.stringify(updatedAcknowledgement)}`);
+
+      // Fetch updated acknowledgement with notice details
+      const acknowledgementWithNotice = await this.getAcknowledgementById(id);
+      return this.mapToResponseDto(acknowledgementWithNotice);
+    } catch (error) {
+      this.logger.error(`Error updating acknowledgement: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
    * Update acknowledgement
    */
   async updateAcknowledgement(
     id: string,
     updateDto: UpdateNoticeAcknowledgementDto,
-    updatedBy: string,
   ): Promise<NoticeAcknowledgementResponseDto> {
     try {
       // Check if acknowledgement exists
@@ -432,7 +474,7 @@ export class NoticeAcknowledgementService {
             | 'Acknowledged'
             | 'Refused'
             | 'Pending Verification',
-          updatedBy,
+          updatedBy: updateDto.updatedBy,
           updatedAt: new Date(),
         })
         .where(eq(noticeAcknowledgements.id, id))
@@ -744,13 +786,31 @@ export class NoticeAcknowledgementService {
   ): void {
     const ackDate = new Date(acknowledgementDate);
     const noticeDate = new Date(noticeGenerationDate);
-    const currentDate = new Date();
 
-    if (ackDate < noticeDate) {
+    // Normalize dates to UTC midnight for accurate comparison
+    const ackDateUTC = new Date(ackDate.getFullYear(), ackDate.getMonth(), ackDate.getDate());
+    const noticeDateUTC = new Date(
+      noticeDate.getFullYear(),
+      noticeDate.getMonth(),
+      noticeDate.getDate(),
+    );
+    const todayUTC = new Date();
+    const currentDateUTC = new Date(
+      todayUTC.getFullYear(),
+      todayUTC.getMonth(),
+      todayUTC.getDate(),
+    );
+
+    // Debug logging
+    this.logger.debug(
+      `Date validation - Acknowledgement: ${ackDateUTC.toISOString()}, Notice: ${noticeDateUTC.toISOString()}, Today: ${currentDateUTC.toISOString()}`,
+    );
+
+    if (ackDateUTC < noticeDateUTC) {
       throw new BadRequestException('Acknowledgement date cannot be before notice generation date');
     }
 
-    if (ackDate > currentDate) {
+    if (ackDateUTC > currentDateUTC) {
       throw new BadRequestException('Acknowledgement date cannot be in the future');
     }
   }

@@ -22,7 +22,7 @@ export class UsersController {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'number' },
+          id: { type: 'string' },
           username: { type: 'string' },
           email: { type: 'string' },
           role: { type: 'string', enum: ['admin', 'supervisor'] },
@@ -45,7 +45,7 @@ export class UsersController {
   @ApiParam({
     name: 'id',
     description: 'User ID',
-    example: 1,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
@@ -75,7 +75,7 @@ export class UsersController {
       },
     },
   })
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
@@ -160,7 +160,7 @@ export class UsersController {
   @ApiParam({
     name: 'id',
     description: 'User ID',
-    example: 1,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
@@ -202,7 +202,7 @@ export class UsersController {
       },
     },
   })
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -214,7 +214,7 @@ export class UsersController {
   @ApiParam({
     name: 'id',
     description: 'User ID',
-    example: 1,
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
@@ -239,7 +239,7 @@ export class UsersController {
       },
     },
   })
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 }

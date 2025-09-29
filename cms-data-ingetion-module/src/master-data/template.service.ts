@@ -26,26 +26,18 @@ export class TemplateService {
       // Check if it's a UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (uuidRegex.test(userId)) {
-        // If it's a UUID, return 'system' as we don't have UUID-based users
-        return 'system';
-      }
-
-      // Check if it's a numeric ID
-      const numericId = parseInt(userId);
-      if (!isNaN(numericId)) {
         const user = await db
           .select({ fullName: users.fullName })
           .from(users)
-          .where(eq(users.id, numericId))
+          .where(eq(users.id, userId))
           .limit(1);
-
-        return user.length > 0 ? user[0].fullName : 'system';
+        return user.length > 0 ? user[0].fullName : 'admin';
       }
 
       // If it's neither UUID nor numeric, return as-is (could be a username)
       return userId;
     } catch (error) {
-      return 'system';
+      return 'admin';
     }
   }
 

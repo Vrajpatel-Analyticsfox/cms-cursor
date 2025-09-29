@@ -14,7 +14,7 @@ export class StaticFilesController {
   @ApiParam({ name: 'filename', description: 'Document filename' })
   @ApiResponse({ status: 200, description: 'File served successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
-  async serveDocument(
+  serveDocument(
     @Param('caseId') caseId: string,
     @Param('filename') filename: string,
     @Res() res: Response,
@@ -68,7 +68,7 @@ export class StaticFilesController {
   @ApiParam({ name: 'filename', description: 'Document filename' })
   @ApiResponse({ status: 200, description: 'File served successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
-  async serveDocumentByPath(
+  serveDocumentByPath(
     @Param('caseId') caseId: string,
     @Param('year') year: string,
     @Param('month') month: string,

@@ -42,13 +42,13 @@ export class LawyerAllocationFilterDto {
 
   @ApiProperty({
     description: 'Filter by status',
-    enum: ['Active', 'Completed', 'Cancelled', 'Reassigned'],
+    enum: ['Active', 'Inactive', 'Reassigned'],
     example: 'Active',
     required: false,
   })
-  @IsEnum(['Active', 'Completed', 'Cancelled', 'Reassigned'])
+  @IsEnum(['Active', 'Inactive', 'Reassigned'])
   @IsOptional()
-  status?: 'Active' | 'Completed' | 'Cancelled' | 'Reassigned';
+  status?: 'Active' | 'Inactive' | 'Reassigned';
 
   @ApiProperty({
     description: 'Filter by lawyer acknowledgement',
@@ -87,15 +87,6 @@ export class LawyerAllocationFilterDto {
   @IsDateString()
   @IsOptional()
   allocationDateTo?: string;
-
-  @ApiProperty({
-    description: 'Filter by allocated by',
-    example: 'Legal Officer',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  allocatedBy?: string;
 
   @ApiProperty({
     description: 'Search in remarks',

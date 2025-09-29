@@ -134,6 +134,13 @@ export class LegalCaseDocumentController {
     documentData: {
       documentName: string;
       caseDocumentType: string;
+      documentType:
+        | 'Legal Notice'
+        | 'Court Order'
+        | 'Affidavit'
+        | 'Case Summary'
+        | 'Proof'
+        | 'Other';
       hearingDate?: string;
       documentDate?: string;
       confidentialFlag?: boolean;
@@ -141,7 +148,7 @@ export class LegalCaseDocumentController {
     },
     @Request() req: any,
   ): Promise<DocumentResponseDto> {
-    const uploadedBy = req.user?.username || 'system';
+    const uploadedBy = req.user?.username || 'admin';
 
     return this.legalCaseDocumentService.uploadCaseDocument(caseId, file, documentData, uploadedBy);
   }
@@ -326,7 +333,7 @@ export class LegalCaseDocumentController {
     @Param('documentId') documentId: string,
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
-    const deletedBy = req.user?.username || 'system';
+    const deletedBy = req.user?.username || 'admin';
 
     return this.legalCaseDocumentService.deleteCaseDocument(caseId, documentId, deletedBy);
   }

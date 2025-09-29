@@ -57,7 +57,7 @@ export class LawyerManagementController {
     @Body() createDto: CreateLawyerDto,
     @Request() req: any,
   ): Promise<LawyerResponseDto> {
-    return this.lawyerService.createLawyer(createDto, req.user?.id || 'system');
+    return this.lawyerService.createLawyer(createDto, req.user?.id || 'admin');
   }
 
   @Get()
@@ -214,7 +214,7 @@ export class LawyerManagementController {
     @Body() updateDto: UpdateLawyerDto,
     @Request() req: any,
   ): Promise<LawyerResponseDto> {
-    return this.lawyerService.updateLawyer(id, updateDto, req.user?.id || 'system');
+    return this.lawyerService.updateLawyer(id, updateDto, req.user?.id || 'admin');
   }
 
   @Delete(':id')
@@ -237,7 +237,7 @@ export class LawyerManagementController {
     @Param('id') id: string,
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
-    return this.lawyerService.deleteLawyer(id, req.user?.id || 'system');
+    return this.lawyerService.deleteLawyer(id, req.user?.id || 'admin');
   }
 
   @Get('workload')
@@ -260,7 +260,7 @@ export class LawyerManagementController {
   })
   async assignLawyerToCase(@Body() assignmentDto: AssignmentRequestDto, @Request() req: any) {
     const { caseId, caseType, jurisdiction, specialization, priority } = assignmentDto;
-    const assignedBy = req.user?.username || 'system';
+    const assignedBy = req.user?.username || 'admin';
 
     // Find best lawyer for the case
     const assignmentResult = await this.lawyerAssignmentService.findBestLawyerForCase({
@@ -322,7 +322,7 @@ export class LawyerManagementController {
     @Body() body: { reason: string },
     @Request() req: any,
   ) {
-    const reassignedBy = req.user?.username || 'system';
+    const reassignedBy = req.user?.username || 'admin';
 
     const result = await this.lawyerAssignmentService.reassignCase(
       caseId,
@@ -376,7 +376,7 @@ export class LawyerManagementController {
     @Body() statusDto: StatusUpdateDto,
     @Request() req: any,
   ) {
-    const updatedBy = req.user?.username || 'system';
+    const updatedBy = req.user?.username || 'admin';
 
     const result = await this.statusManagementService.updateCaseStatus({
       caseId,

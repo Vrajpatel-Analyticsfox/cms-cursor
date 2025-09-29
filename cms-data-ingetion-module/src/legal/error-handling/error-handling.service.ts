@@ -67,7 +67,7 @@ export class ErrorHandlingService {
           severity: severity as 'Info' | 'Warning' | 'Error' | 'Critical',
           retriable,
           timestamp: new Date(),
-          createdBy: errorData.createdBy || 'system',
+          createdBy: errorData.createdBy || 'admin',
         })
         .returning();
 

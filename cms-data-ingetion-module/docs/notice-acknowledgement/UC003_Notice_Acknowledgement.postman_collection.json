@@ -22,7 +22,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"noticeId\": \"{{notice_id}}\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\"\n}"
+          "raw": "{\n  \"noticeId\": \"{{notice_id}}\",\n  \"borrowerName\": \"Vraj\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"createdBy\": \"Legal Officer\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/legal/notice-acknowledgements",
@@ -43,7 +43,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\"\n}"
+              "raw": "{\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"borrowerName\": \"Vraj\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"remarks\": \"Notice acknowledged by spouse in presence of security guard\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"createdBy\": \"Legal Officer\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/legal/notice-acknowledgements",
@@ -84,6 +84,11 @@
               "type": "text"
             },
             {
+              "key": "borrowerName",
+              "value": "Vraj",
+              "type": "text"
+            },
+            {
               "key": "acknowledgedBy",
               "value": "Family Member",
               "type": "text"
@@ -116,6 +121,11 @@
             {
               "key": "geoLocation",
               "value": "19.0760,72.8777",
+              "type": "text"
+            },
+            {
+              "key": "createdBy",
+              "value": "Legal Officer",
               "type": "text"
             },
             {
@@ -176,6 +186,129 @@
           "body": "{\n  \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n  \"acknowledgementId\": \"ACKN-20250121-0002\",\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"loanAccountNumber\": \"LN4567890\",\n  \"borrowerName\": \"Rajiv Menon\",\n  \"noticeType\": \"Pre-Legal\",\n  \"acknowledgedBy\": \"Family Member\",\n  \"relationshipToBorrower\": \"Spouse\",\n  \"acknowledgementDate\": \"2025-01-21T16:30:00Z\",\n  \"acknowledgementMode\": \"In Person\",\n  \"proofOfAcknowledgement\": \"/uploads/acknowledgements/2025/01/21/ACKN-20250121-0002_1641234567890_a1b2c3d4.pdf\",\n  \"remarks\": \"Notice acknowledged by spouse with proof document\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"createdAt\": \"2025-01-21T10:00:00Z\",\n  \"updatedAt\": \"2025-01-21T10:00:00Z\",\n  \"createdBy\": \"system\",\n  \"updatedBy\": null\n}"
         }
       ]
+    },
+    {
+      "name": "3. Update Acknowledgement",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"acknowledgedBy\": \"Borrower\",\n  \"relationshipToBorrower\": \"Self\",\n  \"acknowledgementDate\": \"2025-01-21T17:00:00Z\",\n  \"acknowledgementMode\": \"Courier Receipt\",\n  \"remarks\": \"Updated: Borrower personally acknowledged the notice\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"updatedBy\": \"Legal Officer - John Smith\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}"]
+        }
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"acknowledgedBy\": \"Borrower\",\n  \"relationshipToBorrower\": \"Self\",\n  \"acknowledgementDate\": \"2025-01-21T17:00:00Z\",\n  \"acknowledgementMode\": \"Courier Receipt\",\n  \"remarks\": \"Updated: Borrower personally acknowledged the notice\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": \"b1c2d3e4-f5a6-7890-1234-567890abcdef\",\n  \"acknowledgementId\": \"ACKN-20250121-0001\",\n  \"noticeId\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n  \"noticeCode\": \"PLN-20250121-0001\",\n  \"loanAccountNumber\": \"LN4567890\",\n  \"borrowerName\": \"Vraj\",\n  \"noticeType\": \"Pre-Legal\",\n  \"acknowledgedBy\": \"Borrower\",\n  \"relationshipToBorrower\": \"Self\",\n  \"acknowledgementDate\": \"2025-01-21T17:00:00Z\",\n  \"acknowledgementMode\": \"Courier Receipt\",\n  \"proofOfAcknowledgement\": null,\n  \"remarks\": \"Updated: Borrower personally acknowledged the notice\",\n  \"capturedBy\": \"Field Executive - Mumbai Team\",\n  \"geoLocation\": \"19.0760,72.8777\",\n  \"acknowledgementStatus\": \"Acknowledged\",\n  \"createdAt\": \"2025-01-21T10:00:00Z\",\n  \"updatedAt\": \"2025-01-21T11:00:00Z\",\n  \"createdBy\": \"Legal Officer\",\n  \"updatedBy\": \"system\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Get Acknowledgement by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["legal", "notice-acknowledgements", "{{acknowledgement_id}}"]
+        }
+      }
+    },
+    {
+      "name": "5. Get All Acknowledgements",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/legal/notice-acknowledgements?page=1&limit=10&status=Acknowledged",
+          "host": ["{{base_url}}"],
+          "path": ["legal", "notice-acknowledgements"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" },
+            { "key": "status", "value": "Acknowledged" },
+            { "key": "noticeId", "value": "{{notice_id}}", "disabled": true },
+            { "key": "acknowledgedBy", "value": "Borrower", "disabled": true }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Download Proof Document",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/legal/notice-acknowledgements/{{acknowledgement_id}}/proof/{{file_name}}",
+          "host": ["{{base_url}}"],
+          "path": [
+            "legal",
+            "notice-acknowledgements",
+            "{{acknowledgement_id}}",
+            "proof",
+            "{{file_name}}"
+          ]
+        }
+      }
     }
   ]
 }

@@ -8,6 +8,15 @@ export class DebugController {
 
   @Get('populate-document-types')
   async populateDocumentTypes() {
+    return {
+      message:
+        'Document types population disabled - documentTypes table removed for BRD compliance',
+    };
+  }
+
+  /* DISABLED - documentTypes table removed for BRD compliance
+  @Get('populate-document-types-old')
+  async populateDocumentTypesOld() {
     try {
       console.log('Starting document types population...');
 
@@ -132,6 +141,7 @@ export class DebugController {
       return { error: error.message };
     }
   }
+  */
 
   @Get('populate-database')
   async populateDatabase() {

@@ -35,7 +35,7 @@ export class LegalNoticeTemplateService {
           channelId: createDto.channelId,
           description: createDto.description,
           status: createDto.status || 'Active',
-          createdBy: createDto.createdBy || 'system',
+          createdBy: createDto.createdBy || 'admin',
         })
         .returning();
 

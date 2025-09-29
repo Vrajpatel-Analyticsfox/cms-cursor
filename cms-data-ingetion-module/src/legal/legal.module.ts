@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DrizzleModule } from '../database/database.module';
+import { DocumentRepositoryModule } from './document-repository/document-repository.module';
 
 // Services
 import { CaseIdService } from './case-id.service';
@@ -10,7 +11,6 @@ import { EventValidationService } from './services/event-validation.service';
 import { TemplateEngineService } from './services/template-engine.service';
 import { TemplateRenderingService } from './services/template-rendering.service';
 import { LegalCaseService } from './services/legal-case.service';
-import { DocumentRepositoryService } from './document-repository/document-repository.service';
 import { DataIngestionHelperService } from './services/data-ingestion-helper.service';
 import { BorrowerService } from './services/borrower.service';
 import { CommunicationService } from './services/communication.service';
@@ -68,7 +68,7 @@ import {
 } from './lawyer-allocation/lawyer-management';
 
 @Module({
-  imports: [ConfigModule, DrizzleModule],
+  imports: [ConfigModule, DrizzleModule, DocumentRepositoryModule],
   controllers: [
     CaseIdController,
     PreLegalNoticeController,
@@ -107,9 +107,6 @@ import {
 
     // Borrower Management Services
     BorrowerService,
-
-    // Document Management Services
-    DocumentRepositoryService,
 
     // Lawyer Management Services (Moved to lawyer-allocation/lawyer-management)
     // LawyerAssignmentService, // Moved to lawyer-allocation/lawyer-management
@@ -159,7 +156,6 @@ import {
     LegalCaseService,
     DataIngestionHelperService,
     BorrowerService,
-    DocumentRepositoryService,
     LawyerAssignmentService,
     LawyerService,
     NotificationService,

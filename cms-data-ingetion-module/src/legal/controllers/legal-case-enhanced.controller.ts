@@ -262,7 +262,7 @@ export class LegalCaseEnhancedController {
       };
     };
   }> {
-    const createdBy = req.user?.username || 'system';
+    const createdBy = req.user?.username || 'admin';
 
     console.log('=== CONTROLLER DEBUG ===');
     console.log('createDto received:', createDto);
@@ -403,7 +403,7 @@ export class LegalCaseEnhancedController {
       };
     };
   }> {
-    const updatedBy = req.user?.username || 'system';
+    const updatedBy = req.user?.username || 'admin';
 
     const result = await this.legalCaseEnhancedService.updateLegalCaseWithDocuments(
       caseId,
@@ -542,7 +542,7 @@ export class LegalCaseEnhancedController {
     @UploadedFiles() files: any[],
     @Request() req: any,
   ) {
-    const uploadedBy = req.user?.username || 'system';
+    const uploadedBy = req.user?.username || 'admin';
 
     const result = await this.legalCaseEnhancedService.bulkUploadDocuments(
       caseId,
@@ -599,7 +599,7 @@ export class LegalCaseEnhancedController {
     description: 'Legal case not found',
   })
   async deleteLegalCaseWithDocuments(@Param('id') caseId: string, @Request() req: any) {
-    const deletedBy = req.user?.username || 'system';
+    const deletedBy = req.user?.username || 'admin';
 
     const result = await this.legalCaseEnhancedService.deleteLegalCaseWithDocuments(
       caseId,

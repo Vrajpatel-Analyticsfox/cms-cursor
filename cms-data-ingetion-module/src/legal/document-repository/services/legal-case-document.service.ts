@@ -25,7 +25,7 @@ export class LegalCaseDocumentService {
     file: any,
     documentData: {
       documentName: string;
-      caseDocumentType: string;
+      documentType: string;
       hearingDate?: string | null;
       documentDate?: string | null;
       confidentialFlag?: boolean;
@@ -48,14 +48,16 @@ export class LegalCaseDocumentService {
         linkedEntityType: 'Case ID', // BRD-specified entity type
         linkedEntityId: caseId,
         documentName: documentData.documentName,
-        documentTypeId: documentType.id,
-        caseDocumentType: documentData.caseDocumentType,
-        hearingDate: documentData.hearingDate,
-        documentDate: documentData.documentDate,
+        documentType: documentData.documentType as
+          | 'Legal Notice'
+          | 'Court Order'
+          | 'Affidavit'
+          | 'Case Summary'
+          | 'Proof'
+          | 'Other',
         confidentialFlag: documentData.confidentialFlag || false,
-        remarksTags: documentData.remarks ? [documentData.remarks] : [],
+        remarksTags: documentData.remarks || undefined,
         accessPermissions: ['Lawyer', 'Admin'], // BRD-specified permissions
-        isPublic: false,
       };
 
       // Upload document using existing service
@@ -83,7 +85,7 @@ export class LegalCaseDocumentService {
     page: number = 1,
     limit: number = 10,
     filters?: {
-      caseDocumentType?: string;
+      documentType?: string;
       confidentialFlag?: boolean;
       hearingDate?: string;
     },
@@ -193,20 +195,20 @@ export class LegalCaseDocumentService {
       const stats = await this.db
         .select({
           totalDocuments: count(schema.documentRepository.id),
-          totalSize: sql<string>`SUM(CAST(${schema.documentRepository.fileSizeBytes} AS BIGINT))`,
+          totalSize: sql<string>`SUM(CAST(${schema.documentRepository.fileSizeMb} AS BIGINT))`,
         })
         .from(schema.documentRepository)
         .where(
           and(
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         );
 
       const byType = await this.db
         .select({
-          caseDocumentType: schema.documentRepository.caseDocumentType,
+          documentType: schema.documentRepository.documentType,
           count: count(schema.documentRepository.id),
         })
         .from(schema.documentRepository)
@@ -214,10 +216,10 @@ export class LegalCaseDocumentService {
           and(
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         )
-        .groupBy(schema.documentRepository.caseDocumentType);
+        .groupBy(schema.documentRepository.documentType);
 
       const lastUploaded = await this.db
         .select({
@@ -228,7 +230,7 @@ export class LegalCaseDocumentService {
           and(
             eq(schema.documentRepository.linkedEntityType, 'Case ID'),
             eq(schema.documentRepository.linkedEntityId, caseId),
-            eq(schema.documentRepository.documentStatusEnum, 'active'),
+            eq(schema.documentRepository.confidentialFlag, false),
           ),
         )
         .orderBy(desc(schema.documentRepository.uploadDate))
@@ -244,7 +246,7 @@ export class LegalCaseDocumentService {
         totalDocuments: stats[0]?.totalDocuments || 0,
         documentsByType: byType.reduce(
           (acc, item) => {
-            acc[item.caseDocumentType || 'Unknown'] = item.count;
+            acc[item.documentType || 'Unknown'] = item.count;
             return acc;
           },
           {} as Record<string, number>,
@@ -290,38 +292,19 @@ export class LegalCaseDocumentService {
   }
 
   private async getDefaultDocumentType(category: string) {
-    const docType = await this.db
-      .select()
-      .from(schema.documentTypes)
-      .where(
-        and(
-          eq(schema.documentTypes.docCategory, 'Other' as any),
-          eq(schema.documentTypes.status, 'Active'),
-        ),
-      )
-      .limit(1);
-
-    if (docType.length === 0) {
-      // Create default document type if not exists
-      const [newDocType] = await this.db
-        .insert(schema.documentTypes)
-        .values({
-          docTypeCode: `LEGAL_CASE_DOC_${Date.now()}`,
-          docTypeName: 'Legal Case Document',
-          docCategory: 'Other' as any,
-          isConfidential: false,
-          maxFileSizeMb: 10,
-          allowedFormats: 'PDF,DOCX,JPG,PNG',
-          description: 'Default document type for legal case documents',
-          status: 'Active',
-          createdBy: 'system',
-        })
-        .returning();
-
-      return newDocType;
-    }
-
-    return docType[0];
+    // Return a default document type object since documentTypes table was removed for BRD compliance
+    return {
+      id: 'default-doc-type',
+      docTypeCode: 'LEGAL_CASE_DOC',
+      docTypeName: 'Legal Case Document',
+      docCategory: 'Other',
+      isConfidential: false,
+      maxFileSizeMb: 10,
+      allowedFormats: 'PDF,DOCX,JPG,PNG',
+      description: 'Default document type for legal case documents',
+      status: 'Active',
+      createdBy: 'system',
+    };
   }
 
   private async getCaseDetails(caseId: string): Promise<LegalCaseResponseDto> {
@@ -341,13 +324,13 @@ export class LegalCaseDocumentService {
         and(
           eq(schema.documentRepository.linkedEntityType, 'Case ID'),
           eq(schema.documentRepository.linkedEntityId, caseId),
-          eq(schema.documentRepository.documentStatusEnum, 'Active'),
+          eq(schema.documentRepository.confidentialFlag, false),
         ),
       );
 
     const byType = await this.db
       .select({
-        caseDocumentType: schema.documentRepository.caseDocumentType,
+        documentType: schema.documentRepository.documentType,
         count: count(),
       })
       .from(schema.documentRepository)
@@ -355,16 +338,16 @@ export class LegalCaseDocumentService {
         and(
           eq(schema.documentRepository.linkedEntityType, 'Case ID'),
           eq(schema.documentRepository.linkedEntityId, caseId),
-          eq(schema.documentRepository.documentStatusEnum, 'Active'),
+          eq(schema.documentRepository.confidentialFlag, false),
         ),
       )
-      .groupBy(schema.documentRepository.caseDocumentType);
+      .groupBy(schema.documentRepository.documentType);
 
     return {
       total: total[0]?.count || 0,
       byType: byType.reduce(
         (acc, item) => {
-          acc[item.caseDocumentType || 'Unknown'] = item.count;
+          acc[item.documentType || 'Unknown'] = item.count;
           return acc;
         },
         {} as Record<string, number>,
@@ -380,7 +363,7 @@ export class LegalCaseDocumentService {
         and(
           eq(schema.documentRepository.linkedEntityType, 'Case ID'),
           eq(schema.documentRepository.linkedEntityId, caseId),
-          eq(schema.documentRepository.documentStatusEnum, 'Active'),
+          eq(schema.documentRepository.confidentialFlag, false),
         ),
       )
       .orderBy(desc(schema.documentRepository.uploadDate))
@@ -390,44 +373,32 @@ export class LegalCaseDocumentService {
     return documents.map((doc) => ({
       id: doc.id,
       documentId: doc.documentId,
-      linkedEntityType: doc.linkedEntityType,
+      linkedEntityType: doc.linkedEntityType as 'Borrower' | 'Loan Account' | 'Case ID',
       linkedEntityId: doc.linkedEntityId,
       documentName: doc.documentName,
-      documentTypeId: doc.documentTypeId,
-      // documentTypeName and documentCategory are not available in the query result
-      originalFileName: doc.originalFileName,
-      fileFormat: doc.fileFormat,
-      fileSizeBytes: doc.fileSizeBytes,
-      fileSizeMb: doc.fileSizeMb,
-      filePath: doc.filePath,
-      storageProvider: doc.storageProvider || 'local',
-      accessPermissions: JSON.parse(doc.accessPermissions || '[]'),
-      confidentialFlag: doc.confidentialFlag || false,
-      isPublic: doc.isPublic || false,
-      versionNumber: doc.versionNumber || 1,
-      parentDocumentId: doc.parentDocumentId || undefined,
-      isLatestVersion: doc.isLatestVersion || true,
-      documentStatus:
-        (doc.documentStatusEnum as
-          | 'Active'
-          | 'Archived'
-          | 'Deleted'
-          | 'Pending_approval'
-          | 'Rejected') || 'Active',
-      documentHash: doc.documentHash || undefined,
-      mimeType: doc.mimeType || undefined,
-      caseDocumentType: doc.caseDocumentType || undefined,
-      hearingDate: doc.hearingDate || undefined,
-      documentDate: doc.documentDate || undefined,
+      documentType: doc.documentType as
+        | 'Legal Notice'
+        | 'Court Order'
+        | 'Affidavit'
+        | 'Case Summary'
+        | 'Proof'
+        | 'Other',
       uploadDate: doc.uploadDate?.toISOString() || new Date().toISOString(),
       uploadedBy: doc.uploadedBy,
-      lastAccessedAt: doc.lastAccessedAt?.toISOString(),
-      lastAccessedBy: doc.lastAccessedBy || undefined,
-      remarksTags: doc.remarksTags ? JSON.parse(doc.remarksTags) : [],
+      fileFormat: doc.fileFormat,
+      fileSizeMb: doc.fileSizeMb,
+      accessPermissions: JSON.parse(doc.accessPermissions || '[]'),
+      confidentialFlag: doc.confidentialFlag || false,
+      versionNumber: doc.versionNumber || 1,
+      remarksTags: doc.remarksTags || undefined,
+      lastUpdated: doc.lastUpdated?.toISOString() || new Date().toISOString(),
+      originalFileName: doc.originalFileName,
+      filePath: doc.filePath,
+      fileHash: doc.fileHash,
+      encryptedFilePath: doc.encryptedFilePath,
+      encryptionKeyId: doc.encryptionKeyId,
       createdAt: doc.createdAt?.toISOString() || new Date().toISOString(),
       updatedAt: doc.updatedAt?.toISOString() || new Date().toISOString(),
-      createdBy: doc.createdBy,
-      updatedBy: doc.updatedBy || undefined,
     }));
   }
 }

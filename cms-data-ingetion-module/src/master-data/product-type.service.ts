@@ -23,15 +23,12 @@ export class ProductTypeService {
       if (uuidRegex.test(userId)) {
         return 'system'; // Assuming UUIDs are external system IDs not in our users table
       }
-      const numericId = parseInt(userId);
-      if (!isNaN(numericId)) {
-        const user = await db
-          .select({ fullName: users.fullName })
-          .from(users)
-          .where(eq(users.id, numericId))
-          .limit(1);
-        return user.length > 0 ? user[0].fullName : 'system';
-      }
+      const user = await db
+        .select({ fullName: users.fullName })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      return user.length > 0 ? user[0].fullName : 'admin';
       return userId; // Return as-is if not UUID or numeric
     } catch (error) {
       return 'system';

@@ -16,17 +16,17 @@ export class UsersService {
     return db.select().from(users);
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const [result] = await db.select().from(users).where(eq(users.id, id));
     return result;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     const [updated] = await db.update(users).set(updateUserDto).where(eq(users.id, id)).returning();
     return updated;
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const [deleted] = await db.delete(users).where(eq(users.id, id)).returning();
     return deleted;
   }

@@ -88,6 +88,15 @@ export class DocumentUploadDto {
   caseDocumentType: string;
 
   @ApiProperty({
+    description: 'BRD-compliant document type',
+    enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
+    example: 'Affidavit',
+  })
+  @IsEnum(['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'])
+  @IsNotEmpty()
+  documentType: 'Legal Notice' | 'Court Order' | 'Affidavit' | 'Case Summary' | 'Proof' | 'Other';
+
+  @ApiProperty({
     description: 'Date of the hearing this document is related to',
     example: '2025-08-15',
     required: false,

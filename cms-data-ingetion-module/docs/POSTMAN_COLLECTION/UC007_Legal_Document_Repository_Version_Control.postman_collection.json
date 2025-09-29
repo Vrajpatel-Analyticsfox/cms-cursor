@@ -1,0 +1,378 @@
+{
+  "info": {
+    "name": "UC007 Legal Document Repository - Version Control & Legal Case",
+    "description": "Version control and legal case specific endpoints for UC007 Legal Document Repository",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Version Control",
+      "item": [
+        {
+          "name": "Create Document Version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "updated-document.pdf"
+                },
+                {
+                  "key": "changeSummary",
+                  "value": "Updated with additional witness statements and corrected dates",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/documents/{{document_id}}/versions",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "documents", "{{document_id}}", "versions"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "multipart/form-data"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "updated-document.pdf"
+                    },
+                    {
+                      "key": "changeSummary",
+                      "value": "Updated with additional witness statements and corrected dates",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/documents/{{document_id}}/versions",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "documents", "{{document_id}}", "versions"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"uuid-document-id\",\n  \"documentId\": \"LDR-20250721-0001\",\n  \"linkedEntityType\": \"Case ID\",\n  \"linkedEntityId\": \"case-123\",\n  \"documentName\": \"Updated Affidavit of Service\",\n  \"documentType\": \"Affidavit\",\n  \"uploadDate\": \"2025-07-21T10:30:00Z\",\n  \"uploadedBy\": \"legal-officer-001\",\n  \"fileFormat\": \"application/pdf\",\n  \"fileSizeMb\": \"1.45\",\n  \"accessPermissions\": [\"Legal Officer\", \"Admin\"],\n  \"confidentialFlag\": false,\n  \"versionNumber\": 2,\n  \"remarksTags\": \"urgent, evidence, service, updated\",\n  \"lastUpdated\": \"2025-07-21T16:20:00Z\",\n  \"originalFileName\": \"updated_affidavit_service.pdf\",\n  \"filePath\": \"/uploads/legal-case/case-123/2025/07/21/1234567891-updated_affidavit_service.pdf\",\n  \"fileHash\": \"b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3\",\n  \"encryptedFilePath\": \"/uploads/legal-case/case-123/2025/07/21/encrypted/1234567891-updated_affidavit_service.enc\",\n  \"encryptionKeyId\": \"key-id-uuid-2\",\n  \"createdAt\": \"2025-07-21T10:30:00Z\",\n  \"updatedAt\": \"2025-07-21T16:20:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Document Versions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/legal/documents/{{document_id}}/versions",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "documents", "{{document_id}}", "versions"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/documents/{{document_id}}/versions",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "documents", "{{document_id}}", "versions"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"versions\": [\n    {\n      \"id\": \"version-uuid-1\",\n      \"documentId\": \"uuid-document-id\",\n      \"versionNumber\": 1,\n      \"filePath\": \"/uploads/legal-case/case-123/2025/07/21/1234567890-affidavit_service.pdf\",\n      \"encryptedFilePath\": \"/uploads/legal-case/case-123/2025/07/21/encrypted/1234567890-affidavit_service.enc\",\n      \"fileHash\": \"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2\",\n      \"fileSizeMb\": \"1.25\",\n      \"changeSummary\": \"Initial version\",\n      \"createdBy\": \"legal-officer-001\",\n      \"createdAt\": \"2025-07-21T10:30:00Z\"\n    },\n    {\n      \"id\": \"version-uuid-2\",\n      \"documentId\": \"uuid-document-id\",\n      \"versionNumber\": 2,\n      \"filePath\": \"/uploads/legal-case/case-123/2025/07/21/1234567891-updated_affidavit_service.pdf\",\n      \"encryptedFilePath\": \"/uploads/legal-case/case-123/2025/07/21/encrypted/1234567891-updated_affidavit_service.enc\",\n      \"fileHash\": \"b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3\",\n      \"fileSizeMb\": \"1.45\",\n      \"changeSummary\": \"Updated with additional witness statements and corrected dates\",\n      \"createdBy\": \"legal-officer-001\",\n      \"createdAt\": \"2025-07-21T16:20:00Z\"\n    }\n  ],\n  \"total\": 2,\n  \"currentVersion\": 2\n}"
+            }
+          ]
+        },
+        {
+          "name": "Rollback to Version",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/legal/documents/{{document_id}}/rollback/1",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "documents", "{{document_id}}", "rollback", "1"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/documents/{{document_id}}/rollback/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "documents", "{{document_id}}", "rollback", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Document rolled back to version 1 successfully\",\n  \"documentId\": \"LDR-20250721-0001\",\n  \"currentVersion\": 1,\n  \"rolledBackBy\": \"legal-officer-001\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Legal Case Specific",
+      "item": [
+        {
+          "name": "Upload Document for Legal Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "court-order.pdf"
+                },
+                {
+                  "key": "documentName",
+                  "value": "Court Order - Injunction",
+                  "type": "text"
+                },
+                {
+                  "key": "documentType",
+                  "value": "Court Order",
+                  "type": "text"
+                },
+                {
+                  "key": "accessPermissions",
+                  "value": "[\"Legal Officer\", \"Admin\", \"Lawyer\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "confidentialFlag",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "remarksTags",
+                  "value": "urgent, injunction, court-order",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/legal/documents/legal-case/{{case_id}}/upload",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "documents", "legal-case", "{{case_id}}", "upload"]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "multipart/form-data"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "court-order.pdf"
+                    },
+                    {
+                      "key": "documentName",
+                      "value": "Court Order - Injunction",
+                      "type": "text"
+                    },
+                    {
+                      "key": "documentType",
+                      "value": "Court Order",
+                      "type": "text"
+                    },
+                    {
+                      "key": "accessPermissions",
+                      "value": "[\"Legal Officer\", \"Admin\", \"Lawyer\"]",
+                      "type": "text"
+                    },
+                    {
+                      "key": "confidentialFlag",
+                      "value": "true",
+                      "type": "text"
+                    },
+                    {
+                      "key": "remarksTags",
+                      "value": "urgent, injunction, court-order",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/legal/documents/legal-case/{{case_id}}/upload",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "documents", "legal-case", "{{case_id}}", "upload"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"uuid-document-id-2\",\n  \"documentId\": \"LDR-20250721-0002\",\n  \"linkedEntityType\": \"Case ID\",\n  \"linkedEntityId\": \"case-123\",\n  \"documentName\": \"Court Order - Injunction\",\n  \"documentType\": \"Court Order\",\n  \"uploadDate\": \"2025-07-21T11:15:00Z\",\n  \"uploadedBy\": \"legal-officer-001\",\n  \"fileFormat\": \"application/pdf\",\n  \"fileSizeMb\": \"2.15\",\n  \"accessPermissions\": [\"Legal Officer\", \"Admin\", \"Lawyer\"],\n  \"confidentialFlag\": true,\n  \"versionNumber\": 1,\n  \"remarksTags\": \"urgent, injunction, court-order\",\n  \"lastUpdated\": \"2025-07-21T11:15:00Z\",\n  \"originalFileName\": \"court_order.pdf\",\n  \"filePath\": \"/uploads/legal-case/case-123/2025/07/21/1234567892-court_order.pdf\",\n  \"fileHash\": \"c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4\",\n  \"encryptedFilePath\": \"/uploads/legal-case/case-123/2025/07/21/encrypted/1234567892-court_order.enc\",\n  \"encryptionKeyId\": \"key-id-uuid-3\",\n  \"createdAt\": \"2025-07-21T11:15:00Z\",\n  \"updatedAt\": \"2025-07-21T11:15:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Legal Case Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/legal/documents/legal-case/{{case_id}}?page=1&limit=10&documentType=All&confidentialFlag=All",
+              "host": ["{{base_url}}"],
+              "path": ["legal", "documents", "legal-case", "{{case_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "documentType",
+                  "value": "All"
+                },
+                {
+                  "key": "confidentialFlag",
+                  "value": "All"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/legal/documents/legal-case/{{case_id}}?page=1&limit=10&documentType=All&confidentialFlag=All",
+                  "host": ["{{base_url}}"],
+                  "path": ["legal", "documents", "legal-case", "{{case_id}}"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "documentType",
+                      "value": "All"
+                    },
+                    {
+                      "key": "confidentialFlag",
+                      "value": "All"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"documents\": [\n    {\n      \"id\": \"uuid-document-id-1\",\n      \"documentId\": \"LDR-20250721-0001\",\n      \"linkedEntityType\": \"Case ID\",\n      \"linkedEntityId\": \"case-123\",\n      \"documentName\": \"Affidavit of Service\",\n      \"documentType\": \"Affidavit\",\n      \"uploadDate\": \"2025-07-21T10:30:00Z\",\n      \"uploadedBy\": \"legal-officer-001\",\n      \"fileFormat\": \"application/pdf\",\n      \"fileSizeMb\": \"1.25\",\n      \"accessPermissions\": [\"Legal Officer\", \"Admin\"],\n      \"confidentialFlag\": false,\n      \"versionNumber\": 1,\n      \"remarksTags\": \"urgent, evidence, service\",\n      \"lastUpdated\": \"2025-07-21T10:30:00Z\"\n    },\n    {\n      \"id\": \"uuid-document-id-2\",\n      \"documentId\": \"LDR-20250721-0002\",\n      \"linkedEntityType\": \"Case ID\",\n      \"linkedEntityId\": \"case-123\",\n      \"documentName\": \"Court Order - Injunction\",\n      \"documentType\": \"Court Order\",\n      \"uploadDate\": \"2025-07-21T11:15:00Z\",\n      \"uploadedBy\": \"legal-officer-001\",\n      \"fileFormat\": \"application/pdf\",\n      \"fileSizeMb\": \"2.15\",\n      \"accessPermissions\": [\"Legal Officer\", \"Admin\", \"Lawyer\"],\n      \"confidentialFlag\": true,\n      \"versionNumber\": 1,\n      \"remarksTags\": \"urgent, injunction, court-order\",\n      \"lastUpdated\": \"2025-07-21T11:15:00Z\"\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"total\": 2,\n    \"totalPages\": 1\n  },\n  \"filters\": {\n    \"documentType\": \"All\",\n    \"confidentialFlag\": \"All\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "document_id",
+      "value": "uuid-document-id",
+      "type": "string"
+    },
+    {
+      "key": "case_id",
+      "value": "case-123",
+      "type": "string"
+    }
+  ]
+}

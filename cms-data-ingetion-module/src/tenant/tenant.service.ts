@@ -17,9 +17,8 @@ export class TenantService {
       })
       .returning();
 
-    // 2. Create tenant admin in Keycloak (stub)
-    // Replace this with actual Keycloak integration
-    const keycloakId = 'stub-keycloak-id'; // Call Keycloak API and get the real ID
+    // 2. Use keycloakId from request body or generate stub
+    const keycloakId = createTenantDto.keycloakId;
 
     // 3. Create tenant admin in users table
     const [adminUser] = await db
@@ -30,7 +29,7 @@ export class TenantService {
         email: createTenantDto.adminEmail,
         mobile: createTenantDto.adminMobile,
         address: createTenantDto.adminAddress,
-        role: 'TENANT_ADMIN',
+        role: createTenantDto.role,
         keycloakId,
       })
       .returning();
@@ -46,12 +45,12 @@ export class TenantService {
     return db.select().from(tenant);
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const [result] = await db.select().from(tenant).where(eq(tenant.id, id));
     return result;
   }
 
-  async update(id: number, updateTenantDto: UpdateTenantDto) {
+  async update(id: string, updateTenantDto: UpdateTenantDto) {
     const [updated] = await db
       .update(tenant)
       .set(updateTenantDto)
@@ -60,7 +59,7 @@ export class TenantService {
     return updated;
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const [deleted] = await db.delete(tenant).where(eq(tenant.id, id)).returning();
     return deleted;
   }

@@ -28,4 +28,12 @@ export class CreateTenantDto {
   @IsOptional()
   @IsString()
   adminAddress?: string;
+
+  @IsNotEmpty()
+  @IsString()
+  keycloakId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  role: string;
 }

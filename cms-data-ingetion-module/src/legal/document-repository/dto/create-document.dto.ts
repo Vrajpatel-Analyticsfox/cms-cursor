@@ -2,17 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
-  IsUUID,
   IsOptional,
   IsEnum,
   IsBoolean,
-  IsDateString,
   IsArray,
   MaxLength,
   ArrayMinSize,
-  ValidateIf,
 } from 'class-validator';
-import { IsFutureOrToday } from '../../validators/date-validators';
 
 export class CreateDocumentDto {
   @ApiProperty({
@@ -26,29 +22,30 @@ export class CreateDocumentDto {
 
   @ApiProperty({
     description: 'ID of the entity this document is linked to',
-    example: 'uuid-entity-id',
+    example: 'entity-id-123',
   })
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   linkedEntityId: string;
 
   @ApiProperty({
-    description: 'Name/title of the document',
+    description: 'Name/title of the document (BRD: Max 100 characters)',
     example: 'Affidavit of Service',
-    maxLength: 200,
+    maxLength: 100,
   })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(200)
+  @MaxLength(100)
   documentName: string;
 
   @ApiProperty({
-    description: 'ID of the document type',
-    example: 'uuid-document-type-id',
+    description: 'Classification of document (BRD-specified)',
+    example: 'Legal Notice',
+    enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
   })
-  @IsUUID()
+  @IsEnum(['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'])
   @IsNotEmpty()
-  documentTypeId: string;
+  documentType: 'Legal Notice' | 'Court Order' | 'Affidavit' | 'Case Summary' | 'Proof' | 'Other';
 
   @ApiProperty({
     description: 'Access permissions for the document (BRD-specified)',
@@ -59,11 +56,11 @@ export class CreateDocumentDto {
   @IsArray()
   @ArrayMinSize(1)
   @IsEnum(['Legal Officer', 'Admin', 'Compliance', 'Lawyer'], { each: true })
-  @IsOptional()
-  accessPermissions?: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
+  @IsNotEmpty()
+  accessPermissions: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
 
   @ApiProperty({
-    description: 'Whether the document is confidential',
+    description: 'Whether the document is confidential (BRD-specified)',
     example: false,
     required: false,
   })
@@ -72,110 +69,13 @@ export class CreateDocumentDto {
   confidentialFlag?: boolean;
 
   @ApiProperty({
-    description: 'Whether the document is public',
-    example: false,
+    description: 'Tags or remarks for the document (BRD: Max 250 characters)',
+    example: 'urgent, confidential, evidence',
+    maxLength: 250,
     required: false,
   })
-  @IsBoolean()
+  @IsString()
   @IsOptional()
-  isPublic?: boolean;
-
-  @ApiProperty({
-    description: 'Specific type of case document',
-    enum: [
-      'Affidavit',
-      'Summons',
-      'Court Order',
-      'Evidence',
-      'Witness Statement',
-      'Expert Report',
-      'Medical Report',
-      'Financial Statement',
-      'Property Document',
-      'Legal Notice',
-      'Reply Notice',
-      'Counter Affidavit',
-      'Interim Order',
-      'Final Order',
-      'Judgment',
-      'Settlement Agreement',
-      'Compromise Deed',
-      'Power of Attorney',
-      'Authorization Letter',
-      'Identity Proof',
-      'Address Proof',
-      'Income Proof',
-      'Bank Statement',
-      'Loan Agreement',
-      'Security Document',
-      'Other',
-    ],
-    example: 'Affidavit',
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum([
-    'Affidavit',
-    'Summons',
-    'Court Order',
-    'Evidence',
-    'Witness Statement',
-    'Expert Report',
-    'Medical Report',
-    'Financial Statement',
-    'Property Document',
-    'Legal Notice',
-    'Reply Notice',
-    'Counter Affidavit',
-    'Interim Order',
-    'Final Order',
-    'Judgment',
-    'Settlement Agreement',
-    'Compromise Deed',
-    'Power of Attorney',
-    'Authorization Letter',
-    'Identity Proof',
-    'Address Proof',
-    'Income Proof',
-    'Bank Statement',
-    'Loan Agreement',
-    'Security Document',
-    'Other',
-  ])
-  caseDocumentType?: string;
-
-  @ApiProperty({
-    description: 'Date of the hearing this document is related to',
-    example: '2025-08-15',
-    type: 'string',
-    format: 'date',
-    required: false,
-  })
-  @IsOptional()
-  @ValidateIf((o) => o.hearingDate !== undefined && o.hearingDate !== null && o.hearingDate !== '')
-  @IsDateString()
-  @IsFutureOrToday({ message: 'Hearing date must be today or later' })
-  hearingDate?: string | null;
-
-  @ApiProperty({
-    description: 'Date when the document was created/issued',
-    example: '2025-07-21',
-    type: 'string',
-    format: 'date',
-    required: false,
-  })
-  @IsOptional()
-  @IsDateString()
-  documentDate?: string | null;
-
-  @ApiProperty({
-    description: 'Tags or remarks for the document',
-    example: ['urgent', 'confidential', 'evidence'],
-    type: [String],
-    required: false,
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  remarksTags?: string[];
+  @MaxLength(250)
+  remarksTags?: string;
 }

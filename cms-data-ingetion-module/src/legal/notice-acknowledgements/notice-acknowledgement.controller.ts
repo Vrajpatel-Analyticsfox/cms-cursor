@@ -359,7 +359,7 @@ export class NoticeAcknowledgementController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateNoticeAcknowledgementDto,
   ): Promise<NoticeAcknowledgementResponseDto> {
-    return await this.acknowledgementService.updateAcknowledgement(id, updateDto, 'system');
+    return await this.acknowledgementService.updateAcknowledgement(id, updateDto);
   }
 
   @Delete(':id')
@@ -489,7 +489,7 @@ export class NoticeAcknowledgementController {
 
     if (result.success) {
       // Update acknowledgement with new file path
-      await this.acknowledgementService.updateAcknowledgement(
+      await this.acknowledgementService.updateAcknowledgementInternal(
         id,
         { proofOfAcknowledgement: result.filePath },
         'system',
@@ -704,7 +704,7 @@ export class NoticeAcknowledgementController {
 
     if (result.success) {
       // Update acknowledgement to remove proof path
-      await this.acknowledgementService.updateAcknowledgement(
+      await this.acknowledgementService.updateAcknowledgementInternal(
         id,
         { proofOfAcknowledgement: undefined },
         'system',

@@ -1,0 +1,222 @@
+{
+  "testData": {
+    "documents": {
+      "affidavit": {
+        "documentName": "Affidavit of Service",
+        "documentType": "Affidavit",
+        "linkedEntityType": "Case ID",
+        "linkedEntityId": "case-123",
+        "accessPermissions": ["Legal Officer", "Admin"],
+        "confidentialFlag": false,
+        "remarksTags": "urgent, evidence, service"
+      },
+      "courtOrder": {
+        "documentName": "Court Order - Injunction",
+        "documentType": "Court Order",
+        "linkedEntityType": "Case ID",
+        "linkedEntityId": "case-123",
+        "accessPermissions": ["Legal Officer", "Admin", "Lawyer"],
+        "confidentialFlag": true,
+        "remarksTags": "urgent, injunction, court-order"
+      },
+      "legalNotice": {
+        "documentName": "Legal Notice - Default Notice",
+        "documentType": "Legal Notice",
+        "linkedEntityType": "Borrower",
+        "linkedEntityId": "borrower-456",
+        "accessPermissions": ["Legal Officer", "Compliance"],
+        "confidentialFlag": false,
+        "remarksTags": "default, notice, borrower"
+      },
+      "caseSummary": {
+        "documentName": "Case Summary Report",
+        "documentType": "Case Summary",
+        "linkedEntityType": "Case ID",
+        "linkedEntityId": "case-123",
+        "accessPermissions": ["Legal Officer", "Admin", "Lawyer"],
+        "confidentialFlag": false,
+        "remarksTags": "summary, report, case-analysis"
+      },
+      "proof": {
+        "documentName": "Evidence - Bank Statement",
+        "documentType": "Proof",
+        "linkedEntityType": "Loan Account",
+        "linkedEntityId": "loan-789",
+        "accessPermissions": ["Legal Officer", "Admin"],
+        "confidentialFlag": true,
+        "remarksTags": "evidence, bank-statement, financial"
+      }
+    },
+    "updatePayloads": {
+      "updateAccessPermissions": {
+        "accessPermissions": ["Legal Officer", "Admin", "Compliance"],
+        "remarksTags": "updated, additional-permissions"
+      },
+      "updateConfidentiality": {
+        "confidentialFlag": true,
+        "remarksTags": "updated, confidential, sensitive"
+      },
+      "updateDocumentName": {
+        "documentName": "Updated Document Name",
+        "remarksTags": "updated, renamed"
+      },
+      "updateDocumentType": {
+        "documentType": "Other",
+        "remarksTags": "updated, reclassified"
+      },
+      "comprehensiveUpdate": {
+        "documentName": "Comprehensively Updated Document",
+        "documentType": "Legal Notice",
+        "accessPermissions": ["Legal Officer", "Admin", "Compliance", "Lawyer"],
+        "confidentialFlag": true,
+        "remarksTags": "comprehensive, updated, all-fields"
+      }
+    },
+    "versionControl": {
+      "changeSummaries": [
+        "Updated with additional witness statements",
+        "Corrected dates and timestamps",
+        "Added new evidence attachments",
+        "Revised legal arguments",
+        "Updated contact information",
+        "Added court filing stamps",
+        "Corrected typographical errors",
+        "Added notarization details"
+      ]
+    },
+    "filters": {
+      "documentTypes": [
+        "Legal Notice",
+        "Court Order",
+        "Affidavit",
+        "Case Summary",
+        "Proof",
+        "Other"
+      ],
+      "linkedEntityTypes": ["Borrower", "Loan Account", "Case ID"],
+      "accessPermissions": ["Legal Officer", "Admin", "Compliance", "Lawyer"],
+      "confidentialFlags": [true, false]
+    },
+    "pagination": {
+      "pageSizes": [5, 10, 20, 50, 100],
+      "defaultPage": 1,
+      "defaultLimit": 10
+    },
+    "fileTypes": {
+      "allowed": [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "text/plain",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      ],
+      "extensions": [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".gif", ".txt", ".xlsx"]
+    },
+    "errorScenarios": {
+      "validationErrors": {
+        "missingRequiredFields": {
+          "description": "Missing required fields in request",
+          "expectedError": "Validation failed: required fields missing"
+        },
+        "invalidFileType": {
+          "description": "Uploading unsupported file type",
+          "expectedError": "File type not allowed"
+        },
+        "fileSizeExceeded": {
+          "description": "Uploading file larger than allowed limit",
+          "expectedError": "File size exceeds limit"
+        },
+        "invalidEntityReference": {
+          "description": "Referencing non-existent entity",
+          "expectedError": "Entity not found"
+        }
+      },
+      "accessControlErrors": {
+        "insufficientPermissions": {
+          "description": "User lacks required permissions",
+          "expectedError": "Access denied: insufficient permissions"
+        },
+        "confidentialDocumentAccess": {
+          "description": "Unauthorized access to confidential document",
+          "expectedError": "Access denied: document is confidential"
+        },
+        "roleBasedRestriction": {
+          "description": "User role not allowed for action",
+          "expectedError": "Access denied: role not authorized"
+        }
+      },
+      "systemErrors": {
+        "encryptionFailure": {
+          "description": "Document encryption/decryption failed",
+          "expectedError": "Failed to process document securely"
+        },
+        "fileSystemError": {
+          "description": "File system operation failed",
+          "expectedError": "File operation failed"
+        },
+        "databaseError": {
+          "description": "Database operation failed",
+          "expectedError": "Database operation failed"
+        }
+      }
+    },
+    "successResponses": {
+      "documentCreated": {
+        "statusCode": 201,
+        "message": "Document uploaded successfully"
+      },
+      "documentRetrieved": {
+        "statusCode": 200,
+        "message": "Document retrieved successfully"
+      },
+      "documentUpdated": {
+        "statusCode": 200,
+        "message": "Document updated successfully"
+      },
+      "documentDeleted": {
+        "statusCode": 200,
+        "message": "Document deleted successfully"
+      },
+      "versionCreated": {
+        "statusCode": 201,
+        "message": "Document version created successfully"
+      },
+      "rollbackSuccessful": {
+        "statusCode": 200,
+        "message": "Document rolled back successfully"
+      }
+    },
+    "brdCompliance": {
+      "documentIdFormat": "LDR-YYYYMMDD-Sequence",
+      "requiredFields": [
+        "linkedEntityType",
+        "linkedEntityId",
+        "documentName",
+        "documentType",
+        "accessPermissions"
+      ],
+      "optionalFields": ["confidentialFlag", "remarksTags"],
+      "fieldValidations": {
+        "documentName": {
+          "maxLength": 100,
+          "required": true
+        },
+        "remarksTags": {
+          "maxLength": 250,
+          "required": false
+        },
+        "fileSize": {
+          "maxSizeMB": 10,
+          "configurable": true
+        },
+        "accessPermissions": {
+          "allowedValues": ["Legal Officer", "Admin", "Compliance", "Lawyer"],
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

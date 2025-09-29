@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { db } from '../../db/drizzle.config';
 import { eq, and, desc, count, gte, lte, like, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { lawyerAllocations, legalCases, lawyers, users } from '../../db/schema';
 import {
   CreateLawyerAllocationDto,
@@ -23,12 +24,15 @@ export class LawyerAllocationService {
 
   constructor(private readonly configService: ConfigService) {}
 
+  // Create aliases for users table
+  private readonly createdByUser = alias(users, 'createdByUser');
+  private readonly updatedByUser = alias(users, 'updatedByUser');
+
   /**
    * Create a new lawyer allocation
    */
   async createAllocation(
     createDto: CreateLawyerAllocationDto,
-    createdBy: string,
   ): Promise<LawyerAllocationResponseDto> {
     try {
       // Step 1: Validate case exists and is in correct status
@@ -63,13 +67,12 @@ export class LawyerAllocationService {
           jurisdiction: createDto.jurisdiction,
           lawyerType: createDto.lawyerType,
           allocationDate: createDto.allocationDate,
-          allocatedBy: createdBy,
           reassignmentFlag: createDto.reassignmentFlag || false,
           reassignmentReason: createDto.reassignmentReason,
-          status: 'Active',
-          lawyerAcknowledgement: false,
+          status: createDto.status || 'Active',
+          lawyerAcknowledgement: createDto.lawyerAcknowledgement || false,
           remarks: createDto.remarks,
-          createdBy,
+          createdBy: createDto.createdBy,
         })
         .returning();
 
@@ -98,7 +101,6 @@ export class LawyerAllocationService {
           jurisdiction: lawyerAllocations.jurisdiction,
           lawyerType: lawyerAllocations.lawyerType,
           allocationDate: lawyerAllocations.allocationDate,
-          allocatedBy: lawyerAllocations.allocatedBy,
           reassignmentFlag: lawyerAllocations.reassignmentFlag,
           reassignmentReason: lawyerAllocations.reassignmentReason,
           status: lawyerAllocations.status,
@@ -115,10 +117,16 @@ export class LawyerAllocationService {
           caseType: legalCases.caseType,
           // Lawyer details
           lawyerName: lawyers.fullName,
+          // User details for createdBy
+          createdByUserName: this.createdByUser.fullName,
+          // User details for updatedBy
+          updatedByUserName: this.updatedByUser.fullName,
         })
         .from(lawyerAllocations)
         .leftJoin(legalCases, eq(lawyerAllocations.caseId, legalCases.id))
         .leftJoin(lawyers, eq(lawyerAllocations.lawyerId, lawyers.id))
+        .leftJoin(this.createdByUser, eq(lawyerAllocations.createdBy, this.createdByUser.id))
+        .leftJoin(this.updatedByUser, eq(lawyerAllocations.updatedBy, this.updatedByUser.id))
         .where(eq(lawyerAllocations.id, id))
         .limit(1);
 
@@ -166,7 +174,6 @@ export class LawyerAllocationService {
           jurisdiction: lawyerAllocations.jurisdiction,
           lawyerType: lawyerAllocations.lawyerType,
           allocationDate: lawyerAllocations.allocationDate,
-          allocatedBy: lawyerAllocations.allocatedBy,
           reassignmentFlag: lawyerAllocations.reassignmentFlag,
           reassignmentReason: lawyerAllocations.reassignmentReason,
           status: lawyerAllocations.status,
@@ -183,10 +190,16 @@ export class LawyerAllocationService {
           caseType: legalCases.caseType,
           // Lawyer details
           lawyerName: lawyers.fullName,
+          // User details for createdBy
+          createdByUserName: this.createdByUser.fullName,
+          // User details for updatedBy
+          updatedByUserName: this.updatedByUser.fullName,
         })
         .from(lawyerAllocations)
         .leftJoin(legalCases, eq(lawyerAllocations.caseId, legalCases.id))
         .leftJoin(lawyers, eq(lawyerAllocations.lawyerId, lawyers.id))
+        .leftJoin(this.createdByUser, eq(lawyerAllocations.createdBy, this.createdByUser.id))
+        .leftJoin(this.updatedByUser, eq(lawyerAllocations.updatedBy, this.updatedByUser.id))
         .where(whereConditions)
         .orderBy(desc(lawyerAllocations.createdAt))
         .limit(limit)
@@ -217,7 +230,6 @@ export class LawyerAllocationService {
   async updateAllocation(
     id: string,
     updateDto: UpdateLawyerAllocationDto,
-    updatedBy: string,
   ): Promise<LawyerAllocationResponseDto> {
     try {
       // Check if allocation exists
@@ -246,14 +258,13 @@ export class LawyerAllocationService {
               ? updateDto.reassignmentReason
               : existingAllocation.reassignmentReason,
           status:
-            (updateDto.status as 'Active' | 'Completed' | 'Cancelled' | 'Reassigned') ||
-            existingAllocation.status,
+            (updateDto.status as 'Active' | 'Inactive' | 'Reassigned') || existingAllocation.status,
           lawyerAcknowledgement:
             updateDto.lawyerAcknowledgement !== undefined
               ? updateDto.lawyerAcknowledgement
               : existingAllocation.lawyerAcknowledgement,
           remarks: updateDto.remarks !== undefined ? updateDto.remarks : existingAllocation.remarks,
-          updatedBy,
+          updatedBy: updateDto.updatedBy,
           updatedAt: new Date(),
         })
         .where(eq(lawyerAllocations.id, id))
@@ -271,10 +282,7 @@ export class LawyerAllocationService {
   /**
    * Delete allocation
    */
-  async deleteAllocation(
-    id: string,
-    deletedBy: string,
-  ): Promise<{ success: boolean; message: string }> {
+  async deleteAllocation(id: string): Promise<{ success: boolean; message: string }> {
     try {
       // Check if allocation exists
       await this.getAllocationById(id);
@@ -306,7 +314,6 @@ export class LawyerAllocationService {
           jurisdiction: lawyerAllocations.jurisdiction,
           lawyerType: lawyerAllocations.lawyerType,
           allocationDate: lawyerAllocations.allocationDate,
-          allocatedBy: lawyerAllocations.allocatedBy,
           reassignmentFlag: lawyerAllocations.reassignmentFlag,
           reassignmentReason: lawyerAllocations.reassignmentReason,
           status: lawyerAllocations.status,
@@ -323,10 +330,16 @@ export class LawyerAllocationService {
           caseType: legalCases.caseType,
           // Lawyer details
           lawyerName: lawyers.fullName,
+          // User details for createdBy
+          createdByUserName: this.createdByUser.fullName,
+          // User details for updatedBy
+          updatedByUserName: this.updatedByUser.fullName,
         })
         .from(lawyerAllocations)
         .leftJoin(legalCases, eq(lawyerAllocations.caseId, legalCases.id))
         .leftJoin(lawyers, eq(lawyerAllocations.lawyerId, lawyers.id))
+        .leftJoin(this.createdByUser, eq(lawyerAllocations.createdBy, this.createdByUser.id))
+        .leftJoin(this.updatedByUser, eq(lawyerAllocations.updatedBy, this.updatedByUser.id))
         .where(eq(lawyerAllocations.caseId, caseId))
         .orderBy(desc(lawyerAllocations.createdAt));
 
@@ -352,7 +365,6 @@ export class LawyerAllocationService {
           jurisdiction: lawyerAllocations.jurisdiction,
           lawyerType: lawyerAllocations.lawyerType,
           allocationDate: lawyerAllocations.allocationDate,
-          allocatedBy: lawyerAllocations.allocatedBy,
           reassignmentFlag: lawyerAllocations.reassignmentFlag,
           reassignmentReason: lawyerAllocations.reassignmentReason,
           status: lawyerAllocations.status,
@@ -369,10 +381,16 @@ export class LawyerAllocationService {
           caseType: legalCases.caseType,
           // Lawyer details
           lawyerName: lawyers.fullName,
+          // User details for createdBy
+          createdByUserName: this.createdByUser.fullName,
+          // User details for updatedBy
+          updatedByUserName: this.updatedByUser.fullName,
         })
         .from(lawyerAllocations)
         .leftJoin(legalCases, eq(lawyerAllocations.caseId, legalCases.id))
         .leftJoin(lawyers, eq(lawyerAllocations.lawyerId, lawyers.id))
+        .leftJoin(this.createdByUser, eq(lawyerAllocations.createdBy, this.createdByUser.id))
+        .leftJoin(this.updatedByUser, eq(lawyerAllocations.updatedBy, this.updatedByUser.id))
         .where(eq(lawyerAllocations.lawyerId, lawyerId))
         .orderBy(desc(lawyerAllocations.createdAt));
 
@@ -468,11 +486,23 @@ export class LawyerAllocationService {
    * Validate allocation date
    */
   private validateAllocationDate(allocationDate: string): void {
-    const date = new Date(allocationDate);
+    // Parse the input date and normalize to YYYY-MM-DD format
+    const inputDate = new Date(allocationDate + 'T00:00:00.000Z');
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    if (date > today) {
+    // Get today's date in YYYY-MM-DD format
+    const todayStr = today.toISOString().split('T')[0];
+    const todayDate = new Date(todayStr + 'T00:00:00.000Z');
+
+    this.logger.log(
+      `Date validation - Input: ${allocationDate}, Today: ${todayStr}, Input Date: ${inputDate.toISOString()}, Today Date: ${todayDate.toISOString()}`,
+    );
+
+    // Compare dates (both normalized to UTC midnight)
+    if (inputDate > todayDate) {
+      this.logger.error(
+        `Future date validation failed - Input: ${allocationDate}, Today: ${todayStr}`,
+      );
       throw new BadRequestException('Allocation date cannot be a future date');
     }
   }
@@ -501,10 +531,7 @@ export class LawyerAllocationService {
 
     if (filterDto.status) {
       conditions.push(
-        eq(
-          lawyerAllocations.status,
-          filterDto.status as 'Active' | 'Completed' | 'Cancelled' | 'Reassigned',
-        ),
+        eq(lawyerAllocations.status, filterDto.status as 'Active' | 'Inactive' | 'Reassigned'),
       );
     }
 
@@ -522,10 +549,6 @@ export class LawyerAllocationService {
 
     if (filterDto.allocationDateTo) {
       conditions.push(lte(lawyerAllocations.allocationDate, filterDto.allocationDateTo));
-    }
-
-    if (filterDto.allocatedBy) {
-      conditions.push(like(lawyerAllocations.allocatedBy, `%${filterDto.allocatedBy}%`));
     }
 
     if (filterDto.searchRemarks) {
@@ -551,8 +574,10 @@ export class LawyerAllocationService {
       lawyerType: allocation.lawyerType,
       lawyerId: allocation.lawyerId,
       lawyerName: allocation.lawyerName || 'N/A',
-      allocationDate: allocation.allocationDate.toISOString().split('T')[0],
-      allocatedBy: allocation.allocatedBy,
+      allocationDate:
+        allocation.allocationDate instanceof Date
+          ? allocation.allocationDate.toISOString().split('T')[0]
+          : new Date(allocation.allocationDate).toISOString().split('T')[0],
       reassignmentFlag: allocation.reassignmentFlag,
       reassignmentReason: allocation.reassignmentReason,
       status: allocation.status,
@@ -560,8 +585,8 @@ export class LawyerAllocationService {
       remarks: allocation.remarks,
       createdAt: allocation.createdAt,
       updatedAt: allocation.updatedAt,
-      createdBy: allocation.createdBy,
-      updatedBy: allocation.updatedBy,
+      createdBy: allocation.createdByUserName || 'admin',
+      updatedBy: allocation.updatedByUserName || 'admin',
     };
   }
 }

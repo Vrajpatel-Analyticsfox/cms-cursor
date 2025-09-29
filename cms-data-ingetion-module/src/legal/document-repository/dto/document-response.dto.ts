@@ -22,71 +22,46 @@ export class DocumentResponseDto {
 
   @ApiProperty({
     description: 'ID of the entity this document is linked to',
-    example: 'uuid-entity-id',
+    example: 'entity-id-123',
   })
   linkedEntityId: string;
 
   @ApiProperty({
-    description: 'Name/title of the document',
+    description: 'Name/title of the document (BRD: Max 100 characters)',
     example: 'Affidavit of Service',
   })
   documentName: string;
 
   @ApiProperty({
-    description: 'ID of the document type',
-    example: 'uuid-document-type-id',
-  })
-  documentTypeId: string;
-
-  @ApiProperty({
-    description: 'Name of the document type',
-    example: 'Legal Document',
-    required: false,
-  })
-  documentTypeName?: string;
-
-  @ApiProperty({
-    description: 'Category of the document',
+    description: 'Classification of document (BRD-specified)',
     example: 'Legal Notice',
-    required: false,
+    enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
   })
-  documentCategory?: string;
+  documentType: 'Legal Notice' | 'Court Order' | 'Affidavit' | 'Case Summary' | 'Proof' | 'Other';
 
   @ApiProperty({
-    description: 'Original filename of the uploaded file',
-    example: 'affidavit_service.pdf',
+    description: 'Date when the document was uploaded (BRD-specified)',
+    example: '2025-07-21T10:30:00Z',
   })
-  originalFileName: string;
+  uploadDate: string;
 
   @ApiProperty({
-    description: 'File format/MIME type',
+    description: 'User who uploaded the document (BRD-specified)',
+    example: 'legal-officer-001',
+  })
+  uploadedBy: string;
+
+  @ApiProperty({
+    description: 'File format/MIME type (BRD-specified)',
     example: 'application/pdf',
   })
   fileFormat: string;
 
   @ApiProperty({
-    description: 'File size in bytes',
-    example: '1048576',
-  })
-  fileSizeBytes: string;
-
-  @ApiProperty({
-    description: 'File size in MB (human readable)',
+    description: 'File size in MB (BRD-specified)',
     example: '1.00',
   })
   fileSizeMb: string;
-
-  @ApiProperty({
-    description: 'Path to the stored file',
-    example: '/uploads/legal-case/uuid-case-id/2025/07/21/1234567890-affidavit_service.pdf',
-  })
-  filePath: string;
-
-  @ApiProperty({
-    description: 'Storage provider used',
-    example: 'local',
-  })
-  storageProvider: string;
 
   @ApiProperty({
     description: 'Access permissions for the document (BRD-specified)',
@@ -97,110 +72,41 @@ export class DocumentResponseDto {
   accessPermissions: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
 
   @ApiProperty({
-    description: 'Whether the document is confidential',
+    description: 'Whether the document is confidential (BRD-specified)',
     example: false,
   })
   confidentialFlag: boolean;
 
   @ApiProperty({
-    description: 'Whether the document is public',
-    example: false,
-  })
-  isPublic: boolean;
-
-  @ApiProperty({
-    description: 'Version number of the document',
+    description: 'Version number of the document (BRD-specified)',
     example: 1,
   })
   versionNumber: number;
 
   @ApiProperty({
-    description: 'ID of the parent document (for versioning)',
-    example: 'uuid-parent-document-id',
-    required: false,
+    description: 'Tags or remarks for the document (BRD-specified)',
+    example: 'urgent, confidential, evidence',
   })
-  parentDocumentId?: string;
+  remarksTags?: string;
 
   @ApiProperty({
-    description: 'Whether this is the latest version',
-    example: true,
-  })
-  isLatestVersion: boolean;
-
-  @ApiProperty({
-    description: 'Status of the document',
-    enum: ['Active', 'Archived', 'Deleted', 'Pending_approval', 'Rejected'],
-    example: 'Active',
-  })
-  documentStatus: 'Active' | 'Archived' | 'Deleted' | 'Pending_approval' | 'Rejected';
-
-  @ApiProperty({
-    description: 'SHA-256 hash of the document for integrity',
-    example: 'a1b2c3d4e5f6...',
-    required: false,
-  })
-  documentHash?: string;
-
-  @ApiProperty({
-    description: 'MIME type of the document',
-    example: 'application/pdf',
-    required: false,
-  })
-  mimeType?: string;
-
-  @ApiProperty({
-    description: 'Specific type of case document',
-    example: 'Affidavit',
-    required: false,
-  })
-  caseDocumentType?: string;
-
-  @ApiProperty({
-    description: 'Date of the hearing this document is related to',
-    example: '2025-08-15',
-    required: false,
-  })
-  hearingDate?: string;
-
-  @ApiProperty({
-    description: 'Date when the document was created/issued',
-    example: '2025-07-21',
-    required: false,
-  })
-  documentDate?: string;
-
-  @ApiProperty({
-    description: 'Date when the document was uploaded',
-    example: '2025-07-21T10:30:00Z',
-  })
-  uploadDate: string;
-
-  @ApiProperty({
-    description: 'User who uploaded the document',
-    example: 'legal-officer-001',
-  })
-  uploadedBy: string;
-
-  @ApiProperty({
-    description: 'Date when the document was last accessed',
+    description: 'Date when the document was last updated (BRD-specified)',
     example: '2025-07-21T15:45:00Z',
-    required: false,
   })
-  lastAccessedAt?: string;
+  lastUpdated: string;
+
+  // Additional fields for basic functionality (not in BRD but required for system operation)
+  @ApiProperty({
+    description: 'Original filename of the uploaded file',
+    example: 'affidavit_service.pdf',
+  })
+  originalFileName: string;
 
   @ApiProperty({
-    description: 'User who last accessed the document',
-    example: 'lawyer-001',
-    required: false,
+    description: 'Path to the stored file',
+    example: '/uploads/legal-case/entity-id-123/2025/07/21/1234567890-affidavit_service.pdf',
   })
-  lastAccessedBy?: string;
-
-  @ApiProperty({
-    description: 'Tags or remarks for the document',
-    example: ['urgent', 'confidential', 'evidence'],
-    type: [String],
-  })
-  remarksTags: string[];
+  filePath: string;
 
   @ApiProperty({
     description: 'Date when the document was created',
@@ -213,19 +119,6 @@ export class DocumentResponseDto {
     example: '2025-07-21T15:45:00Z',
   })
   updatedAt: string;
-
-  @ApiProperty({
-    description: 'User who created the document',
-    example: 'legal-officer-001',
-  })
-  createdBy: string;
-
-  @ApiProperty({
-    description: 'User who last updated the document',
-    example: 'legal-officer-001',
-    required: false,
-  })
-  updatedBy?: string;
 }
 
 export class DocumentListResponseDto {

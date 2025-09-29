@@ -104,7 +104,7 @@ export class PreLegalNoticeController {
     @Body() createDto: CreatePreLegalNoticeDto,
     @Request() req: any,
   ): Promise<PreLegalNoticeResponseDto> {
-    const createdBy = req.user?.username || 'Manual';
+    const createdBy = req.user?.username || 'admin';
     return this.preLegalNoticeService.createPreLegalNotice(createDto, createdBy);
   }
 
@@ -289,7 +289,7 @@ export class PreLegalNoticeController {
     @Body() updateDto: UpdateNoticeStatusDto,
     @Request() req: any,
   ): Promise<PreLegalNoticeResponseDto> {
-    const updatedBy = req.user?.username || 'system';
+    const updatedBy = req.user?.username || 'admin';
     return this.preLegalNoticeService.updateNoticeStatus(id, updateDto, updatedBy);
   }
 

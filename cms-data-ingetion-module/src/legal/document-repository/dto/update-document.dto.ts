@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
-  IsEnum,
   IsBoolean,
   IsDateString,
   IsArray,
@@ -28,14 +27,13 @@ export class UpdateDocumentDto {
     description: 'Access permissions for the document (BRD-specified)',
     example: ['Legal Officer', 'Admin', 'Lawyer'],
     type: [String],
-    enum: ['Legal Officer', 'Admin', 'Compliance', 'Lawyer'],
     required: false,
   })
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
-  @IsEnum(['Legal Officer', 'Admin', 'Compliance', 'Lawyer'], { each: true })
-  accessPermissions?: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
+  @IsString({ each: true })
+  accessPermissions?: string[];
 
   @ApiProperty({
     description: 'Whether the document is confidential',
@@ -57,66 +55,11 @@ export class UpdateDocumentDto {
 
   @ApiProperty({
     description: 'Specific type of case document',
-    enum: [
-      'Affidavit',
-      'Summons',
-      'Court Order',
-      'Evidence',
-      'Witness Statement',
-      'Expert Report',
-      'Medical Report',
-      'Financial Statement',
-      'Property Document',
-      'Legal Notice',
-      'Reply Notice',
-      'Counter Affidavit',
-      'Interim Order',
-      'Final Order',
-      'Judgment',
-      'Settlement Agreement',
-      'Compromise Deed',
-      'Power of Attorney',
-      'Authorization Letter',
-      'Identity Proof',
-      'Address Proof',
-      'Income Proof',
-      'Bank Statement',
-      'Loan Agreement',
-      'Security Document',
-      'Other',
-    ],
     example: 'Court Order',
     required: false,
   })
   @IsOptional()
-  @IsEnum([
-    'Affidavit',
-    'Summons',
-    'Court Order',
-    'Evidence',
-    'Witness Statement',
-    'Expert Report',
-    'Medical Report',
-    'Financial Statement',
-    'Property Document',
-    'Legal Notice',
-    'Reply Notice',
-    'Counter Affidavit',
-    'Interim Order',
-    'Final Order',
-    'Judgment',
-    'Settlement Agreement',
-    'Compromise Deed',
-    'Power of Attorney',
-    'Authorization Letter',
-    'Identity Proof',
-    'Address Proof',
-    'Income Proof',
-    'Bank Statement',
-    'Loan Agreement',
-    'Security Document',
-    'Other',
-  ])
+  @IsString()
   caseDocumentType?: string;
 
   @ApiProperty({
@@ -127,7 +70,10 @@ export class UpdateDocumentDto {
     required: false,
   })
   @IsOptional()
-  @ValidateIf((o) => o.hearingDate !== undefined && o.hearingDate !== null && o.hearingDate !== '')
+  @ValidateIf(
+    (o: UpdateDocumentDto) =>
+      o.hearingDate !== undefined && o.hearingDate !== null && o.hearingDate !== '',
+  )
   @IsDateString()
   @IsFutureOrToday({ message: 'Hearing date must be today or later' })
   hearingDate?: string;

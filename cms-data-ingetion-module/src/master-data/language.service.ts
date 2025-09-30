@@ -217,19 +217,76 @@ export class LanguageService {
   }
 
   async findAll() {
-    return db.select().from(languageMaster).orderBy(languageMaster.languageName);
+    return db
+      .select({
+        id: languageMaster.id,
+        languageId: languageMaster.languageId,
+        languageCode: languageMaster.languageCode,
+        languageName: languageMaster.languageName,
+        scriptSupport: languageMaster.scriptSupport,
+        status: languageMaster.status,
+        description: languageMaster.description,
+        createdAt: languageMaster.createdAt,
+        updatedAt: languageMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
+      .from(languageMaster)
+      .leftJoin(users, eq(sql`${languageMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${languageMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
+      .orderBy(languageMaster.languageName);
   }
 
   async findActive() {
     return db
-      .select()
+      .select({
+        id: languageMaster.id,
+        languageId: languageMaster.languageId,
+        languageCode: languageMaster.languageCode,
+        languageName: languageMaster.languageName,
+        scriptSupport: languageMaster.scriptSupport,
+        status: languageMaster.status,
+        description: languageMaster.description,
+        createdAt: languageMaster.createdAt,
+        updatedAt: languageMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
       .from(languageMaster)
+      .leftJoin(users, eq(sql`${languageMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${languageMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
       .where(eq(languageMaster.status, 'Active'))
       .orderBy(languageMaster.languageName);
   }
 
   async findOne(id: string) {
-    const [result] = await db.select().from(languageMaster).where(eq(languageMaster.id, id));
+    const [result] = await db
+      .select({
+        id: languageMaster.id,
+        languageId: languageMaster.languageId,
+        languageCode: languageMaster.languageCode,
+        languageName: languageMaster.languageName,
+        scriptSupport: languageMaster.scriptSupport,
+        status: languageMaster.status,
+        description: languageMaster.description,
+        createdAt: languageMaster.createdAt,
+        updatedAt: languageMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
+      .from(languageMaster)
+      .leftJoin(users, eq(sql`${languageMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${languageMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
+      .where(eq(languageMaster.id, id));
 
     if (!result) {
       throw new NotFoundException(`Language with ID ${id} not found`);
@@ -329,16 +386,50 @@ export class LanguageService {
 
   async findByScript(scriptSupport: string) {
     return db
-      .select()
+      .select({
+        id: languageMaster.id,
+        languageId: languageMaster.languageId,
+        languageCode: languageMaster.languageCode,
+        languageName: languageMaster.languageName,
+        scriptSupport: languageMaster.scriptSupport,
+        status: languageMaster.status,
+        description: languageMaster.description,
+        createdAt: languageMaster.createdAt,
+        updatedAt: languageMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
       .from(languageMaster)
+      .leftJoin(users, eq(sql`${languageMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${languageMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
       .where(eq(languageMaster.scriptSupport, scriptSupport))
       .orderBy(languageMaster.languageName);
   }
 
   async findActiveByScript(scriptSupport: string) {
     return db
-      .select()
+      .select({
+        id: languageMaster.id,
+        languageId: languageMaster.languageId,
+        languageCode: languageMaster.languageCode,
+        languageName: languageMaster.languageName,
+        scriptSupport: languageMaster.scriptSupport,
+        status: languageMaster.status,
+        description: languageMaster.description,
+        createdAt: languageMaster.createdAt,
+        updatedAt: languageMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
       .from(languageMaster)
+      .leftJoin(users, eq(sql`${languageMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${languageMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
       .where(
         and(eq(languageMaster.scriptSupport, scriptSupport), eq(languageMaster.status, 'Active')),
       )

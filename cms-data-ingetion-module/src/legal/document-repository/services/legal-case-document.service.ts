@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq, and, desc, like, count, SQL, sql } from 'drizzle-orm';
+import { eq, and, desc, count, sql } from 'drizzle-orm';
 import * as schema from '../../../db/schema';
 import { DocumentRepositoryService } from '../document-repository.service';
 import { LegalCaseResponseDto } from '../../dto/legal-case-response.dto';
@@ -41,23 +41,20 @@ export class LegalCaseDocumentService {
       }
 
       // Get default document type for case documents
-      const documentType = await this.getDefaultDocumentType('Legal Case Document');
+      const defaultDocType = this.getDefaultDocumentType();
 
       // Create document DTO
       const createDocumentDto: CreateDocumentDto = {
         linkedEntityType: 'Case ID', // BRD-specified entity type
         linkedEntityId: caseId,
         documentName: documentData.documentName,
-        documentType: documentData.documentType as
-          | 'Legal Notice'
-          | 'Court Order'
-          | 'Affidavit'
-          | 'Case Summary'
-          | 'Proof'
-          | 'Other',
+        documentType:
+          this.normalizeDocumentType(documentData.documentType) ||
+          defaultDocType.docCategory ||
+          'Other',
         confidentialFlag: documentData.confidentialFlag || false,
         remarksTags: documentData.remarks || undefined,
-        accessPermissions: ['Lawyer', 'Admin'], // BRD-specified permissions
+        accessPermissions: ['lawyer', 'admin'], // BRD-specified permissions
       };
 
       // Upload document using existing service
@@ -125,7 +122,7 @@ export class LegalCaseDocumentService {
   }> {
     try {
       // Get case details
-      const caseDetails = await this.getCaseDetails(caseId);
+      const caseDetails = this.getCaseDetails();
 
       // Get document summary
       const documentSummary = await this.getDocumentSummary(caseId);
@@ -291,7 +288,7 @@ export class LegalCaseDocumentService {
     return document.length > 0 && document[0].linkedEntityId === caseId;
   }
 
-  private async getDefaultDocumentType(category: string) {
+  private getDefaultDocumentType() {
     // Return a default document type object since documentTypes table was removed for BRD compliance
     return {
       id: 'default-doc-type',
@@ -307,7 +304,46 @@ export class LegalCaseDocumentService {
     };
   }
 
-  private async getCaseDetails(caseId: string): Promise<LegalCaseResponseDto> {
+  /**
+   * Normalize document type from DocumentUploadDto format to CreateDocumentDto format
+   */
+  private normalizeDocumentType(documentType: string): string {
+    if (!documentType) return 'Other';
+
+    // Map DocumentUploadDto values to CreateDocumentDto values
+    const typeMapping: Record<string, string> = {
+      Affidavit: 'Affidavit',
+      'Court Order': 'Court Order',
+      'Legal Notice': 'Legal Notice',
+      Evidence: 'Proof',
+      'Witness Statement': 'Proof',
+      'Expert Report': 'Proof',
+      'Medical Report': 'Proof',
+      'Financial Statement': 'Proof',
+      'Property Document': 'Proof',
+      'Reply Notice': 'Legal Notice',
+      'Counter Affidavit': 'Affidavit',
+      'Interim Order': 'Court Order',
+      'Final Order': 'Court Order',
+      Judgment: 'Court Order',
+      'Settlement Agreement': 'Other',
+      'Compromise Deed': 'Other',
+      'Power of Attorney': 'Other',
+      'Authorization Letter': 'Other',
+      'Identity Proof': 'Proof',
+      'Address Proof': 'Proof',
+      'Income Proof': 'Proof',
+      'Bank Statement': 'Proof',
+      'Loan Agreement': 'Other',
+      'Security Document': 'Other',
+      Summons: 'Other',
+      Other: 'Other',
+    };
+
+    return typeMapping[documentType] || 'Other';
+  }
+
+  private getCaseDetails(): LegalCaseResponseDto {
     // This would call the existing LegalCaseService.getLegalCaseById
     // For now, return a placeholder
     throw new Error('Method not implemented - integrate with LegalCaseService');
@@ -387,7 +423,7 @@ export class LegalCaseDocumentService {
       uploadedBy: doc.uploadedBy,
       fileFormat: doc.fileFormat,
       fileSizeMb: doc.fileSizeMb,
-      accessPermissions: JSON.parse(doc.accessPermissions || '[]'),
+      accessPermissions: JSON.parse(doc.accessPermissions || '[]') as string[],
       confidentialFlag: doc.confidentialFlag || false,
       versionNumber: doc.versionNumber || 1,
       remarksTags: doc.remarksTags || undefined,

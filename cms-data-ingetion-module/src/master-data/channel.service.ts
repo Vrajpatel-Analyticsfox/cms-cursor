@@ -25,7 +25,7 @@ export class ChannelService {
         .limit(1);
       return user.length > 0 ? user[0].fullName : 'admin';
       return userId; // Return as-is if not UUID or numeric
-    } catch (error) {
+    } catch {
       return 'system';
     }
   }
@@ -49,7 +49,7 @@ export class ChannelService {
 
       const lastId = parseInt(result[0].channelId);
       return (lastId + 1).toString();
-    } catch (error) {
+    } catch {
       // Fallback to timestamp-based ID
       return Date.now().toString();
     }
@@ -112,19 +112,73 @@ export class ChannelService {
   }
 
   async findAll() {
-    return db.select().from(channelMaster).orderBy(channelMaster.channelName);
+    return db
+      .select({
+        id: channelMaster.id,
+        channelId: channelMaster.channelId,
+        channelName: channelMaster.channelName,
+        channelType: channelMaster.channelType,
+        status: channelMaster.status,
+        description: channelMaster.description,
+        createdAt: channelMaster.createdAt,
+        updatedAt: channelMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
+      .from(channelMaster)
+      .leftJoin(users, eq(sql`${channelMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${channelMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
+      .orderBy(channelMaster.channelName);
   }
 
   async findActive() {
     return db
-      .select()
+      .select({
+        id: channelMaster.id,
+        channelId: channelMaster.channelId,
+        channelName: channelMaster.channelName,
+        channelType: channelMaster.channelType,
+        status: channelMaster.status,
+        description: channelMaster.description,
+        createdAt: channelMaster.createdAt,
+        updatedAt: channelMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
       .from(channelMaster)
+      .leftJoin(users, eq(sql`${channelMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${channelMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
       .where(eq(channelMaster.status, 'Active'))
       .orderBy(channelMaster.channelName);
   }
 
   async findOne(id: string) {
-    const [result] = await db.select().from(channelMaster).where(eq(channelMaster.id, id));
+    const [result] = await db
+      .select({
+        id: channelMaster.id,
+        channelId: channelMaster.channelId,
+        channelName: channelMaster.channelName,
+        channelType: channelMaster.channelType,
+        status: channelMaster.status,
+        description: channelMaster.description,
+        createdAt: channelMaster.createdAt,
+        updatedAt: channelMaster.updatedAt,
+        createdBy: users.fullName,
+        updatedBy: sql<string>`updated_user.full_name`.as('updatedBy'),
+      })
+      .from(channelMaster)
+      .leftJoin(users, eq(sql`${channelMaster.createdBy}::uuid`, users.id))
+      .leftJoin(
+        sql`${users} as updated_user`,
+        eq(sql`${channelMaster.updatedBy}::uuid`, sql`updated_user.id`),
+      )
+      .where(eq(channelMaster.id, id));
 
     if (!result) {
       throw new NotFoundException(`Channel with ID ${id} not found`);

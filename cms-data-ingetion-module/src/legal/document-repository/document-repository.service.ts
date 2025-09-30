@@ -104,7 +104,7 @@ export class DocumentRepositoryService {
           linkedEntityType: createDto.linkedEntityType,
           linkedEntityId: createDto.linkedEntityId,
           documentName: createDto.documentName,
-          documentType: createDto.documentType,
+          documentType: createDto.documentType || 'Other',
           uploadDate: new Date(),
           uploadedBy,
           fileFormat: file.mimetype,

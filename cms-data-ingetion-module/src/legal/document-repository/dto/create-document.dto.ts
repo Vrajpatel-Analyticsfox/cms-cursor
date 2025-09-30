@@ -3,7 +3,6 @@ import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsEnum,
   IsBoolean,
   IsArray,
   MaxLength,
@@ -13,12 +12,11 @@ import {
 export class CreateDocumentDto {
   @ApiProperty({
     description: 'Type of entity this document is linked to (BRD-specified)',
-    enum: ['Borrower', 'Loan Account', 'Case ID'],
     example: 'Case ID',
   })
-  @IsEnum(['Borrower', 'Loan Account', 'Case ID'])
+  @IsString()
   @IsNotEmpty()
-  linkedEntityType: 'Borrower' | 'Loan Account' | 'Case ID';
+  linkedEntityType: string;
 
   @ApiProperty({
     description: 'ID of the entity this document is linked to',
@@ -41,23 +39,21 @@ export class CreateDocumentDto {
   @ApiProperty({
     description: 'Classification of document (BRD-specified)',
     example: 'Legal Notice',
-    enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
   })
-  @IsEnum(['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'])
+  @IsString()
   @IsNotEmpty()
-  documentType: 'Legal Notice' | 'Court Order' | 'Affidavit' | 'Case Summary' | 'Proof' | 'Other';
+  documentType: string;
 
   @ApiProperty({
     description: 'Access permissions for the document (BRD-specified)',
     example: ['Legal Officer', 'Admin'],
     type: [String],
-    enum: ['Legal Officer', 'Admin', 'Compliance', 'Lawyer'],
   })
   @IsArray()
   @ArrayMinSize(1)
-  @IsEnum(['Legal Officer', 'Admin', 'Compliance', 'Lawyer'], { each: true })
+  @IsString({ each: true })
   @IsNotEmpty()
-  accessPermissions: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
+  accessPermissions: string[];
 
   @ApiProperty({
     description: 'Whether the document is confidential (BRD-specified)',

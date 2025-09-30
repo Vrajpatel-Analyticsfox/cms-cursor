@@ -16,15 +16,29 @@ export class DocumentResponseDto {
   @ApiProperty({
     description: 'Type of entity this document is linked to (BRD-specified)',
     example: 'Case ID',
-    enum: ['Borrower', 'Loan Account', 'Case ID'],
   })
-  linkedEntityType: 'Borrower' | 'Loan Account' | 'Case ID';
+  linkedEntityType: string;
 
   @ApiProperty({
     description: 'ID of the entity this document is linked to',
     example: 'entity-id-123',
   })
   linkedEntityId: string;
+
+  @ApiProperty({
+    description: 'Additional details about the linked entity',
+    example: { caseId: 'LC-20250721-0001', borrowerName: 'John Doe' },
+    required: false,
+  })
+  linkedEntityDetails?: {
+    caseId?: string;
+    borrowerName?: string;
+    loanAccountNumber?: string;
+    currentStatus?: string;
+    caseType?: string;
+    courtName?: string;
+    [key: string]: any;
+  };
 
   @ApiProperty({
     description: 'Name/title of the document (BRD: Max 100 characters)',
@@ -35,9 +49,8 @@ export class DocumentResponseDto {
   @ApiProperty({
     description: 'Classification of document (BRD-specified)',
     example: 'Legal Notice',
-    enum: ['Legal Notice', 'Court Order', 'Affidavit', 'Case Summary', 'Proof', 'Other'],
   })
-  documentType: 'Legal Notice' | 'Court Order' | 'Affidavit' | 'Case Summary' | 'Proof' | 'Other';
+  documentType: string;
 
   @ApiProperty({
     description: 'Date when the document was uploaded (BRD-specified)',
@@ -67,9 +80,8 @@ export class DocumentResponseDto {
     description: 'Access permissions for the document (BRD-specified)',
     example: ['Legal Officer', 'Admin'],
     type: [String],
-    enum: ['Legal Officer', 'Admin', 'Compliance', 'Lawyer'],
   })
-  accessPermissions: ('Legal Officer' | 'Admin' | 'Compliance' | 'Lawyer')[];
+  accessPermissions: string[];
 
   @ApiProperty({
     description: 'Whether the document is confidential (BRD-specified)',

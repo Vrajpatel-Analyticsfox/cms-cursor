@@ -12,9 +12,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global prefix
-  app.setGlobalPrefix('api/v1');
-
   // Setup Swagger documentation
   setupSwagger(app);
 

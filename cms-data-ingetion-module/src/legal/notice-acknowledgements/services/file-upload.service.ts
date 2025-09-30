@@ -250,12 +250,56 @@ export class FileUploadService {
       };
     }
 
-    // Check file type
-    const fileExtension = path.extname(file.originalname).toUpperCase().slice(1);
-    if (!this.allowedFileTypes.includes(fileExtension)) {
+    // Check file type by MIME type
+    const allowedMimeTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'text/plain',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/octet-stream', // For some file types that don't have specific MIME types
+    ];
+
+    // Check both MIME type and file extension for better compatibility
+    const fileExtension = path.extname(file.originalname).toLowerCase().slice(1);
+    const allowedExtensions = [
+      'pdf',
+      'doc',
+      'docx',
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'txt',
+      'xls',
+      'xlsx',
+      'ppt',
+      'pptx',
+      'zip',
+    ];
+
+    const isMimeTypeAllowed = allowedMimeTypes.includes(file.mimetype);
+    const isExtensionAllowed = allowedExtensions.includes(fileExtension);
+
+    // Log file details for debugging
+    this.logger.debug(
+      `File validation - Name: ${file.originalname}, MIME: ${file.mimetype}, Extension: ${fileExtension}, MIME Allowed: ${isMimeTypeAllowed}, Extension Allowed: ${isExtensionAllowed}`,
+    );
+
+    if (!isMimeTypeAllowed && !isExtensionAllowed) {
       return {
         isValid: false,
-        error: `File type not allowed. Allowed types: ${this.allowedFileTypes.join(', ')}`,
+        error: `File type not allowed. File: ${file.originalname} (MIME: ${file.mimetype}, Extension: ${fileExtension}). Allowed types: ${allowedMimeTypes.join(', ')} or extensions: ${allowedExtensions.join(', ')}`,
       };
     }
 
